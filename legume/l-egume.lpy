@@ -23,6 +23,7 @@ r.source('calc_root_tropism.r')#r.source('C:/devel/grassland/calc_root_tropism.r
 
 
 
+
 from numpy.random import binomial, seed
 from scipy import * 
 from copy import deepcopy
@@ -42,17 +43,17 @@ import random
 ## lecture fichier meteo
 #faire une fonction??
 meteo_path = os.path.join(path_leg,'meteo_exemple_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
-ongletM = 'Lusignan30'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
+ongletM = 'Lusignan302ans'#'Lusignan30'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
 meteo = IOxls.read_met_file(meteo_path, ongletM)
 
 ## lecture fichier management
 mn_path = os.path.join(path_leg,'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
-ongletMn = 'Lusignan30IrrN'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
+ongletMn = 'Lusignan30IrrN2ans'#'Lusignan30IrrN'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
 mng = IOxls.read_met_file(mn_path, ongletMn)
 
 ## lecture fichier initialisation
 inis_path = os.path.join(path_leg,'Initialisation_sol_exemple.xls')
-ongletIn = 'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'
+ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'
 inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 
@@ -61,7 +62,7 @@ path_plante = os.path.join(path_leg,'Parametres_plante_v5cLucas.xls')#'Parametre
 ongletP = 'Fix1'#'Fix'#'timbale'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
 ongletPvois = 'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
-#lesture des parametres du sol
+#lecture des parametres du sol
 path_sol = os.path.join(path_leg,'Parametres_sol_exemple2_debugL_glbis.xls')#
 ongletS = 'lusignan99'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#
 par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
@@ -87,7 +88,7 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 #initialisation des variables globale de simulation
 DOYdeb = 60#49#159#124#
-DOYend = 335#120#250#244#282#
+DOYend = 610#335#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
@@ -103,6 +104,34 @@ cote = 40.#100.#100#25.#25.#cm
 dz_aerien = 2.#2.#2.5#5.#7.5#10.#7.#cm dz vise
 Hmaxcouv = 150.#150.# 200. #cm
 latitude = 46.43 #Lusignan (degre) -> a passer dans le fichier inis
+
+obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transpose() #matice 2D de valeurs de profondeur d'obstacle en m #None #
+
+
+
+#1 residu = listes de 1 element
+#DOYres = DOYdeb+20#300 #jour d'ajout des residus -> pas utilise
+nb_res = 8
+
+vAmount= [0.1]*nb_res#[20.]# T Fresh Weight.ha-1 (equivalent QRES)
+vCNRESt = [16.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
+Vprop1 = [1./3., 1./3., 1./3.]+27*[0.] #distribution dans les horizons
+vProps= [Vprop1]*nb_res#[Vprop1]#[Vprop1, Vprop1, Vprop1]
+vWC=[0.7]*nb_res# fraction d'eau des residu frais (equivalent de Crespc /(%)/100)
+vCC=[0.42]*nb_res# fraction de C des residus sec (equivalent de Crespc /(%)/100)
+vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equivalent de Nminres(%)/100)
+
+
+
+#options de simation
+opt_residu = 1 #si 0, pas ativation de mineralisation
+visu_root=1#1# pour visualisation/interpretation root
+visu_shoot=1#1# pour visualisation/interpretation shoot
+visu_sol=1#1# pour visualisation/interpretation sol
+#550 it en 2013s/1940s
+#curieusement plante (memory error??) quand pas de visualisation??-> a creuser
+# plante pas si visu_shoot a 1...
+#essai avec juste In
 
 
 
@@ -347,7 +376,7 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
 
 
 
-def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol):
+def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,obstarac =None):
     
     #vecteurs d'initialisation du sol
     Tsol = meteo_j['Tsol']#15. #degresC
@@ -383,7 +412,7 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol):
     
     
     ## soil initialisation
-    S = solN.SoilN(par_sol, par_SN, soil_number = vsoilnumbers, dxyz = [[Lsol/discret_solXY[0]]*discret_solXY[0], [largsol/discret_solXY[1]]*discret_solXY[1], [dz_sol/100.]*ncouches_sol], vDA=vDA, vCN=vCN,vMO=vMO, vARGIs = vARGIs,vNO3=vNO3,vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol,pH=par_SN['pH'], ZESX=par_SN['ZESX'] , CFES=par_SN['CFES'])
+    S = solN.SoilN(par_sol, par_SN, soil_number = vsoilnumbers, dxyz = [[Lsol/discret_solXY[0]]*discret_solXY[0], [largsol/discret_solXY[1]]*discret_solXY[1], [dz_sol/100.]*ncouches_sol], vDA=vDA, vCN=vCN,vMO=vMO, vARGIs = vARGIs,vNO3=vNO3,vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol,pH=par_SN['pH'], ZESX=par_SN['ZESX'] , CFES=par_SN['CFES'],obstarac=obstarac)
     
     
     if HRpinit!=[]:#initialise humidite si un vecteur est fourni
@@ -392,6 +421,8 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol):
     
     #lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol], [largsol], [dz_sol/100.]*ncouches_sol])
     
+    if opt_residu==1:#initialisatio de residus
+        S.init_residues(vCNRESt, vAmount, vProps, vWC, vCC)
     
     
     #print 'sol', sum(S.m_NO3), sum(S.m_NH4), sum(S.m_QH20fc)-sum(S.m_QH20wp)
@@ -1318,7 +1349,7 @@ def cumul_lenIN(tab, tabL, I_I0profilInPlant_):
 def Start():
     
     #initialisation des variables globale de simulation
-    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard 
+    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard
     
     DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard = init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd)
     
@@ -1338,8 +1369,16 @@ def Start():
     carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv)
     
     #initialisation du sol
-    global S, Tsol, Uval, stateEV, b_
-    S, Tsol, Uval, stateEV, b_ = init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol)
+    global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr
+    S, Tsol, Uval, stateEV, b_ = init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,obstarac_)
+    #mat_res = 0.*S.m_1 #en faire 
+    ls_groupe_resid = map(int, riri.get_lsparami(ParamP, 'groupe_resid'))
+    setr = list(set(ls_groupe_resid)) #set equivalent fonction r.unique!
+    ls_mat_res = []
+    for i in range(2):#len(setr)): #force a 2 sinon bug qd des esidu de l'esp 1 seulement
+        ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
+    
+    print len(ls_mat_res) #= [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]
     
     #initialisation des variables d'etat plante
     global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root 
@@ -1456,7 +1495,7 @@ def StartEach():
 
 def EndEach(lstring):
     #sorties
-    global   S, Uval, stateEV, DOY, meteo_j,mng_j,  PP, res_root, nbplantes, surfsolref, ls_ftswStress,past_time, I_I0profilInPlant,lsOrgans, Uval2, stateEV2,ls_NNIStress #,Et0,SurfPlante, PARaPlante, PARiPlante,Hplante, Dplante, RLTot,RDepth,dpar, Mrac_fine, Mpivot,DiampivMax, RprospectProfil, RLProfil,
+    global   S, Uval, stateEV, DOY, meteo_j,mng_j,  PP, res_root, nbplantes, surfsolref, ls_ftswStress,past_time, I_I0profilInPlant,lsOrgans, Uval2, stateEV2,ls_NNIStress, ls_mat_res #,Et0,SurfPlante, PARaPlante, PARiPlante,Hplante, Dplante, RLTot,RDepth,dpar, Mrac_fine, Mpivot,DiampivMax, RprospectProfil, RLProfil,
     
     #calcul de ls_epsi
     invar['parap'] = array(map(sum,invar['PARaPlante']))
@@ -1586,11 +1625,15 @@ def EndEach(lstring):
     treshEffRoots_ = 10e10#valeur pour forcer a prendre densite effective
     ls_transp, evapo_tot, Drainage, stateEV,  ls_m_transpi, m_evap, ls_ftsw = S.stepWBmc(meteo_j['Et0']*surfsolref, ls_roots, ls_epsi, Rain*surfsolref, Irrig*surfsolref, stateEV, par_SN['ZESX'], leafAlbedo=0.15, U=Uval, b=b_, FTSWThreshold=0.4, treshEffRoots=treshEffRoots_, opt=1)
     S.stepNB(par_SN)
+    if opt_residu == 1:#s'ily a des residus
+        S.stepResidueMin(par_SN)
+        S.stepMicrobioMin(par_SN)
     S.stepNitrif(par_SN)
     ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi, ls_demandeN_bis)
     S.stepNINFILT(mapN_Rain, mapN_Irrig, mapN_fertNO3, mapN_fertNH4, Drainage, opt=1)
     
-    #print 'idmin ', idmin[0][0][0]
+    
+    
     
     if sum(ls_transp)+evapo_tot > meteo_j['Et0']*surfsolref:
         print meteo_j['Et0']*surfsolref,  sum(ls_transp), evapo_tot #Rain*surfsolref, Irrig*surfsolref,
@@ -1723,6 +1766,23 @@ def EndEach(lstring):
     invar['perteN_rac_fine'] = invar['dMSenRoot']*invar['Npc_rac_fine']/100.
     #sortir une variable cumule d'N des rac mortes? -> compement a invar['Nrac_fine'] qui comprend les deux
     
+    #ajout dans la matrice des residus
+    for nump in range(len(invar['dMSenRoot'])):
+        voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
+        groupe_resid = int(ParamP[nump]['groupe_resid'])
+        ls_mat_res[groupe_resid*4+2][voxsol[2]][voxsol[1]][voxsol[0]] += invar['dMSenRoot'][nump]
+        #a revoir: tenir compte du groupe_resid
+        #tout mis en surface: faire une distrib dans le sol en profondeur!
+    
+    #ajout des pivots a faire avant mse a jour des cres
+    if opt_residu == 1:#option residu activee: mise a jour des cres
+        if sum(map(sum, ls_mat_res))>0.:#si de nouveaux residus (ou supeieur a un seuil
+          for i in range(len(ls_mat_res)):
+              mat_res = ls_mat_res[i]
+              if sum(mat_res)>0.:
+                  S.mixResMat(mat_res, i, vCC[i])
+    
+    
     #calcul senesc a faire a l'echelle des axes plutot? -> a priori pas necessaire
     
     
@@ -1849,6 +1909,14 @@ def EndEach(lstring):
     #prints et log
     #print epsi, sum3(S.asw_t)  #epsi, map_PI, D,  sum3(ls_roots_eff[0]), sum3(m_frac_evap),sum3(m_frac_transpi),sum3(m_frac_evap)+sum3(m_frac_transpi), sum3(S.asw_t)#, S1#, #, ls_transp, ftsw_tevapo_tot#ftsw_t#
     #print invar_sc['ax']['MaxPARaF']
+    #print 'mat_res', map(sum, ls_mat_res)
+    #remise a zero de ls_mat_res
+    #ls_mat_res = [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#par groupe d'organe et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)# + faire pour chaque groupe_resid (1 seul ici)
+    ls_mat_res = []
+    for i in range(2):#len(setr)): #force a 2 sinon bug qd des residus de l'esp 1 seulement
+        ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
+    
+
 
 
 
@@ -1870,10 +1938,14 @@ def End(lstring,lscene):
     dicout['fertNO3'] = S.bilanN['cumfertNO3']
     dicout['fertNH4'] = S.bilanN['cumfertNH4']
     dicout['HumusNMin'] = S.bilanN['cumMinN']
-    #dicout['Res1'] = S.bilanN['cumNRes1']
-    #dicout['Res2'] = S.bilanN['cumNRes2']
-    #dicout['Res3'] = S.bilanN['cumNRes3']
-    #dicout['ResidueMinN'] = S.bilanN['cumNRes1']+S.bilanN['cumNRes2']+S.bilanN['cumNRes3']
+    if opt_residu == 1:
+        dicout['Res1'] = S.bilanN['cumNRes1']
+        dicout['Res2'] = S.bilanN['cumNRes2']
+        dicout['Res3'] = S.bilanN['cumNRes3']
+        dicout['ResidueMinN'] = S.bilanN['cumNRes1']+S.bilanN['cumNRes2']+S.bilanN['cumNRes3']
+        for i in range(len(S.bilanN['NminfromNres'])):
+            dicout['NminfromNres'+str(i)] = S.bilanN['NminfromNres'][i] #ajout des sorties Nmin par residu
+    
     dicout['Lix'] = S.bilanN['cumLix']
     #dicout['N2O'] = S.bilanN['cumN2O']
     dicout['UptPlt'] = map(sum, S.bilanN['cumUptakePlt']) 
@@ -2671,6 +2743,31 @@ def End(lstring,lscene):
 
 
 
+#37h_quad_initc
+# changement du sol utilise (solN3.py) -> debug + ossibilite de prendre en compte obstrac
+# defiition d'un obtarac par defaut a None dans les entree sol (carto 2D de profondeur en m)-> projet sanxay
+#!! bug avec obstarac_ = None quand definit en global ??? -> lie a l-py? -> OK coutrournepar les type()
+
+
+#test d'initialisation avec des residus -> OK! fournir bon vprops1 (bon nb d'horzon)
+#ajout des calcul de mineralisation: OK
+#test de simul avec ajout d'un residu predefinit dans le premier horizon de sol (feuilles)
+# consrtuire marice des residus: mat_res alimentee ar les feuilles : OK
+# stipules et petiole ajoutes dans matrice des feuilles: grosse part liee aux petioles... revoir parametrage?
+# mat residu tige et rac_fine alimentee par senescnce
+
+# dans module de sol: offrir la possiblite d'jouter de la matiere a une forme de residu existante -> OK = fonction S.mixResMat()
+#couplage avec option residu en dynamique: OK, fonctionnel
+#ajout des sorties des rsidus dans le fichier de sortie du bilan C/N ->OK
+# passe lecture des groupe_resid depuis fichier plante -> OK
+# mais force a 2 groupe_resid pour initialisation car sinon bug qd des residus de l'esp 2 seulement: revoir comment gerer ca...
+#ajout d'options de visualisation du sol, des racine et des tiges (regles d'interpretation optionnelles)
+
+
+#A faire 
+# pour pivot respe a zero! -> ajute variable de mort des plante et disparition des racines et pivots qd ca arrive -> A faire
+#ajouter un deuxieme groupe de residu au moins (2e espece?)
+
 
 #A FAIRE : + changer distrib_dM_ax pour bien simuler couverts a racines multiples / rhizomes
 
@@ -2968,7 +3065,6 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, phyllotax):
     
     #print nump, age #malgre retard, tous les A ont le meme age
     if age >= ParamP[nump]['phyllochron']/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDev'][nump]): # introduit arret developpement des apex en fonction gradient vertical PAR
-
         if PARsense>=meteo_j['I0']*ParamP[nump]['par_tresh']:
             if nsh==0:
                 invar['firstleaf'][nump]=min(TT,invar['firstleaf'][nump])
@@ -2980,7 +3076,7 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, phyllotax):
             liniP =  expansion(newage, ParamP[nump]['aP'], ParamP[nump]['delaiP'])
             liniS = expansion(newage, ParamP[nump]['aS'], ParamP[nump]['delaiS'])
             liniE = expansion(newage, ParamP[nump]['aE'], ParamP[nump]['delaiE'])#ajout lucas: necessaire chez le TB! sinon, les entrenoeuds demarrent au milieu de leur croissance... Pour eviter ce genre de problemes et/ou des decalages bizarres, s'assurer a l'avenir que les delaiE, delaiF et delaiP soient normalises pour que le TT au point d'inflexion de la fct logistique soit a la moitie d'un phyllochrone.
-
+            
             lsAxes.append([nump,nsh,rank])
             lsApex.append([nump,nsh, rank, 1, I_I0,duromb,''])
             lsApexAll.append([nump,nsh, rank, 1, I_I0,duromb,''])
@@ -3136,7 +3232,11 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
     
     #sen participe a surface et LAI (interception) mais pas au PARa (absorption)
     if age> ParamP[nump]['spanMrt'] or tt_omb> ParamP[nump]['ombF_Ttresh']+ParamP[nump]['spanMrt']-ParamP[nump]['spanSen'] :
-        invar['dMSenFeuil'][nump] += surF*10000/ParamP[nump]['SLAmin'] #g
+        voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
+        mfeuilmorte = surF*10000/ParamP[nump]['SLAmin'] #g
+        groupe_resid = int(ParamP[nump]['groupe_resid'])
+        ls_mat_res[groupe_resid*4][voxsol[2]][voxsol[1]][voxsol[0]] += mfeuilmorte
+        invar['dMSenFeuil'][nump] += mfeuilmorte
         produce *
     else:
         newage = age+STEPS
@@ -3297,7 +3397,14 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         else : #reste en 'mat'
             m_lais_construct[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surF
             produce Stp(nump,azi,l, 'mat')
-    else: # absence de stipule / ou 'spanMrt' -> retire de la chaine
+    elif ParamP[nump]['gotStip']== 1. and age >= ParamP[nump]['spanMrt']: # stipule mort ou 'spanMrt' -> retire de la chaine et met ddans residus feuille
+        surF = calc_surS(nump, rank, rankp, ordre, l)#m2      
+        voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
+        mfeuilmorte = surF*10000/ParamP[nump]['SLAmin'] #g
+        groupe_resid = int(ParamP[nump]['groupe_resid'])
+        ls_mat_res[groupe_resid*4][voxsol[2]][voxsol[1]][voxsol[0]] += mfeuilmorte
+        produce *
+    else: 
         produce *
 
 
@@ -3328,7 +3435,11 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
     lsOrgans.append([TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre,l,lpet,DOY,cutNB,'NA'])#decalage de un step pour l avec age en exp ou mort
     
     if age> ParamP[nump]['spanMrt'] or nsh in invar['lsApexMort'][nump]:#mort du module
-        invar['dMSenTige'][nump] += lpet*100/ParamP[nump]['SPLmin'] #g
+        voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
+        mpetmort = lpet*100/ParamP[nump]['SPLmin'] #g
+        groupe_resid = int(ParamP[nump]['groupe_resid'])
+        ls_mat_res[groupe_resid*4][voxsol[2]][voxsol[1]][voxsol[0]] += mpetmort
+        invar['dMSenTige'][nump] += mpetmort#g
         produce *
     
     elif statut == 'exp':
@@ -3369,7 +3480,11 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     invar['NBphyto'][nump] += 1 #comptage du phytomere 
     
     if nsh in invar['lsApexMort'][nump]: #Meurt si tige meurt meurt
-        invar['dMSenTige'][nump] += lent*100/ParamP[nump]['SNLmin'] #g
+        voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
+        minmort = lent*100/ParamP[nump]['SNLmin'] #g
+        groupe_resid = int(ParamP[nump]['groupe_resid'])
+        ls_mat_res[groupe_resid*4+1][voxsol[2]][voxsol[1]][voxsol[0]] += minmort
+        invar['dMSenTige'][nump] += minmort
         produce *
     elif statut == 'exp':
         pot = expansion(age+STEPS, ParamP[nump]['aE'], ParamP[nump]['delaiE']) - expansion(age, ParamP[nump]['aE'], ParamP[nump]['delaiE'])
@@ -3442,6 +3557,16 @@ RA(nump, nsh, age, rankp, agecum, moduloH):
     
     idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
     
+    # quelle prof max de sol si il y a un obstarac?
+    if S.obstarac is None or type(S.obstarac != type(array([0.]))):
+        prof_obst = prof_sol_max
+    else:
+        #dans quel voxl de sol est la plante
+        vox = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
+        prof_obst =  -S.obstarac[vox[0], vox[1]]*100.
+        #print 'sol depth', prof_sol_max, vox, S.obstarac[vox[0], vox[1]]#, na, [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], vox
+    
+    
     if moduloH>invar['RDepth'][nump]:
         invar['RDepth'][nump]=moduloH
     
@@ -3461,10 +3586,10 @@ RA(nump, nsh, age, rankp, agecum, moduloH):
     #seuil pour emission d'un nouveau root segment
     tresh=ParamP[nump]['Relongation_duration0']/max(0.0001, ratio)
     #print moduloH, moduloH%dz_sol, prof_sol_max
-    if age>tresh and moduloH%dz_sol==0. and moduloH<prof_sol_max:
+    if age>tresh and moduloH%dz_sol==0. and moduloH<min([prof_sol_max, prof_obst]):
         #print moduloH, dz_sol, moduloH%dz_sol, int(moduloH/dz_sol)
         produce RLB(nump,nsh,0,rankp, int(moduloH/dz_sol))RS(nump,nsh, rankp,moduloH)RA(nump,nsh, age%tresh+STEPSsol, rankp, agecum+STEPSsol, moduloH+ParamP[nump]['LRS'])
-    elif age>tresh and moduloH<prof_sol_max:
+    elif age>tresh and moduloH<min([prof_sol_max, prof_obst]):
         produce RS(nump, nsh, rankp, moduloH)RA(nump, nsh, age%tresh+STEPSsol, rankp, agecum+STEPSsol,moduloH+ParamP[nump]['LRS'])
     else:
         produce RA(nump,nsh, age+STEPSsol, rankp, agecum+STEPSsol,moduloH)
@@ -3566,174 +3691,192 @@ attente(n):
 
 interpretation:
 SHP(nump,azi, elv0,posi,nbp,par):
-    if elv0 < ParamP[nump]['elvtresh'] and par>=meteo_j['I0']*ParamP[nump]['par_tresh']:#pour moduler incli0 par longueur/incli en plante isolee
-        Lsh = ParamP[nump]['Len']*nbp
-        Hsh = Lsh*sin(elv0*pi/180.)
-        corr_elv = max(0,(ParamP[nump]['Lmaxeffet']-Hsh))/ParamP[nump]['Lmaxeffet'] 
-    elif elv0 < 60 and par<meteo_j['I0']*ParamP[nump]['par_tresh']: #pour moduler incli competition forte/ a revoir au niveau de la loi de ditrib ou de elasticite
-        corr_elv =1.#1.3
-    else:
-        corr_elv =1.
-        
-    produce &(-elv0*corr_elv)
+    if visu_shoot==1:
+        if elv0 < ParamP[nump]['elvtresh'] and par>=meteo_j['I0']*ParamP[nump]['par_tresh']:#pour moduler incli0 par longueur/incli en plante isolee
+            Lsh = ParamP[nump]['Len']*nbp
+            Hsh = Lsh*sin(elv0*pi/180.)
+            corr_elv = max(0,(ParamP[nump]['Lmaxeffet']-Hsh))/ParamP[nump]['Lmaxeffet'] 
+        elif elv0 < 60 and par<meteo_j['I0']*ParamP[nump]['par_tresh']: #pour moduler incli competition forte/ a revoir au niveau de la loi de ditrib ou de elasticite
+            corr_elv =1.#1.3
+        else:
+            corr_elv =1.
+            
+        produce &(-elv0*corr_elv)
 
 
 In(nump,nsh,age,rank,rankp, l, statut,ordre):
-    lent = calc_Lent(nump, rank, nsh, ordre, l)*100. #cm
-    if ordre==2:
-        color=2
-    else:
-        color=3
-    if ordre==1 and nsh==0:
-        color=2
-    
-    #produce ;(2)@Tp([0,0,1])Ts(lent*ParamP[nump]['elasticity'])F(lent,0.3)
-    produce ;(color)@Tp([0,0,1])@Ts(min(1,lent*ParamP[nump]['elasticity']))F(lent,0.3)# modif lucas : min() car avait de drole de comportement sans ca a certaines valeurs
+    if 1==1:#visu_shoot==1:
+        lent = calc_Lent(nump, rank, nsh, ordre, l)*100. #cm
+        if ordre==2:
+            color=2
+        else:
+            color=3
+        if ordre==1 and nsh==0:
+            color=2
+        
+        #produce ;(2)@Tp([0,0,1])Ts(lent*ParamP[nump]['elasticity'])F(lent,0.3)
+        produce ;(color)@Tp([0,0,1])@Ts(min(1,lent*ParamP[nump]['elasticity']))F(lent,0.3)# modif lucas : min() car avait de drole de comportement sans ca a certaines valeurs
 
 A(nump,nsh,statut,age, duromb, rank, phyllotax):
-    if statut ==1:
-        produce ;(3)Sphere(0.4)
-    else:
-        produce ;(4)Sphere(0.4)
+    if visu_shoot==1:
+        if statut ==1:
+            produce ;(3)Sphere(0.4)
+        else:
+            produce ;(4)Sphere(0.4)
 
 A2(nump, nsh, statut, age, duromb,rank, rankp, phyllotax):
-    if statut ==1:
-        produce ;(1)Sphere(0.3)
-    else:
-        produce ;(4)Sphere(0.3)
+    if visu_shoot==1:
+        if statut ==1:
+            produce ;(1)Sphere(0.3)
+        else:
+            produce ;(4)Sphere(0.3)
 
 
 #D(nump,statut,posi) --> @M(posi[0],posi[1],posi[2])#;(1)Sphere(0.2)#les voit pas
 
 
 Pet(nump, nsh, age, azi,l1, statut1) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
-    lpet = calc_Lpet(nump, rank, rankp, ordre, l1)*100.#cm
-    IncPet = ParamP[nump]['IncPet']
-    
-    produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet)_(0.1)F(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)
-    #produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet);(2)F(0.00001,0.1)F(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)  
+    if visu_shoot==1:
+        lpet = calc_Lpet(nump, rank, rankp, ordre, l1)*100.#cm
+        IncPet = ParamP[nump]['IncPet']
+        
+        produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet)_(0.1)F(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)
+        #produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet);(2)F(0.00001,0.1)F(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)  
 
 
 Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
-    cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
-    rk = rank+rankp if ordre==2 else rank
-    rk = min(rk, len(ParamP[nump]['profilLeafI_l'])-1) #au cas ou profil pas assez long
-    Long  = ParamP[nump]['profilLeafI_l'][rk]*l*cor_ordre
-    Larg = ParamP[nump]['profilLeafI_larg'][rk]*l*cor_ordre
-    nf = ParamP[nump]['profilLeafI_nfol'][rk]
-    if statut == 'exp' or statut == 'mat':
-        col=2#2
-    elif statut == 'sen':
-        col = 1
-    
-    if ordre ==2:
-        col = 3#2
+    if visu_shoot==1:
+        cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
+        rk = rank+rankp if ordre==2 else rank
+        rk = min(rk, len(ParamP[nump]['profilLeafI_l'])-1) #au cas ou profil pas assez long
+        Long  = ParamP[nump]['profilLeafI_l'][rk]*l*cor_ordre
+        Larg = ParamP[nump]['profilLeafI_larg'][rk]*l*cor_ordre
+        nf = ParamP[nump]['profilLeafI_nfol'][rk]
+        if statut == 'exp' or statut == 'mat':
+            col=2#2
+        elif statut == 'sen':
+            col = 1
         
-    #insere pour mixtures
-    if ParamP[nump]['type']==1:
-        col=2
-    else:
-        col=6
-    
-    #geom = leg_leaf(Long, Larg, gamma=ParamP[nump]['gammaFeuil'])
-    geom = leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'])
-    #print leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'], geom=False)
-    produce ;(col)@g(geom)
+        if ordre ==2:
+            col = 3#2
+            
+        #insere pour mixtures
+        if ParamP[nump]['type']==1:
+            col=2
+        else:
+            col=6
+        
+        #geom = leg_leaf(Long, Larg, gamma=ParamP[nump]['gammaFeuil'])
+        geom = leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'])
+        #print leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'], geom=False)
+        produce ;(col)@g(geom)
 
 
 Stp(nump, azi,l, statut)> Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0_,Y0_,Z0_)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
-    if ParamP[nump]['gotStip']== 1.:
-        cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
-        rk = rank+rankp if ordre==2 else rank
-        rk = min(rk, len(ParamP[nump]['profilStipI_l'])-1) #au cas ou profil pas assez long
-        Long = l*ParamP[nump]['profilStipI_l'][rk]*cor_ordre
-        Larg = l*ParamP[nump]['profilStipI_larg'][rk]*cor_ordre
-        stip = geomstip(Long, Larg,alpha=90,gamma=ParamP[nump]['gammaFeuil'])
-        col = 5#0#2#
-        produce SetHead(0,0,1, 1,0,0)/(azi%360-90);(col)@g(stip)
-        #y a des implicites pour les angles
+    if visu_shoot==1:
+        if ParamP[nump]['gotStip']== 1.:
+            cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
+            rk = rank+rankp if ordre==2 else rank
+            rk = min(rk, len(ParamP[nump]['profilStipI_l'])-1) #au cas ou profil pas assez long
+            Long = l*ParamP[nump]['profilStipI_l'][rk]*cor_ordre
+            Larg = l*ParamP[nump]['profilStipI_larg'][rk]*cor_ordre
+            stip = geomstip(Long, Larg,alpha=90,gamma=ParamP[nump]['gammaFeuil'])
+            col = 5#0#2#
+            produce SetHead(0,0,1, 1,0,0)/(azi%360-90);(col)@g(stip)
+            #y a des implicites pour les angles
 
 
 Coll(posi) --> @M(posi[0],posi[1],posi[2])[;(0)SetHead(0,0,-1, -1,0,0) #! contient ouverture de [ du systeme racinaire
-RA(nump,nsh,age, rankp,agecum,moduloH) --> ;(3)Sphere(0.4)
-RS(nump, nsh, rankp, moduloH):
-     #diampiv = max(0.1 ,invar['DiampivMax'][nump]*(1-moduloH/ParamP[nump]['ZPivot_min'])) 
-     idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
-     diampiv = max(0.1 ,invar_sc['ax']['DiampivMax'][idax]*(1-moduloH/ParamP[nump]['ZPivot_min']))
-     produce ;(1)_(diampiv)F(ParamP[nump]['LRS'])
 
-RLB(nump,nsh,age,rankp, Horiz) --> ;(0)Sphere(0.4)
-#RLAP(nump,age, l, Horiz) --> ;(0)_(l)F(dz_sol)
+RA(nump,nsh,age, rankp,agecum,moduloH): 
+    if visu_root==1:
+        produce ;(3)Sphere(0.4)
+
+RS(nump, nsh, rankp, moduloH):
+    if visu_root==1:
+        #diampiv = max(0.1 ,invar['DiampivMax'][nump]*(1-moduloH/ParamP[nump]['ZPivot_min'])) 
+        idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
+        diampiv = max(0.1 ,invar_sc['ax']['DiampivMax'][idax]*(1-moduloH/ParamP[nump]['ZPivot_min']))
+        produce ;(1)_(diampiv)F(ParamP[nump]['LRS'])
+
+RLB(nump,nsh,age,rankp, Horiz): 
+    if visu_root==1:
+        produce ;(0)Sphere(0.4)
+
 RLAP(nump,nsh,age,rankp, l, Horiz): 
-    #print l #->Nan??
-    id = r.idLong(l, ParamP[nump]['profilRoot'])
-    
-    #print id, l
-    
-    larg = ParamP[nump]['profilRoot']['y'][id]
-    long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])
-    produce ;(0)_(larg)F(long)
-    #produce ;(0)_(l)F(dz_sol)
+    if visu_root==1:
+        id = r.idLong(l, ParamP[nump]['profilRoot'])
+        #print id, l
+        larg = ParamP[nump]['profilRoot']['y'][id]
+        long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])
+        produce ;(0)_(larg)F(long)
+        #produce ;(0)_(l)F(dz_sol)
 
 solxy(sol_obj, idcol):
-    global dz_sol, ncouches_sol, discret_solXY
-    #print mean(sol_obj.HRp(), axis=1)[:,0]#mean(mean(sol_obj.HRp(), axis=0), axis=0)
-    Nmin_xy = mean(sol_obj.m_NO3, axis=1)#mean(sol_obj.m_NO3+sol_obj.m_NH4)/(sol_obj.m_soil_vol*sol_obj.m_DA)*1000, axis=1)
-    norm_Nmin_xy = Nmin_xy/Nmin_xy.max()
-    norm_Nmin_xy = norm_Nmin_xy[:,idcol]
-    
-    ftsw_xy = mean(sol_obj.ftsw_t, axis=1)[:,idcol]
-    nbcol = discret_solXY[1]
-    larg_box = 30.
-    
-    #print norm_Nmin_xy #ftsw_xy
-    for i in range(ncouches_sol):
-        z = -i*dz_sol
-        values = ftsw_xy#norm_Nmin_xy#   A changer pour voir variable de sortie souhaitee
+    if visu_sol == 1:
+        global dz_sol, ncouches_sol, discret_solXY
+        #print mean(sol_obj.HRp(), axis=1)[:,0]#mean(mean(sol_obj.HRp(), axis=0), axis=0)
+        Nmin_xy = mean(sol_obj.m_NO3, axis=1)#mean(sol_obj.m_NO3+sol_obj.m_NH4)/(sol_obj.m_soil_vol*sol_obj.m_DA)*1000, axis=1)
+        norm_Nmin_xy = Nmin_xy/Nmin_xy.max()
+        norm_Nmin_xy = norm_Nmin_xy[:,idcol]
         
-        #ftsw = max(0., mean(sol_obj.ftsw_t[i,:,:]))
-        ftsw = max(0, values[i])
-        col = 16 + int(ceil((1-ftsw)/0.1))
-        #nproduce ;(col)@M(-50,0,z-dz_sol)@g(Box(1,30,dz_sol))
-        nproduce ;(col)@M(-50,float(idcol)*2*larg_box/float(nbcol),z-dz_sol)@g(Box(1,larg_box/float(nbcol),dz_sol))
+        ftsw_xy = mean(sol_obj.ftsw_t, axis=1)[:,idcol]
+        nbcol = discret_solXY[1]
+        larg_box = 30.
+        
+        #print norm_Nmin_xy #ftsw_xy
+        for i in range(ncouches_sol):
+            z = -i*dz_sol
+            values = ftsw_xy#norm_Nmin_xy#   A changer pour voir variable de sortie souhaitee
+            
+            #ftsw = max(0., mean(sol_obj.ftsw_t[i,:,:]))
+            ftsw = max(0, values[i])
+            col = 16 + int(ceil((1-ftsw)/0.1))
+            #nproduce ;(col)@M(-50,0,z-dz_sol)@g(Box(1,30,dz_sol))
+            nproduce ;(col)@M(-50,float(idcol)*2*larg_box/float(nbcol),z-dz_sol)@g(Box(1,larg_box/float(nbcol),dz_sol))
 
 
 
 sol(sol_obj, nbcol):
-    #l'affiche au premier step pour bien definir champs de la camera
-    global dz_sol, ncouches_sol
-    #print mean(sol_obj.HRp(), axis=1)[:,0]#mean(mean(sol_obj.HRp(), axis=0), axis=0)
-    for i in range(ncouches_sol):
-        z = -i*dz_sol
-        ftsw = max(0., mean(sol_obj.ftsw_t[i,:,:]))
-        #ftsw = max(0, ftsw_xy[i])
-        col = 16 + int(ceil((1-ftsw)/0.1))
-        nproduce ;(col)@M(-53,0,z-dz_sol)@g(Box(1,30,dz_sol))
-        #nproduce ;(col)@M(-50,float(idcol)*30./float(nbcol),z-dz_sol)@g(Box(1,30./float(nbcol),dz_sol))
+    if visu_sol == 1:
+        #l'affiche au premier step pour bien definir champs de la camera
+        global dz_sol, ncouches_sol
+        #print mean(sol_obj.HRp(), axis=1)[:,0]#mean(mean(sol_obj.HRp(), axis=0), axis=0)
+        for i in range(ncouches_sol):
+            z = -i*dz_sol
+            ftsw = max(0., mean(sol_obj.ftsw_t[i,:,:]))
+            #ftsw = max(0, ftsw_xy[i])
+            col = 16 + int(ceil((1-ftsw)/0.1))
+            nproduce ;(col)@M(-53,0,z-dz_sol)@g(Box(1,30,dz_sol))
+            #nproduce ;(col)@M(-50,float(idcol)*30./float(nbcol),z-dz_sol)@g(Box(1,30./float(nbcol),dz_sol))
 
 
 
 
-aer:
-    global res_abs_i, dxyz, Hmaxcouv, Lsol, largsol
-    if(getIterationNb()>2):
-        for ty in range(5,20):
-          for tx in range(5,20):
-            for i in range(50):
-              z = 50*dxyz[2]-(i*dxyz[2])
-              x = tx*(dxyz[0])
-              y= ty*(dxyz[1])
-              xx0=-(dxyz[0]*Lsol/2)+dxyz[0]/2
-              yy0=-(dxyz[1]*largsol/2)+dxyz[1]/2
-              ftsw = max(0., res_abs_i[0][i][tx][ty])
-              col = 18 - int(ceil((ftsw)/0.025))
-              nproduce ;(col)@M(yy0+y,xx0+x,z+dxyz[0])@g(Box(dxyz[1]/2,1,dxyz[2]))
-# deduire ncouches sol de l'objet sol...
-
-pattern(0) --> ;(1)@M((pattern8[1][0]+pattern8[0][0])/2.,(pattern8[1][1]+pattern8[0][1])/2.,0)@g(Box((pattern8[1][0]-pattern8[0][0])/2.,(pattern8[1][1]-pattern8[0][1])/2.,0.1))
+#aer:
+#    global res_abs_i, dxyz, Hmaxcouv, Lsol, largsol
+#    if(getIterationNb()>2):
+#        for ty in range(5,20):
+#          for tx in range(5,20):
+#            for i in range(50):
+#              z = 50*dxyz[2]-(i*dxyz[2])
+#              x = tx*(dxyz[0])
+#              y= ty*(dxyz[1])
+#              xx0=-(dxyz[0]*Lsol/2)+dxyz[0]/2
+#              yy0=-(dxyz[1]*largsol/2)+dxyz[1]/2
+#              ftsw = max(0., res_abs_i[0][i][tx][ty])
+#              col = 18 - int(ceil((ftsw)/0.025))
+#              nproduce ;(col)@M(yy0+y,xx0+x,z+dxyz[0])@g(Box(dxyz[1]/2,1,dxyz[2]))
 
 
-attente(n)--> ;(1)@M(-53,0,0)@g(Box(1,30,150)) #pour creer fenetre de taille correcte
+pattern(0):
+    if visu_sol == 1:
+        produce ;(1)@M((pattern8[1][0]+pattern8[0][0])/2.,(pattern8[1][1]+pattern8[0][1])/2.,0)@g(Box((pattern8[1][0]-pattern8[0][0])/2.,(pattern8[1][1]-pattern8[0][1])/2.,0.1))
+
+
+attente(n):
+    if visu_sol == 1:
+        produce ;(1)@M(-53,0,0)@g(Box(1,30,150)) #pour creer fenetre de taille correcte
 
 
 endlsystem
