@@ -3,7 +3,7 @@ import os
 
 try:
     import legume
-    path_ = ""#os.path.dirname(legume.__file__)
+    path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\luzerne' #r'C:\devel\grassland'#
 path_leg = os.path.join(path_, 'input')#r'C:\devel\l-egume\l-egume\input'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\L-gume' #r'C:\devel\grassland'
@@ -16,8 +16,8 @@ sys.path.insert(0, path_leg)
 from rpy_options import set_options
 set_options(RHOME='c:/progra~1/R/R-2.12.1')
 from rpy import r
-r.source('dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
-r.source('calc_root_tropism.r')#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
+r.source(os.path.join(path_, 'dist_tetaf.r'))#'dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
+r.source(os.path.join(path_, 'calc_root_tropism.r'))#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
 #r.source('dist_tetaf.r') #in L-gume folder
 #r.source('calc_root_tropism.r') #in L-gume folder
 
@@ -131,7 +131,7 @@ visu_sol=1#1# pour visualisation/interpretation sol
 #550 it en 2013s/1940s
 #curieusement plante (memory error??) quand pas de visualisation??-> a creuser
 # plante pas si visu_shoot a 1...
-#essai avec juste In
+#essai avec modif des test: OK, mais pad de gain de temps 
 
 
 
@@ -3691,31 +3691,32 @@ attente(n):
 
 interpretation:
 SHP(nump,azi, elv0,posi,nbp,par):
-    if visu_shoot==1:
-        if elv0 < ParamP[nump]['elvtresh'] and par>=meteo_j['I0']*ParamP[nump]['par_tresh']:#pour moduler incli0 par longueur/incli en plante isolee
-            Lsh = ParamP[nump]['Len']*nbp
-            Hsh = Lsh*sin(elv0*pi/180.)
-            corr_elv = max(0,(ParamP[nump]['Lmaxeffet']-Hsh))/ParamP[nump]['Lmaxeffet'] 
-        elif elv0 < 60 and par<meteo_j['I0']*ParamP[nump]['par_tresh']: #pour moduler incli competition forte/ a revoir au niveau de la loi de ditrib ou de elasticite
-            corr_elv =1.#1.3
-        else:
-            corr_elv =1.
-            
-        produce &(-elv0*corr_elv)
+    if elv0 < ParamP[nump]['elvtresh'] and par>=meteo_j['I0']*ParamP[nump]['par_tresh']:#pour moduler incli0 par longueur/incli en plante isolee
+        Lsh = ParamP[nump]['Len']*nbp
+        Hsh = Lsh*sin(elv0*pi/180.)
+        corr_elv = max(0,(ParamP[nump]['Lmaxeffet']-Hsh))/ParamP[nump]['Lmaxeffet'] 
+    elif elv0 < 60 and par<meteo_j['I0']*ParamP[nump]['par_tresh']: #pour moduler incli competition forte/ a revoir au niveau de la loi de ditrib ou de elasticite
+        corr_elv =1.#1.3
+    else:
+        corr_elv =1.
+        
+    produce &(-elv0*corr_elv)
 
 
 In(nump,nsh,age,rank,rankp, l, statut,ordre):
-    if 1==1:#visu_shoot==1:
-        lent = calc_Lent(nump, rank, nsh, ordre, l)*100. #cm
-        if ordre==2:
-            color=2
-        else:
-            color=3
-        if ordre==1 and nsh==0:
-            color=2
-        
+    lent = calc_Lent(nump, rank, nsh, ordre, l)*100. #cm
+    if ordre==2:
+        color=2
+    else:
+        color=3
+    if ordre==1 and nsh==0:
+        color=2
+    
+    if visu_shoot==1:
         #produce ;(2)@Tp([0,0,1])Ts(lent*ParamP[nump]['elasticity'])F(lent,0.3)
         produce ;(color)@Tp([0,0,1])@Ts(min(1,lent*ParamP[nump]['elasticity']))F(lent,0.3)# modif lucas : min() car avait de drole de comportement sans ca a certaines valeurs
+    else:
+        produce ;(color)@Tp([0,0,1])@Ts(min(1,lent*ParamP[nump]['elasticity']))f(lent,0.3)# modif lucas : min() car avait de drole de comportement sans ca a certaines valeurs
 
 A(nump,nsh,statut,age, duromb, rank, phyllotax):
     if visu_shoot==1:
@@ -3736,12 +3737,13 @@ A2(nump, nsh, statut, age, duromb,rank, rankp, phyllotax):
 
 
 Pet(nump, nsh, age, azi,l1, statut1) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
+    lpet = calc_Lpet(nump, rank, rankp, ordre, l1)*100.#cm
+    IncPet = ParamP[nump]['IncPet']
     if visu_shoot==1:
-        lpet = calc_Lpet(nump, rank, rankp, ordre, l1)*100.#cm
-        IncPet = ParamP[nump]['IncPet']
-        
         produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet)_(0.1)F(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)
         #produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet);(2)F(0.00001,0.1)F(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)  
+    else:
+        produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet)_(0.1)f(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)
 
 
 Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
@@ -3793,24 +3795,28 @@ RA(nump,nsh,age, rankp,agecum,moduloH):
         produce ;(3)Sphere(0.4)
 
 RS(nump, nsh, rankp, moduloH):
+    #diampiv = max(0.1 ,invar['DiampivMax'][nump]*(1-moduloH/ParamP[nump]['ZPivot_min'])) 
+    idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
+    diampiv = max(0.1 ,invar_sc['ax']['DiampivMax'][idax]*(1-moduloH/ParamP[nump]['ZPivot_min']))
     if visu_root==1:
-        #diampiv = max(0.1 ,invar['DiampivMax'][nump]*(1-moduloH/ParamP[nump]['ZPivot_min'])) 
-        idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
-        diampiv = max(0.1 ,invar_sc['ax']['DiampivMax'][idax]*(1-moduloH/ParamP[nump]['ZPivot_min']))
         produce ;(1)_(diampiv)F(ParamP[nump]['LRS'])
+    else:
+        produce ;(1)_(diampiv)f(ParamP[nump]['LRS'])
 
 RLB(nump,nsh,age,rankp, Horiz): 
     if visu_root==1:
         produce ;(0)Sphere(0.4)
 
 RLAP(nump,nsh,age,rankp, l, Horiz): 
+    id = r.idLong(l, ParamP[nump]['profilRoot'])
+    #print id, l
+    larg = ParamP[nump]['profilRoot']['y'][id]
+    long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])
     if visu_root==1:
-        id = r.idLong(l, ParamP[nump]['profilRoot'])
-        #print id, l
-        larg = ParamP[nump]['profilRoot']['y'][id]
-        long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])
         produce ;(0)_(larg)F(long)
         #produce ;(0)_(l)F(dz_sol)
+    else:
+        produce ;(0)_(larg)f(long)
 
 solxy(sol_obj, idcol):
     if visu_sol == 1:
