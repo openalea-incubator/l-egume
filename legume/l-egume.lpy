@@ -31,8 +31,17 @@ import string
 import time
 from openalea.plantgl.all import *
 from Obj3Dutils import *
-import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
-import RIRI5 as riri
+
+try:
+    from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+except:
+    import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
+
+try:
+    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
+except:
+    import RIRI5 as riri
+
 import RootDistrib as rtd
 import RootMorpho2 as rt
 import IOtable
@@ -70,8 +79,8 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'default'#
-ongletScenar2 = 'nonFix1'#'default'
+ongletScenar1 = 'Fix2'#'default'#
+ongletScenar2 = 'nonFixSimTest'#'nonFix1'#'default'
 
 
 
@@ -88,7 +97,7 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 #initialisation des variables globale de simulation
 DOYdeb = 60#49#159#124#
-DOYend = 610#335#120#250#244#282#
+DOYend = 335#610#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
