@@ -8,7 +8,10 @@ setwd(dir)
 
 
 #single run avec options
-system('python l-egume_run.py -u liste_usms_mix.xls SimTest 3')
+system('python l-egume_run.py -h')#pour l'aide
+system('python l-egume_run.py -u liste_usms_mix.xls SimTest 3') #mode usm
+system('python l-egume_run.py -d -lsys l-egume.lpy -doy 60 100 -sd 3')#mode detail
+
 
 #uilisable pour faire de l'optimisation? -> a tester
 

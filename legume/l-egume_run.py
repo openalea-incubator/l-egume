@@ -29,16 +29,21 @@ group.add_argument("-u", "--usm", nargs=3, action="store", help="launch l-egume 
 group.add_argument("-d", "--detail", help="launch l-egume in detail input mode", action="store_true")
 # liste des option du mode detail
 parser.add_argument("-lsys", help="l-system file (detail mode)", default="l-egume.lpy")
-#parser.add_argument("-met", help="meteo file (detail mode)", nargs=2, default=("a", "b"),  metavar=('file', 'onglet'))
+parser.add_argument("-met", help="meteo file (detail mode)", nargs=2, default=("meteo_exemple_debugL_gl.xls", "Lusignan30"),  metavar=('file', 'onglet'))
+parser.add_argument("-mng", help="management file (detail mode)", nargs=2, default=("management_exemple3_debugL_gl.xls", "Lusignan30IrrN"),  metavar=('file', 'onglet'))
+parser.add_argument("-ini", help="initialsation file (detail mode)", nargs=2, default=("Initialisation_sol_exemple.xls", "Lusignan30_5x5"),  metavar=('file', 'onglet'))
+parser.add_argument("-sol", help="soil file (detail mode)", nargs=2, default=("Parametres_sol_exemple2_debugL_glbis.xls", "lusignan99"),  metavar=('file', 'onglet'))
+parser.add_argument("-plt", help="plant file (detail mode)", nargs=3, default=("Parametres_plante_v5cLucas.xls", "Fix1", "nonFix1"),  metavar=('file', 'ongletP', 'ongletVois'))
+parser.add_argument("-doy", help="Start / End DOYs (detail mode)", nargs=2, default=("60", "335"),  metavar=('DOYdeb', 'DOYend'))
+parser.add_argument("-scn", help="Scene options (detail mode)", nargs=4, default=("damier8", "4", "40.", "8"),  metavar=('typearrangement', 'optdamier', 'cote', 'nbcote'))
+parser.add_argument("-sd", help="Seed options (detail mode)", default="0",  metavar=('seed'))
+parser.add_argument("-rd", help="Random ini options (detail mode)", nargs=2, default=("30", "15"),  metavar=('deltalevmoy', 'deltalevsd'))
 #...
-
-#parser.add_argument("-v", "--verbose", action="store_true",  help="augmente la verbosite")
-
 args = parser.parse_args()
 
 
-print ('args', args, args.usm, args.detail)
-print('u1', args.usm[1])
+print ('args')#, args, args.usm, args.detail)
+#print('u1', args.usm[1])
 #print('options', options)
 
 
@@ -75,6 +80,7 @@ if not args.detail:#mode usm; pas en mode detail #len(options)>1:
 else:# a faire
     # idee: ouvrir lsystem et specifie et ajuster au cas par cas les entree par defaut
     #name = args.lsys
+    id = -1
     path_lsys = os.path.join(path_, args.lsys)
     testsim = Lsystem(path_lsys)
 
@@ -84,9 +90,8 @@ else:# a faire
 
 
 #get the input variables values
-if not args.detail and id !=-1 :#mode usm
+if not args.detail and id !=-1 :#mode usm et id OK
     name = str(int(ls_usms['ID_usm'][id])) + '_' + str(ls_usms['l_system'][id])[0:-4]
-    seednb = int(ls_usms['seed'][id])
     #path_lsys = os.path.join(path_, str(ls_usms['l_system'][id]))
 
     # meteo / mng / ini / plante input files
@@ -102,7 +107,8 @@ if not args.detail and id !=-1 :#mode usm
     path_plante = os.path.join(path_, 'input', str(ls_usms['plante'][id]))
     ongletP = str(ls_usms['ongletP'][id])
     ongletPvois = str(ls_usms['ongletVoisin'][id])
-    ongletS = str(ls_usms['ongletS'][id])
+
+    ongletS = str(ls_usms['ongletS'][id])#fichier sol pas specifier dans usm??
 
     #pas acces aux options de scenario
     ##  lire scenario et changer parametres
@@ -110,13 +116,14 @@ if not args.detail and id !=-1 :#mode usm
     #idscenar2 = int(ls_usms['scenario2'][id])
     #ongletScenar2 = ongletPvois  # fait porter les changements sur fichier parametre voisin
 
-    # optins de la scene
-    optdamier = int(ls_usms['damier'][id])
-    nbcote = int(ls_usms['nbcote'][id])
-    cote = float(ls_usms['cote'][id])
+    # options de la scene
     typearrangement = str(ls_usms['arrangement'][id])
+    optdamier = int(ls_usms['damier'][id])
+    cote = float(ls_usms['cote'][id])
+    nbcote = int(ls_usms['nbcote'][id])
 
     #options de simul
+    seednb = int(ls_usms['seed'][id])
     DOYdeb = int(ls_usms['DOYdeb'][id])
     DOYend = int(ls_usms['DOYend'][id])
     derivationLength = int(ls_usms['DOYend'][id]) - int(ls_usms['DOYdeb'][id])
@@ -127,18 +134,52 @@ if not args.detail and id !=-1 :#mode usm
     #nommix = '_' + ongletP + '-' + ongletPvois + '_' + 'damier' + str(optdamier) + '_scenario' + str(idscenar2) + '-' + str(idscenar1)
 
     #en faire un dico (en faits'est est deja un qui est a mettre a jour) et passer le dico?
-else:
-    pass
-    #definir les meme variables a partir des valeurs des input detaillees
+else:#mode detail
+    name = str(args.lsys)[0:-4]
+
+    # meteo / mng / ini / plante input files
+    meteo_path_ = os.path.join(path_, 'input', args.met[0])
+    ongletM_ = args.met[1]
+
+    mn_path_ = os.path.join(path_, 'input', args.mng[0])
+    ongletMn_ = args.mng[1]
+
+    ini_path_ = os.path.join(path_, 'input', args.ini[0])
+    ongletIni_ = args.ini[1]
+
+    path_plante = os.path.join(path_, 'input', args.plt[0])
+    ongletP = args.plt[1]
+    ongletPvois = args.plt[2]
+
+    path_sol = os.path.join(path_, 'input', args.sol[0])
+    ongletS = args.sol[1]
+
+    # options de la scene
+    typearrangement = args.scn[0]#str(ls_usms['arrangement'][id])
+    optdamier = int(args.scn[1])#int(ls_usms['damier'][id])
+    cote = float(args.scn[2])#float(ls_usms['cote'][id])
+    nbcote = int(args.scn[3])#int(ls_usms['nbcote'][id])
+    #pas mal d'autres options de scene qui peuvent etre passees!
+
+    # options de simul
+    seednb = int(args.sd)
+    DOYdeb = int(args.doy[0])
+    DOYend = int(args.doy[1])
+    derivationLength = int(args.doy[1]) - int(args.doy[0])
+    deltalevmoy = float(args.rd[0])
+    deltalevsd = float(args.rd[1])
+
+    #pass
+    #pas mal d'autres variables d'entrees encore a endre accessibles...
 
 
 #update the default l-system object with optinal input values
-if not args.detail and id != -1:#mode usm
+if (not args.detail and id != -1) or args.detail: #tout sauf mode usm avec pb d'usm
     testsim.meteo = IOxls.read_met_file(meteo_path_, ongletM_)
     testsim.inis = IOxls.read_plant_param(ini_path_, ongletIni_)
     testsim.mng = IOxls.read_met_file(mn_path_, ongletMn_)
 
-    testsim.ongletS = ongletS
+    testsim.ongletS = ongletS#sert a rien: ce qu'il faut c'est lire fchier sol...
     testsim.ongletP = ongletP
     testsim.ongletPvois = ongletPvois
     testsim.nbcote = nbcote
@@ -159,7 +200,7 @@ if not args.detail and id != -1:#mode usm
     nbplantes = nbcote * nbcote
     a = AxialTree()
     a.append(testsim.attente(1))
-    for j in range(0, nbplantes):
+    for j in range(0, int(nbplantes)):
         a.append(testsim.Sd(j))
 
     testsim.axiom = a  # passe un axial tree, pas de chaine de caractere
@@ -204,3 +245,4 @@ if __name__ == '__main__':
 #faire deux options: run -u (usm) ou -d (detail) qui prendraient des arguments differents?
 
 #serait interessant d'ajouter des options -vparamNames, -vparamVals qui seraient a passer pour mettre a jour le fichier plante et utilisees pour faire de l'optimisation ciblee sur ces parametes
+#avec un nags='*'
