@@ -117,6 +117,7 @@ for i in range(len(ls_usms['ID_usm'])):
         testsim[name].outHRfile = 'outHR_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
         testsim[name].resrootfile = 'resroot_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
         testsim[name].outBilanNfile = 'BilanN_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
+        testsim[name].outimagefile = 'scene_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.bmp'#'scene.bmp'
 
         #plante si dossier out pas cree
         #pourrait faire la lecture les ls_usm directement dans le l-system pour faciliter...+

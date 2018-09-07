@@ -108,7 +108,8 @@ if not args.detail and id !=-1 :#mode usm et id OK
     ongletP = str(ls_usms['ongletP'][id])
     ongletPvois = str(ls_usms['ongletVoisin'][id])
 
-    ongletS = str(ls_usms['ongletS'][id])#fichier sol pas specifier dans usm??
+    sol_path_ = os.path.join(path_, 'input', str(ls_usms['sol'][id]))
+    ongletS = str(ls_usms['ongletS'][id])
 
     #pas acces aux options de scenario
     ##  lire scenario et changer parametres
@@ -151,7 +152,7 @@ else:#mode detail
     ongletP = args.plt[1]
     ongletPvois = args.plt[2]
 
-    path_sol = os.path.join(path_, 'input', args.sol[0])
+    sol_path_ = os.path.join(path_, 'input', args.sol[0])
     ongletS = args.sol[1]
 
     # options de la scene
@@ -178,6 +179,8 @@ if (not args.detail and id != -1) or args.detail: #tout sauf mode usm avec pb d'
     testsim.meteo = IOxls.read_met_file(meteo_path_, ongletM_)
     testsim.inis = IOxls.read_plant_param(ini_path_, ongletIni_)
     testsim.mng = IOxls.read_met_file(mn_path_, ongletMn_)
+    testsim.par_SN, testsim.par_sol =  IOxls.read_sol_param(sol_path_, ongletS)
+    testsim.par_SN['concrr'] = 0.  # force eau de pluie(serait a enlever)
 
     testsim.ongletS = ongletS#sert a rien: ce qu'il faut c'est lire fchier sol...
     testsim.ongletP = ongletP
@@ -212,6 +215,7 @@ if (not args.detail and id != -1) or args.detail: #tout sauf mode usm avec pb d'
     # testsim.outHRfile = 'outHR_' + name + nommix + '_' + str(ls_usms['ongletMn'][id]) + '_' + str(seednb) + '.csv'
     # testsim.resrootfile = 'resroot_' + name + nommix + '_' + str(ls_usms['ongletMn'][id]) + '_' + str(seednb) + '.csv'
     # testsim.outBilanNfile = 'BilanN_' + name + nommix + '_' + str(ls_usms['ongletMn'][id]) + '_' + str(seednb) + '.csv'
+    # testsim.outimagefile = 'scene_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.bmp'#'scene.bmp'
 
 
 #print ('name:', name)
@@ -246,3 +250,4 @@ if __name__ == '__main__':
 
 #serait interessant d'ajouter des options -vparamNames, -vparamVals qui seraient a passer pour mettre a jour le fichier plante et utilisees pour faire de l'optimisation ciblee sur ces parametes
 #avec un nags='*'
+#solutin eventuelle pour lancer depuis intenet? installer serveur local sur ordi modelisation et lancer un scrip python/php simple depuis internet qui appelle le run.py?

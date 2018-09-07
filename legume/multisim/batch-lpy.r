@@ -24,3 +24,8 @@ system('python l-egume_batch_mixture8.py')
 
 #https://stackoverflow.com/questions/34449241/running-windows-command-prompt-using-r
 #https://stackoverflow.com/questions/10155703/call-python-with-system-in-r-to-run-a-python-script-emulating-the-python-conso
+
+
+#pour anaconda
+# You can just call the absolute path to the python in the environment you want, like 'C:\Anaconda\python my-script.py'
+#https://stackoverflow.com/questions/24678144/conda-environments-and-bat-files

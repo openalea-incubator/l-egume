@@ -1,7 +1,7 @@
 import xlrd
-from rpy_options import set_options
-set_options(RHOME='c:/progra~1/R/R-2.12.1')
-from rpy import r
+#from rpy_options import set_options
+#set_options(RHOME='c:/progra~1/R/R-2.12.1')
+#from rpy import r
 
 def get_xls_col(sheet):
     """ recupere dans une feuille excel donnees par colone  """
@@ -43,15 +43,15 @@ def t_list(tab):
 
     return res
 
-def as_matrix(tab):
-    """ converts a list of list or a python array into an R matrix Robj """
-    r.rbind.local_mode(0)
-    r.c.local_mode(0)
-    x = r.c(tab[0])
-    for i in range (1,len(tab)):
-        x = r.rbind(x, r.c(tab[i]))
-
-    return x
+#def as_matrix(tab):
+#    """ converts a list of list or a python array into an R matrix Robj """
+#    r.rbind.local_mode(0)
+#    r.c.local_mode(0)
+#    x = r.c(tab[0])
+#    for i in range (1,len(tab)):
+#        x = r.rbind(x, r.c(tab[i]))
+#
+#    return x
 
 def conv_dataframe(tab):
     """ converti liste de liste en dictionnaire; prend la cle comme le pemier element de la liste"""

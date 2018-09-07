@@ -18,8 +18,9 @@ dtoto$name <- ls_toto
 dtoto$seed <- substr(as.character(dtoto$seed), 1, 1)
 dtoto$scenario <- substr(as.character(dtoto$scenario), 9, nchar(as.character(dtoto$scenario)))
 dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng)# ajout d'une cle unique par scenario
+#dtoto$damier <- as.numeric(substr(as.character(dtoto$damier), 7, 7))
 
-#split de dtoto et stockafe dans une liste de scenatios
+#split de dtoto et stockage dans une liste de scenatios
 sp_dtoto <- split(dtoto, dtoto$keysc)
 
 
@@ -41,10 +42,17 @@ read_ltoto <- function(ls_toto)
 
 
 
+#didcols <- as.data.frame(residcols[seq(1,21,3), ])
+#didcols$damier <- unique(as.character(dtoto$damier))
+#write.csv(didcols, "didcols.csv", row.names=F)
+
+#fichier d'id colones esp1 pour damier 8 (pour les cas ou bug/oubli dans les noms de colonnes)
+didcols <- read.csv("C:/devel/l-egume/legume/multisim/didcols.csv") 
 
 
 
-for (key in names(sp_dtoto))
+
+for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
 {
   ls_toto_paquet <- sp_dtoto[[key]]$name
   
@@ -52,6 +60,11 @@ for (key in names(sp_dtoto))
   ltoto <- read_ltoto(ls_toto_paquet)
   #version locale du paquet de doto
   dtoto <- sp_dtoto[[key]]
+  
+  #recup du nom des esp
+  mix <- strsplit(ls_toto_paquet[1], '_')[[1]][6] #suppose paquet fait par traitement
+  esp <- strsplit(mix, '-')[[1]][1] #'Fix2'
+  esp2 <- strsplit(mix, '-')[[1]][2] #'nonFixSimTest'
   
   #visu des rendement moyen m2 / a un DOY 
   surfsolref <- NULL
@@ -76,6 +89,7 @@ for (key in names(sp_dtoto))
   for (i in 1:length(ls_toto_paquet))#(ls_toto))
   {
     name <- ls_toto_paquet[i]
+    damier <- strsplit(name, '_')[[1]][7]
     dat <- ltoto[[name]]
     s <- dat[dat$V1=='pattern',3]#m2
     surfsolref <- cbind(surfsolref, as.numeric(as.character(s)))
@@ -98,11 +112,18 @@ for (key in names(sp_dtoto))
     QNupttot <- cbind(QNupttot, sum(Nuptake_sol_tot))
   
     #YEsp1
-    esp <- 'Fix2'#'Fix3'#'Fix1'#'Fix' #pourquoi c'est ce nom au lieu de Fix???
-    esp2 <- 'nonFixSimTest'#'nonFix1'#'nonFix0' #pourquoi c'est ce nom au lieu de Fix???
+    #esp <- 'Fix2'#'Fix3'#'Fix1'#'Fix' #pourquoi c'est ce nom au lieu de Fix???
+    #esp2 <- 'nonFixSimTest'#'nonFix1'#'nonFix0' #pourquoi c'est ce nom au lieu de Fix???
     
     nomcol <- names(ltoto[[name]])
-    idcols <- grepl(esp, nomcol) & !grepl(esp2, nomcol)#contient esp1 et pas esp2
+    if (esp==esp2 & grep('damier', damier)==1)#si deux fois le meme nom d'espece, mais mixture damier
+    {
+      idcols <- as.logical(didcols[didcols$damier==damier,1:66])#idcols lu dans fichier qui leve les ambiguite
+    } else
+    {
+      idcols <- grepl(esp, nomcol) & !grepl(esp2, nomcol)#contient esp1 et pas esp2
+    }
+    
     dat1 <- cbind(ltoto[[name]][,c(1:2)], ltoto[[name]][,idcols])
     nb1 <- length(dat1)-2
     nbplt1 <- cbind(nbplt1, nb1)
@@ -112,8 +133,7 @@ for (key in names(sp_dtoto))
       ProdIaer1 <- rowSums(MS1) / s
       Nuptake_sol_leg <- as.matrix(dat1[dat1$V1=='Nuptake_sol',3:(3+nb1-1)], ncol=nb1)
       Nuptake_sol_leg <- as.numeric(rowSums(Nuptake_sol_leg) / s)
-    }
-    else
+    } else
     {
       ProdIaer1 <- 0 #pas de plante de l'esp1
       Nuptake_sol_leg <- 0
@@ -122,7 +142,15 @@ for (key in names(sp_dtoto))
     QNuptleg <- cbind(QNuptleg, sum(Nuptake_sol_leg))
     
     #YEsp2
-    idcols <- grepl(esp2, nomcol)
+    if (esp==esp2 & grep('damier', damier)==1)#si deux fois le meme nom d'espece, mais mixture damier
+    {
+      idcols <- !as.logical(didcols[didcols$damier==damier,1:66])#idcols lu dans fichier qui leve les ambiguite
+      idcols[1:2] <- FALSE #remet a faux les deux premieres colonnes
+    } else
+    {
+      idcols <- grepl(esp2, nomcol)#contient esp2
+    }
+    
     dat2 <- cbind(ltoto[[name]][,c(1:2)], ltoto[[name]][,idcols])
     nb2 <- length(dat2)-2
     nbplt2 <- cbind(nbplt2, nb2)
@@ -401,7 +429,7 @@ QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, 
   
 }
 
-OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing" ...)
+OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
 {
   #key <- ls_keysc[20]
   #figure de tous les overyielding
@@ -477,23 +505,66 @@ OverYvsAll(ls_tabmoys, keysc, nom="", optProp="sowing")
 
 #sauve en csv tableau agrege
 #ecriture fichier
-write.csv(dtoto, "dtoto2.csv", row.names=F)
+write.csv(dtoto, "dtoto3.csv", row.names=F)
 tabmoys <- do.call("rbind", ls_tabmoys) #merge a list of data.frames - do.call equalent de map
-write.csv(tabmoys, "tabmoys2.csv", row.names=F)
+write.csv(tabmoys, "tabmoys3.csv", row.names=F)
 
 ls_tabmoys
 
 
-tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211965&authkey=ADR9j8ZkMzAXz8I")
+tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211965&authkey=ADR9j8ZkMzAXz8I") #serie 1
 #marche aussi en lecture directe!
 ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
 
 ls_tabmoys <- ls_tabmoys2
 ls_keysc <- names(ls_tabmoys)
 
+#ecriture du merge
+tabmoys_m <-do.call("rbind", c(ls_tabmoys, ls_tabmoys2))
+write.csv(tabmoys_m, "tabmoys_merge5.csv", row.names=F)
 
-
+tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211970&authkey=ABgO3gxUEz19IBE")#merge file (1-2)
 #figure de tous les overyielding
+ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
+
+tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211974&authkey=APtBFCEffHjVZb0")#merge file (1-2-3)
+ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
+
+tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211975&authkey=AMhhE6ZN_dcGHzU")#merge file (1-2-3-4)
+ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
+
+tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211979&authkey=ALNOA6Fw6GMl6Lw")#merge file (1-2-3-4-5)
+ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
+
+tabmoys2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214039&authkey=APnHPpEOCjBL4Qg")#merge file (1-2-3-4-5-6)
+ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
+
+
+ls_tabmoys <- ls_tabmoys2
+ls_keysc <- names(ls_tabmoys)
+
+
+
+
+#construction et lecture des fichiers moyens de synthese
+tabmoys2 <- read.csv("C:/simul/PMA18/tabmoys2.csv")#
+tabmoys3 <- read.csv("C:/simul/PMA18/tabmoys3.csv")#
+tabmoys4 <- read.csv("C:/simul/PMA18/tabmoys4.csv")#
+tabmoys5 <- read.csv("C:/simul/PMA18/tabmoys5.csv")#
+tabmoys6 <- read.csv("C:/simul/PMA18/tabmoys6.csv")#
+tabmoys7 <- read.csv("C:/simul/PMA18/tabmoys7.csv")#
+ls_tabmoys2 <- split(tabmoys2, tabmoys2$keysc)
+ls_tabmoys3 <- split(tabmoys3, tabmoys3$keysc)
+ls_tabmoys4 <- split(tabmoys4, tabmoys4$keysc)
+ls_tabmoys5 <- split(tabmoys5, tabmoys5$keysc)
+ls_tabmoys6 <- split(tabmoys6, tabmoys6$keysc)
+ls_tabmoys7 <- split(tabmoys7, tabmoys7$keysc)
+
+tabmoys_m <-do.call("rbind", c(ls_tabmoys2, ls_tabmoys3, ls_tabmoys4, ls_tabmoys5,ls_tabmoys6, ls_tabmoys7))
+write.csv(tabmoys_m, "tabmoys_merge2-7.csv", row.names=F)
+
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
+ls_tabmoys2 <- split(tabmoys_m2, tabmoys_m2$keysc)
 
 
 
@@ -548,20 +619,22 @@ dparams <- cbind(dparams, res)
 dparams$keysc <- ls_keysc
 
 resnorm <- res
-names(resnorm) <- c("normq", "normLen", "normVmax2", "normRUE", "MaxFix")
+names(resnorm) <- c("normq", "normLen", "normVmax2", "normRUE", "normMaxFix")
 resnorm$normq[resnorm$normq>0] <- 1
 resnorm$normq[resnorm$normq<0] <- -1
 resnorm$normLen[resnorm$normLen>0] <- 1
 resnorm$normLen[resnorm$normLen<0] <- -1
 resnorm$normVmax2[resnorm$normVmax2>0] <- 1
 resnorm$normVmax2[resnorm$normVmax2<0] <- -1
-resnorm$normRUE[resnorm$normRUE=='0.2'] <- 0.5
-resnorm$normRUE[resnorm$normRUE=='0.6'] <- 1
+resnorm$normRUE[resnorm$normRUE=='0.2'] <- -0.5
+resnorm$normRUE[resnorm$normRUE=='0.6'] <- -1
+resnorm$normMaxFix[resnorm$normMaxFix<0] <- 1
 
 dparams <- cbind(dparams, resnorm)
 #aller faire le lien avec les valeurs des boutons!
 
 
+dparams[dparams$RUE>0.3 & ,]
 
 normq <- 0
 normLen <- 0

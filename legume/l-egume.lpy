@@ -13,11 +13,14 @@ sys.path.insert(0, path_)
 sys.path.insert(0, path_leg)
 
 
-from rpy_options import set_options
-set_options(RHOME='c:/progra~1/R/R-2.12.1')
-from rpy import r
-r.source(os.path.join(path_, 'dist_tetaf.r'))#'dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
-r.source(os.path.join(path_, 'calc_root_tropism.r'))#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
+#from rpy_options import set_options
+#set_options(RHOME='c:/progra~1/R/R-2.12.1')
+#from rpy import r
+import rpy2.rpy_classic as rpy
+rpy.set_default_mode(rpy.NO_CONVERSION)
+rpy.r.source(os.path.join(path_, 'dist_tetaf.r'))#'dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
+rpy.r.source(os.path.join(path_, 'calc_root_tropism.r'))#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
+rpy.set_default_mode(rpy.BASIC_CONVERSION)
 #r.source('dist_tetaf.r') #in L-gume folder
 #r.source('calc_root_tropism.r') #in L-gume folder
 
@@ -123,6 +126,7 @@ obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transp
 nb_res = 8
 
 vAmount= [0.1]*nb_res#[20.]# T Fresh Weight.ha-1 (equivalent QRES)
+#vCNRESt = [40.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
 vCNRESt = [16.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
 Vprop1 = [1./3., 1./3., 1./3.]+27*[0.] #distribution dans les horizons
 vProps= [Vprop1]*nb_res#[Vprop1]#[Vprop1, Vprop1, Vprop1]
@@ -136,7 +140,8 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 opt_residu = 1 #si 0, pas ativation de mineralisation
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
-visu_sol=1#1# pour visualisation/interpretation sol
+visu_sol=0#1# pour visualisation/interpretation sol
+frDisplay = 0 #1 #sauvegarde de la derniere vue
 #550 it en 2013s/1940s
 #curieusement plante (memory error??) quand pas de visualisation??-> a creuser
 # plante pas si visu_shoot a 1...
@@ -268,9 +273,9 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
       ParamP[nump]['profilStipI_larg'] = []
       ParamP[nump]['profilPetI_l'] = []
       ParamP[nump]['profilLeafI_nfol'] = []
-      ParamP[nump]['k_teta_distf'] = r.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD']) #proportion de feuille par        classe d'incli pour calcul des k_teta
+      ParamP[nump]['k_teta_distf'] = rpy.r.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD']) #proportion de feuille par        classe d'incli pour calcul des k_teta
       
-      ParamP[nump]['profilRoot'] = r.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#trajet d'une racine fille II
+      ParamP[nump]['profilRoot'] = rpy.r.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#trajet d'une racine fille II
       
       for rank in range(1,51): #!limite a 50 noeuds!
           Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0]*rank+ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2]*rank+ParamP[nump]['profilLeafI_Rlen'][3])
@@ -533,7 +538,7 @@ def init_variables_plantes(ParamP, nbplantes):
     #invar['Mfeuil'].append(array(PG)*0.)
     #invar['Mrac_fine'].append(array(PG)*0.)
     
-    #initialisation avec des epsilon pour pas que ça bug?
+    #initialisation avec des epsilon pour pas que ca bug?
     frac_coty_ini = array(riri.get_lsparami(ParamP, 'frac_coty_ini')) #0.5 ##a passer en parametre?
     PG = array(PG)*10e-15
     
@@ -1998,6 +2003,16 @@ def End(lstring,lscene):
     
     #pour gerer la vue de la sortie finale - lucas
     outimagepath = os.path.join(path_out, outimagefile)#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
+    if frDisplay == 1:
+        frameDisplay(True)
+        Viewer.display(lscene)
+        Viewer.grids.setXYPlane(0)
+        Viewer.camera.setPosition((0,-150,20))
+        Viewer.camera.lookAt((0,-150,20),(20,20,-20))#((15,100,100),(0,0,0))
+        Viewer.frameGL.setSize(600,850)
+        Viewer.frameGL.saveImage(outimagepath)
+        Viewer.stop()
+    
     #frameDisplay(True)
     #Viewer.display(lscene)
     #Viewer.frameGL.saveImage(outimagepath)
@@ -3641,7 +3656,7 @@ GetPos(X0,Y0,Z0)RLAP(nump,nsh,age,rankp,l, Horiz):
     #RprospectProfil[nump][Horiz] = l+dl
     
     #calculation new enveloppe
-    id = r.idLong(l, ParamP[nump]['profilRoot'])
+    id = rpy.r.idLong(l, ParamP[nump]['profilRoot'])
     larg = ParamP[nump]['profilRoot']['y'][id]
     long = min(max(dz_sol ,ParamP[nump]['profilRoot']['x'][id]), prof_sol_max+Z0)
     ls_systrac[nump].append([X0,Y0,-Z0,larg,long])
@@ -3772,7 +3787,7 @@ Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
             col = 3#2
             
         #insere pour mixtures
-        if ParamP[nump]['type']==1:
+        if int(ParamP[nump]['type'])==1:
             col=2
         else:
             col=6
@@ -3817,7 +3832,7 @@ RLB(nump,nsh,age,rankp, Horiz):
         produce ;(0)Sphere(0.4)
 
 RLAP(nump,nsh,age,rankp, l, Horiz): 
-    id = r.idLong(l, ParamP[nump]['profilRoot'])
+    id = rpy.r.idLong(l, ParamP[nump]['profilRoot'])
     #print id, l
     larg = ParamP[nump]['profilRoot']['y'][id]
     long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])

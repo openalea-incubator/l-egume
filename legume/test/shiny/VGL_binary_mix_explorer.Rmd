@@ -18,7 +18,8 @@ MEttre ici une intro qui explique la demarche et qui donne les lien vers le papi
 ```{r echo=FALSE}
 #tabmoys <- read.csv("tabmoys.csv")
 #marche aussi en lecture directe!
-tabmoys <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211965&authkey=ADR9j8ZkMzAXz8I")
+#tabmoys <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211965&authkey=ADR9j8ZkMzAXz8I")
+tabmoys <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211970&authkey=ABgO3gxUEz19IBE")#merge file
 ls_tabmoys <- split(tabmoys, tabmoys$keysc)
 ls_keysc <- names(ls_tabmoys)
 
@@ -62,7 +63,7 @@ dparams <- cbind(dparams, res)
 dparams$keysc <- ls_keysc
 
 resnorm <- res
-names(resnorm) <- c("normq", "normLen", "normVmax2", "normRUE", "MaxFix")
+names(resnorm) <- c("normq", "normLen", "normVmax2", "normRUE", "normMaxFix")
 resnorm$normq[resnorm$normq>0] <- 1
 resnorm$normq[resnorm$normq<0] <- -1
 resnorm$normLen[resnorm$normLen>0] <- 1
@@ -71,6 +72,7 @@ resnorm$normVmax2[resnorm$normVmax2>0] <- 1
 resnorm$normVmax2[resnorm$normVmax2<0] <- -1
 resnorm$normRUE[resnorm$normRUE=='0.2'] <- -0.5
 resnorm$normRUE[resnorm$normRUE=='0.6'] <- -1
+resnorm$normMaxFix[resnorm$normMaxFix<0] <- 1#inverse
 
 dparams <- cbind(dparams, resnorm)
 
@@ -371,7 +373,7 @@ fluidPage(tabsetPanel(
       #selection du jeu de simul
       layout(matrix(c(1,1,2),1,3))
       #key <- names(ls_tabmoys)[as.integer(input$numid)]  
-      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE, "keysc"]
+      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
       tabmoy <- ls_tabmoys[[seletedkey]]#[[as.integer(input$numid)]]
       YtotvsProp(tabmoy, nom="", optProp="sowing", visutext=F, cex.lab=2)
       OverYvsAll(ls_tabmoys, seletedkey, nom="", optProp="sowing", cex.lab=2)
@@ -379,7 +381,7 @@ fluidPage(tabsetPanel(
   tabPanel("vs Actual proportion", renderPlot({  
       layout(matrix(c(1,1,2),1,3))
       #key <- names(ls_tabmoys)[as.integer(input$numid)]
-      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE, "keysc"]
+      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
       tabmoy <- ls_tabmoys[[seletedkey]]#[[as.integer(input$numid)]]
       YtotvsProp(tabmoy, nom="", optProp="actual", visutext=F, cex.lab=2)
       OverYvsAll(ls_tabmoys, seletedkey, nom="", optProp="actual", cex.lab=2)
@@ -388,7 +390,7 @@ fluidPage(tabsetPanel(
       #renderDataTable({
       #data.frame('a'=c(1,2), b=c(2,3))
       renderPrint({
-      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE, "keysc"]
+      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
       tabmoy <- ls_tabmoys[[seletedkey]]#[[as.integer(input$numid)]]
       res_sowing <- YtotvsProp(tabmoy, nom="", optProp="sowing", visuplot=F, visutext=F)
       res_actu <- YtotvsProp(tabmoy, nom="", optProp="actual", visuplot=F, visutext=F)

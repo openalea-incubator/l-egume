@@ -11,8 +11,9 @@
 from numpy import linspace
 from scipy import array,ones,sum, shape, reshape
 from copy import deepcopy
-from rpy import r
-r.matrix.local_mode(0)
+
+#from rpy import r
+#r.matrix.local_mode(0)
 
 
 def lims_soil(pattern8, dxyz, unit='cm'):
@@ -170,22 +171,24 @@ def updateRootDistrib(RLtot, syst_rac, lims):
     return mL
 
 
-def VisuRootDistrib2D(RLmap, lims, zlim=None):
-    #carte 2D
-    x = lims[1][0:-1] + (lims[1][1]-lims[1][0])/2.
-    y = -lims[2][0:-1]
-    y.sort()
-    mirorRLmap = deepcopy(RLmap)
-    for i in range(shape(RLmap)[0]):#remet a l'endroit 
-        mirorRLmap[-1-i,:] = RLmap[i,:]
-
-    z= r.matrix(reshape(mirorRLmap, shape(RLmap)[0]*shape(RLmap)[1],1), shape(RLmap)[1], shape(RLmap)[0], byrow=True)
-    if zlim!=None:
-        r.filled_contour(x,y,z, zlim=zlim)#echelle des z donnee
-    else:
-        r.filled_contour(x,y,z)#defaut: echelle en relatif
-    #Afaire : exprimer en densite (rediviser par les volumes de voxel
-    #autre couleur map?
+# def VisuRootDistrib2D(RLmap, lims, zlim=None):
+#     #carte 2D
+#     x = lims[1][0:-1] + (lims[1][1]-lims[1][0])/2.
+#     y = -lims[2][0:-1]
+#     y.sort()
+#     mirorRLmap = deepcopy(RLmap)
+#     for i in range(shape(RLmap)[0]):#remet a l'endroit
+#         mirorRLmap[-1-i,:] = RLmap[i,:]
+#
+#     z= r.matrix(reshape(mirorRLmap, shape(RLmap)[0]*shape(RLmap)[1],1), shape(RLmap)[1], shape(RLmap)[0], byrow=True)
+#     if zlim!=None:
+#         r.filled_contour(x,y,z, zlim=zlim)#echelle des z donnee
+#     else:
+#         r.filled_contour(x,y,z)#defaut: echelle en relatif
+#     #Afaire : exprimer en densite (rediviser par les volumes de voxel
+#     #autre couleur map?
+#
+# #retire car dependence a r et rpy -> passer en rpy2 et dans un autre fichier si veut l'utiliser
 
 
 def build_ls_roots_mult(RLTot, dic_systrac, lims):
