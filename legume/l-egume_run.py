@@ -194,6 +194,7 @@ if (not args.detail and id != -1) or args.detail: #tout sauf mode usm avec pb d'
     #testsim.idscenar1 = idscenar1
     #testsim.idscenar2 = idscenar2
     #testsim.ongletScenar2 = ongletScenar2
+    #testsim.ongletScenar1 = ongletScenar1
     testsim.Rseed = seednb
     testsim.DOYdeb = DOYdeb
     testsim.DOYend = DOYend

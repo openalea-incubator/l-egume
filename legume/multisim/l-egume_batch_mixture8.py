@@ -9,11 +9,12 @@ import os
 import sys
 
 try:
-	import legume
-	path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
+    import legume
+    path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
 except:
-	path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'
+    path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'
 
+print ('path', path_)
 
 sys.path.insert(0, path_)
 import IOxls
@@ -47,7 +48,7 @@ for i in range(len(ls_usms['ID_usm'])):
         seednb = int(ls_usms['seed'][i])
         names.append(name)
         path_lsys = os.path.join(path_, str(ls_usms['l_system'][i]))
-        testsim[name]=Lsystem(path_lsys)#objet l-system
+        testsim[name]=Lsystem(path_lsys)  #objet l-system
         
         
         #testsim[name].ongletM = str(ls_usms['ongletM'][i])
@@ -75,6 +76,7 @@ for i in range(len(ls_usms['ID_usm'])):
         idscenar1 = int(ls_usms['scenario1'][i])
         idscenar2 = int(ls_usms['scenario2'][i])
         ongletScenar2 = ongletPvois #fait porter les changements sur fichier parametre voisin
+        ongletScenar1 = ongletP
         
         #nbcote=7 # a passer ext
         #testsim[name].ParamP = [g4]*int(ls_usms['nbplt'][i])#nbcote*nbcote
@@ -95,6 +97,7 @@ for i in range(len(ls_usms['ID_usm'])):
         testsim[name].idscenar1 = idscenar1
         testsim[name].idscenar2 = idscenar2
         testsim[name].ongletScenar2 = ongletScenar2
+        testsim[name].ongletScenar1 = ongletScenar1
         testsim[name].Rseed = seednb
         testsim[name].DOYdeb = int(ls_usms['DOYdeb'][i])
         testsim[name].DOYend = int(ls_usms['DOYend'][i])

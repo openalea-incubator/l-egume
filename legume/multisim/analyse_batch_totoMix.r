@@ -491,6 +491,10 @@ for (keysc in ls_keysc)
   ls_tabmoys[[keysc]] <- Build_AverageScTable(dtoto, keysc)
 }
 
+
+
+
+
 keysc <- ls_keysc[3]
 tabmoy <- ls_tabmoys[[keysc]]
 nom <- paste(tabmoy$mix[1], tabmoy$sc[1], tabmoy$Mng[1])
@@ -565,6 +569,33 @@ write.csv(tabmoys_m, "tabmoys_merge2-7.csv", row.names=F)
 
 tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
 ls_tabmoys2 <- split(tabmoys_m2, tabmoys_m2$keysc)
+
+
+tabmoys_m2 
+
+
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
+spmn <- split(tabmoys_m2, tabmoys_m2$Mng) #decoupe par niveau d'N
+ls_tabmoys <- vector("list", length(spmn))
+names(ls_tabmoys) <- names(spmn)
+
+for (traitN in names(spmn))
+{
+  spmn[[traitN]]$keysc <- as.factor(as.character(paste(spmn[[traitN]]$mix , spmn[[traitN]]$sc)))#spmn[[traitN]]$keysc)) #! enelve Mng de la cle!!
+  ls_tabmoys[[traitN]] <- split(spmn[[traitN]], spmn[[traitN]]$keysc)
+}
+
+length(ls_tabmoys[[1]])
+names(ls_tabmoys) <- c('0N', '300N', '120N')
+
+ls_keysc <- names(ls_tabmoys[[1]])#c(names(ls_tabmoys[[1]]), names(ls_tabmoys[[2]]), names(ls_tabmoys[[3]]))
+
+#noms contiennent traitement N!!
+# a refaire avant le split
+
+names(ls_tabmoys[['120N']])
+
+ls_tabmoys[['120N']][["nonFixSimTest-nonFixSimTest 55-55"]]#neutral situation = not neutral!!??
 
 
 
