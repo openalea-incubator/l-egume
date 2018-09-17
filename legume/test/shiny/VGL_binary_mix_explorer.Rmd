@@ -20,7 +20,9 @@ MEttre ici une intro qui explique la demarche et qui donne les lien vers le papi
 #tabmoys <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211970&authkey=ABgO3gxUEz19IBE")#merge file
 #ls_tabmoys <- split(tabmoys, tabmoys$keysc)
 #ls_keysc <- names(ls_tabmoys)
-tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
+#tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-5.csv'
+
 spmn <- split(tabmoys_m2, tabmoys_m2$Mng) #decoupe par niveau d'N
 ls_tabmoys <- vector("list", length(spmn))
 names(ls_tabmoys) <- names(spmn)
@@ -32,7 +34,7 @@ for (traitN in names(spmn))
 }
 
 length(ls_tabmoys[[1]])
-names(ls_tabmoys) <- c('0N', '300N', '120N')
+names(ls_tabmoys) <- c('0N',  '120N')#c('0N', '300N', '120N')
 
 ls_keysc <- names(ls_tabmoys[[1]])#clesscenario sans doublon management
 

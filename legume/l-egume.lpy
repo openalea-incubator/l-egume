@@ -275,7 +275,9 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
       ParamP[nump]['profilLeafI_nfol'] = []
       ParamP[nump]['k_teta_distf'] = rpy.r.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD']) #proportion de feuille par        classe d'incli pour calcul des k_teta
       
+      rpy.set_default_mode(rpy.NO_CONVERSION)
       ParamP[nump]['profilRoot'] = rpy.r.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#trajet d'une racine fille II
+      rpy.set_default_mode(rpy.BASIC_CONVERSION)
       
       for rank in range(1,51): #!limite a 50 noeuds!
           Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0]*rank+ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2]*rank+ParamP[nump]['profilLeafI_Rlen'][3])
@@ -3657,8 +3659,8 @@ GetPos(X0,Y0,Z0)RLAP(nump,nsh,age,rankp,l, Horiz):
     
     #calculation new enveloppe
     id = rpy.r.idLong(l, ParamP[nump]['profilRoot'])
-    larg = ParamP[nump]['profilRoot']['y'][id]
-    long = min(max(dz_sol ,ParamP[nump]['profilRoot']['x'][id]), prof_sol_max+Z0)
+    larg = ParamP[nump]['profilRoot']['y']['y'][id[0]]#['y'][id]
+    long = min(max(dz_sol ,ParamP[nump]['profilRoot']['x']['x'][id[0]]), prof_sol_max+Z0)#['x'][id]), prof_sol_max+Z0)
     ls_systrac[nump].append([X0,Y0,-Z0,larg,long])
     
     if age<=(ParamP[nump]['GDs1']+ParamP[nump]['GDs2'])/2:#durre expansion enveloppe secondaire determinee par Dmax et D2 -> devrait utiliser varD pour laterales les plus larges
@@ -3834,8 +3836,8 @@ RLB(nump,nsh,age,rankp, Horiz):
 RLAP(nump,nsh,age,rankp, l, Horiz): 
     id = rpy.r.idLong(l, ParamP[nump]['profilRoot'])
     #print id, l
-    larg = ParamP[nump]['profilRoot']['y'][id]
-    long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])
+    larg = ParamP[nump]['profilRoot']['y']['y'][id[0]]#['y'][id]
+    long = max(dz_sol ,ParamP[nump]['profilRoot']['x']['x'][id[0]])#['x'][id])
     if visu_root==1:
         produce ;(0)_(larg)F(long)
         #produce ;(0)_(l)F(dz_sol)

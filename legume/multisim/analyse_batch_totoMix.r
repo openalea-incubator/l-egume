@@ -509,9 +509,9 @@ OverYvsAll(ls_tabmoys, keysc, nom="", optProp="sowing")
 
 #sauve en csv tableau agrege
 #ecriture fichier
-write.csv(dtoto, "dtoto3.csv", row.names=F)
+write.csv(dtoto, "dtoto6ok.csv", row.names=F)
 tabmoys <- do.call("rbind", ls_tabmoys) #merge a list of data.frames - do.call equalent de map
-write.csv(tabmoys, "tabmoys3.csv", row.names=F)
+write.csv(tabmoys, "tabmoys6ok.csv", row.names=F)
 
 ls_tabmoys
 
@@ -567,6 +567,9 @@ ls_tabmoys7 <- split(tabmoys7, tabmoys7$keysc)
 tabmoys_m <-do.call("rbind", c(ls_tabmoys2, ls_tabmoys3, ls_tabmoys4, ls_tabmoys5,ls_tabmoys6, ls_tabmoys7))
 write.csv(tabmoys_m, "tabmoys_merge2-7.csv", row.names=F)
 
+tabmoys_m <-do.call("rbind", c(ls_tabmoys2, ls_tabmoys3, ls_tabmoys4, ls_tabmoys5))
+write.csv(tabmoys_m, "tabmoys_merge2-5.csv", row.names=F)
+
 tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
 ls_tabmoys2 <- split(tabmoys_m2, tabmoys_m2$keysc)
 
@@ -575,6 +578,9 @@ tabmoys_m2
 
 
 tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
+#tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-5.csv'
+
+
 spmn <- split(tabmoys_m2, tabmoys_m2$Mng) #decoupe par niveau d'N
 ls_tabmoys <- vector("list", length(spmn))
 names(ls_tabmoys) <- names(spmn)
