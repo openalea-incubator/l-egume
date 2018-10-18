@@ -6,22 +6,39 @@ output: html_document
 runtime: shiny
 ---
 
+
+<style type="text/css">
+.main-container {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-# Test import r
 
-MEttre ici une intro qui explique la demarche et qui donne les lien vers le papier d'origine (Louarn & Faverjon, 2018)...
+This visualisation tool was developped to explore outputs of the `virtual GrassLand (VGL) model` when mixing two species in a binary plant mixture. 
+For each combination of plant parameters, a virtual experiment is simulated according to a De Wit's replacement design to analyse the impact of species proportion on mixture performance.
+ 
+- The details of model equations can be found in [Louarn & Faverjon (2018)](https://academic.oup.com/aob/article/121/5/875/4781822)
+- The details of the Methods for this set of simultions can be found in Louarn et al. (2018)
 
-```{r echo=FALSE}
+
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 #tabmoys <- read.csv("tabmoys.csv")
 #tabmoys <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211970&authkey=ABgO3gxUEz19IBE")#merge file
 #ls_tabmoys <- split(tabmoys, tabmoys$keysc)
 #ls_keysc <- names(ls_tabmoys)
 #tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
-tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-5.csv'
+#tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-5.csv'
+#tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-7.csv'
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214082&authkey=AN-6wl3mf7PEeGM")#'tabmoys_merge2-7.csv'
+
 
 spmn <- split(tabmoys_m2, tabmoys_m2$Mng) #decoupe par niveau d'N
 ls_tabmoys <- vector("list", length(spmn))
@@ -34,7 +51,7 @@ for (traitN in names(spmn))
 }
 
 length(ls_tabmoys[[1]])
-names(ls_tabmoys) <- c('0N',  '120N')#c('0N', '300N', '120N')
+names(ls_tabmoys) <- c('0N', '300N', '120N')#c('0N',  '120N')#
 
 ls_keysc <- names(ls_tabmoys[[1]])#clesscenario sans doublon management
 
@@ -42,9 +59,10 @@ ls_keysc <- names(ls_tabmoys[[1]])#clesscenario sans doublon management
 #ls_tabmoys
 ```
 
-import des valeurs de parametres...
 
-```{r echo=FALSE}
+
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#import des valeurs de parametres...
 library(readxl)
 
 mix <- "Fix2-nonFixSimTest"
@@ -274,7 +292,8 @@ QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, 
   
 }
 
-OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
+
+OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visuplot=T,...)
 {
   #key <- ls_keysc[20]
   #figure de tous les overyielding
@@ -285,8 +304,14 @@ OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
   if (optProp=="actual")
   { labx <- 'Actual proportion (Esp. 1)'}
   
-  plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
-  segments(0, 0, 1, 0, col=1)
+  if (visuplot==T)
+  {
+    plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
+    segments(0, 0, 1, 0, col=1)
+  }
+  
+  resx <- NULL
+  resy <- NULL
   
   for (keysc in ls_keysc)
   {
@@ -312,38 +337,50 @@ OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
     overY <- yy - ylin
     
     if (keysc != key)
-    {points(xx, overY, pch=16, col='light grey')}
-    else
+    {
+      if (visuplot==T)
+      { points(xx, overY, pch=16, col='light grey') }
+      resx <- cbind(resx,xx)
+      resy <- cbind(resy,overY)
+    } else
     {
       savexx <- xx
       saveyy <- overY
     }
   }
-  points(savexx, saveyy, pch=16, col='blue', type='b')
+  if (visuplot==T)
+  { points(savexx, saveyy, pch=16, col='blue', type='b')}
+  resx <- cbind(resx,savexx)
+  resy <- cbind(resy,saveyy)
+  data.frame(x=as.numeric(resx), y=as.numeric(resy))
 }
+
+
+
 
 
 ```
 
 ## Select nitrogen inputs
 
-Choose a `N fertilisation rate` to be applied (kg N.ha-1.yr-1)
+Choose the `N fertilisation rate` to be applied (kg N.ha-1.yr-1) and `N fixation` capacity of the reference plant species
 
 ```{r  echo=FALSE}
 #test layout
 fluidPage(tabsetPanel(
   tabPanel("Plot fertilsation",inputPanel(radioButtons("nfert_level", label = "N fertilisation rate:",  choices = c('0N', '120N', '300N'), selected = '120N'))),
-  tabPanel("Fixation of species 1",inputPanel(radioButtons("nfix_level1", label = "N Fixation rate (Sp1):",  choices = c('Legume (FixMax=24)', 'Non-legume'), selected = 'Legume (FixMax=24)'))),
-  tabPanel("Fixation of species 2",inputPanel(radioButtons("nfix_level2", label = "N Fixation rate (Sp2):",  choices = c('Legume (FixMax=24)', 'Non-legume'), selected = 'Legume (FixMax=24)')))
+  tabPanel("N Fixation of reference species",inputPanel(radioButtons("nfix_level1", label = "N Fixation rate (Sp1):",  choices = c('Non-legume','Legume (FixMax=24)'), selected = 'Non-legume')))
 ))
 
 ```
 
 
-##Select parameters to design a plant mixture
+## Select plant parameters to design a mixture...
+##                     ... And rendering of mixture performance for biomass production
 
 Expressed in absolute difference of parameter values between species 1 and species 2... '0' indicates identical parameter values
 Offred the possibility of changing the 3 most influencial paramters ragring...
+Rq: bouton en faveurs hauteur/Nmin inverse par rapport a precocite
 
 
 
@@ -362,9 +399,55 @@ inputPanel(
 
 )),
 
-mainPanel (splitLayout("image esp1", "image esp2"))
+mainPanel (tabsetPanel(
+  
+  tabPanel("vs Sowing proportion", renderPlot({  
+      #selection du jeu de simul
+      layout(matrix(c(1,1,2),1,3))
+      #key <- names(ls_tabmoys)[as.integer(input$numid)]  
+      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
+      tabmoy <- ls_tabmoys[[input$nfert_level]][[seletedkey]]#[[as.integer(input$numid)]]
+      YtotvsProp(tabmoy, nom="", optProp="sowing", visutext=F, cex.lab=2)
+      
+      isfix <- grepl('Fix2-', names(ls_tabmoys[[input$nfert_level]]))
+      #split en pur ou association, puis graph ttes les situations
+      if (input$bw_Fix == 0) 
+      {ls_tab <- ls_tabmoys[[input$nfert_level]][!isfix]
+      } else 
+      {ls_tab <- ls_tabmoys[[input$nfert_level]][isfix]}
+      OverYvsAll(ls_tab, seletedkey, nom="", optProp="sowing", cex.lab=2, Ymax=350)
+      }, width = 900, height = 700)),
+  
+  tabPanel("vs Actual proportion", renderPlot({  
+      layout(matrix(c(1,1,2),1,3))
+      #key <- names(ls_tabmoys)[as.integer(input$numid)]
+      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
+      tabmoy <- ls_tabmoys[[input$nfert_level]][[seletedkey]]#[[as.integer(input$numid)]]
+      YtotvsProp(tabmoy, nom="", optProp="actual", visutext=F, cex.lab=2)
+      
+      isfix <- grepl('Fix2-', names(ls_tabmoys[[input$nfert_level]]))
+      #split en pur ou association, puis graph ttes les situations
+      if (input$bw_Fix == 0) 
+      {ls_tab <- ls_tabmoys[[input$nfert_level]][!isfix]
+      } else 
+      {ls_tab <- ls_tabmoys[[input$nfert_level]][isfix]}
+      OverYvsAll(ls_tab, seletedkey, nom="", optProp="actual", cex.lab=2, Ymax=350)
+      }, width = 900, height = 700)),
+      
+tabPanel("indices", 
+      #renderDataTable({
+      #data.frame('a'=c(1,2), b=c(2,3))
+      renderPrint({
+      seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
+      tabmoy <- ls_tabmoys[[input$nfert_level]][[seletedkey]]#[[as.integer(input$numid)]]
+      res_sowing <- YtotvsProp(tabmoy, nom="", optProp="sowing", visuplot=F, visutext=F)
+      res_actu <- YtotvsProp(tabmoy, nom="", optProp="actual", visuplot=F, visutext=F)
+      #as.list(data.frame('a'=c(1,2), b=c(2,3)))
+      list(res_sowing, res_actu)})),
 
+tabPanel("Images",splitLayout("image esp1", "image esp2"))
 
+))
 ))
 ```
 
@@ -372,7 +455,7 @@ mainPanel (splitLayout("image esp1", "image esp2"))
 
 
 
-## Rendering of mixture performance for biomass ptoduction
+## Rendering of mixture performance for N aquisition
 
 text... donner 3 tab et option de voir en fonction de proportion au semis/ectual et list
 ajouter les graph azote dans un autre panneu?
@@ -385,22 +468,26 @@ ajouter les graph azote dans un autre panneu?
 #fonction renderPlot pour cr??er les graph dynamique
   
 fluidPage(tabsetPanel(
+  tabPanel("nom", renderPrint({
+    seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
+    seletedkey})),
+  
   tabPanel("vs Sowing proportion", renderPlot({  
       #selection du jeu de simul
       layout(matrix(c(1,1,2),1,3))
       #key <- names(ls_tabmoys)[as.integer(input$numid)]  
       seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
       tabmoy <- ls_tabmoys[[input$nfert_level]][[seletedkey]]#[[as.integer(input$numid)]]
-      YtotvsProp(tabmoy, nom="", optProp="sowing", visutext=F, cex.lab=2)
-      OverYvsAll(ls_tabmoys[[input$nfert_level]], seletedkey, nom="", optProp="sowing", cex.lab=2)
+      QNtotvsProp(tabmoy, nom="", optProp="sowing", visutext=F, cex.lab=2)
+      #OverYvsAll(ls_tabmoys[[input$nfert_level]], seletedkey, nom="", optProp="sowing", cex.lab=2)
       }, width = 900, height = 700)),
   tabPanel("vs Actual proportion", renderPlot({  
       layout(matrix(c(1,1,2),1,3))
       #key <- names(ls_tabmoys)[as.integer(input$numid)]
       seletedkey <- dparams[dparams$normq == input$bw_q & dparams$normLen == input$bw_Len & dparams$normVmax2 == input$bw_Vmax2 & dparams$normRUE == input$bw_RUE & dparams$normMaxFix == input$bw_Fix, "keysc"]
       tabmoy <- ls_tabmoys[[input$nfert_level]][[seletedkey]]#[[as.integer(input$numid)]]
-      YtotvsProp(tabmoy, nom="", optProp="actual", visutext=F, cex.lab=2)
-      OverYvsAll(ls_tabmoys[[input$nfert_level]], seletedkey, nom="", optProp="actual", cex.lab=2)
+      QNtotvsProp(tabmoy, nom="", optProp="actual", visutext=F, cex.lab=2)
+      #OverYvsAll(ls_tabmoys[[input$nfert_level]], seletedkey, nom="", optProp="actual", cex.lab=2)
       }, width = 900, height = 700)),
   tabPanel("indices", 
       #renderDataTable({
@@ -421,17 +508,6 @@ fluidPage(tabsetPanel(
 
 
 
-
-## Embedded Application
-
-It's also possible to embed an entire Shiny application within an R Markdown document using the `shinyAppDir` function. This example embeds a Shiny application located in another directory:
-
-```{r tabsets, echo=FALSE}
-shinyAppDir(
-  system.file("examples/06_tabsets", package = "shiny"),
-  options = list(width = "100%", height = 550)
-)
-```
 
 Note the use of the `height` parameter to determine how much vertical space the embedded application should occupy.
 

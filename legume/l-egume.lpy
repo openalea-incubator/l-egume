@@ -71,8 +71,8 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Fix1'#'Fix'#'timbale'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletP = 'Fix2'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+ongletPvois = 'nonFixSimTest'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 #lecture des parametres du sol
 path_sol = os.path.join(path_leg,'Parametres_sol_exemple2_debugL_glbis.xls')#
@@ -82,7 +82,7 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'Fix2'#'default'#
+ongletScenar1 = 'nonFixSimTest'#'default'#'Fix2'#
 ongletScenar2 = 'nonFixSimTest'#'nonFix1'#'default'
 
 
@@ -109,7 +109,7 @@ nbcote = 8#1#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'
 idscenar1 = -1 #inferieur a zero=defaut et fait rien
-idscenar2 = 10#-1 #inferieur a zero=defaut et fait rien
+idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 opt_sky = 'V'#'VXpXmYpYm'
 
 cote = 40.#100.#100#25.#25.#cm
@@ -126,8 +126,8 @@ obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transp
 nb_res = 8
 
 vAmount= [0.1]*nb_res#[20.]# T Fresh Weight.ha-1 (equivalent QRES)
-#vCNRESt = [40.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
-vCNRESt = [16.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
+vCNRESt = [40.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
+#vCNRESt = [16.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
 Vprop1 = [1./3., 1./3., 1./3.]+27*[0.] #distribution dans les horizons
 vProps= [Vprop1]*nb_res#[Vprop1]#[Vprop1, Vprop1, Vprop1]
 vWC=[0.7]*nb_res# fraction d'eau des residu frais (equivalent de Crespc /(%)/100)
@@ -141,7 +141,10 @@ opt_residu = 1 #si 0, pas ativation de mineralisation
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
+visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
+movDisplay = 1 # #sauvegarde toutes les vues pour faire un film
+
 #550 it en 2013s/1940s
 #curieusement plante (memory error??) quand pas de visualisation??-> a creuser
 # plante pas si visu_shoot a 1...
@@ -1509,7 +1512,7 @@ def StartEach():
     invar_sc['ax']['PonderStressHRac']={}
 
 
-def EndEach(lstring):
+def EndEach(lstring,lscene):
     #sorties
     global   S, Uval, stateEV, DOY, meteo_j,mng_j,  PP, res_root, nbplantes, surfsolref, ls_ftswStress,past_time, I_I0profilInPlant,lsOrgans, Uval2, stateEV2,ls_NNIStress, ls_mat_res #,Et0,SurfPlante, PARaPlante, PARiPlante,Hplante, Dplante, RLTot,RDepth,dpar, Mrac_fine, Mpivot,DiampivMax, RprospectProfil, RLProfil,
     
@@ -1932,7 +1935,18 @@ def EndEach(lstring):
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des residus de l'esp 1 seulement
         ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
     
-
+    #pour gerer les vues pour 1 film - lucas
+    outimagepathtemp = os.path.join(path_out, 'scene_'+str(DOY)+'.bmp')#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
+    if movDisplay == 1:
+        ## fait pour simul depuis L-py reglee manuellement
+        #frameDisplay(True)
+        #Viewer.display(lscene)
+        #Viewer.grids.setXYPlane(0)
+        #Viewer.camera.setPosition((0,-150,20))
+        #Viewer.camera.lookAt((0,-150,20),(20,20,-20))#((15,100,100),(0,0,0))
+        Viewer.frameGL.setSize(600,500)
+        Viewer.frameGL.saveImage(outimagepathtemp)
+        #Viewer.stop()
 
 
 
@@ -3902,7 +3916,7 @@ sol(sol_obj, nbcol):
 
 
 pattern(0):
-    if visu_sol == 1:
+    if visu_solsurf == 1:
         produce ;(1)@M((pattern8[1][0]+pattern8[0][0])/2.,(pattern8[1][1]+pattern8[0][1])/2.,0)@g(Box((pattern8[1][0]-pattern8[0][0])/2.,(pattern8[1][1]-pattern8[0][1])/2.,0.1))
 
 

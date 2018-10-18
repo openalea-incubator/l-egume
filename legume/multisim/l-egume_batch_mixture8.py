@@ -24,7 +24,7 @@ import IOtable
 #lecture de la liste des usm
 #path_ = r'H:\devel\grassland\grassland\L-gume'
 mn_path = os.path.join(path_,'multisim','liste_usms_mix.xls')#(path_,'liste_usms_mix_these lucas.xls')#
-ongletBatch = 'SimTest'#'Feuil1'#'Sensi'#
+ongletBatch = 'SimTest'#'complement'#'Feuil1'#'Sensi'#
 usms = IOxls.xlrd.open_workbook(mn_path)
 ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
 

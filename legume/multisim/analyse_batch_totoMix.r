@@ -429,7 +429,7 @@ QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, 
   
 }
 
-OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
+OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visuplot=T,...)
 {
   #key <- ls_keysc[20]
   #figure de tous les overyielding
@@ -440,8 +440,14 @@ OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
   if (optProp=="actual")
   { labx <- 'Actual proportion (Esp. 1)'}
   
-  plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
-  segments(0, 0, 1, 0, col=1)
+  if (visuplot==T)
+  {
+    plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
+    segments(0, 0, 1, 0, col=1)
+  }
+  
+  resx <- NULL
+  resy <- NULL
   
   for (keysc in ls_keysc)
   {
@@ -467,15 +473,26 @@ OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", ...)
     overY <- yy - ylin
     
     if (keysc != key)
-    {points(xx, overY, pch=16, col='light grey')}
-    else
+    {
+      if (visuplot==T)
+      { points(xx, overY, pch=16, col='light grey') }
+      resx <- cbind(resx,xx)
+      resy <- cbind(resy,overY)
+    } else
     {
       savexx <- xx
       saveyy <- overY
     }
   }
-  points(savexx, saveyy, pch=16, col='blue', type='b')
+  if (visuplot==T)
+  { points(savexx, saveyy, pch=16, col='blue', type='b')}
+  resx <- cbind(resx,savexx)
+  resy <- cbind(resy,saveyy)
+  data.frame(x=as.numeric(resx), y=as.numeric(resy))#renvoie les points du graphique (avec 7 derniers=ceux de l'id selectionne)
 }
+
+
+
 
 
 #faire une foonction, construire liste moyenne
@@ -509,9 +526,9 @@ OverYvsAll(ls_tabmoys, keysc, nom="", optProp="sowing")
 
 #sauve en csv tableau agrege
 #ecriture fichier
-write.csv(dtoto, "dtoto6ok.csv", row.names=F)
+write.csv(dtoto, "dtoto7ok.csv", row.names=F)
 tabmoys <- do.call("rbind", ls_tabmoys) #merge a list of data.frames - do.call equalent de map
-write.csv(tabmoys, "tabmoys6ok.csv", row.names=F)
+write.csv(tabmoys, "tabmoys7ok.csv", row.names=F)
 
 ls_tabmoys
 
@@ -571,14 +588,16 @@ tabmoys_m <-do.call("rbind", c(ls_tabmoys2, ls_tabmoys3, ls_tabmoys4, ls_tabmoys
 write.csv(tabmoys_m, "tabmoys_merge2-5.csv", row.names=F)
 
 tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-7.csv'
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214082&authkey=AN-6wl3mf7PEeGM")#'tabmoys_merge2-7.csv'
 ls_tabmoys2 <- split(tabmoys_m2, tabmoys_m2$keysc)
-
 
 tabmoys_m2 
 
 
 tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214078&authkey=ABMcPNVS8FNlM9E")#'tabmoys_merge2-7.csv'
 #tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-5.csv'
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214080&authkey=AHUcqW3ERDVAd5s")#'tabmoys_merge2-5.csv'
 
 
 spmn <- split(tabmoys_m2, tabmoys_m2$Mng) #decoupe par niveau d'N
@@ -1013,4 +1032,693 @@ read.csv("test7.csv")
 
 read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%211963&authkey=AH1102XKYpbg654")
 #marche aussi en lecture directe!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### test du script 
+tabmoys_m2 <- read.csv("https://onedrive.live.com/download?cid=C31CBDE465CD1370&resid=C31CBDE465CD1370%214082&authkey=AN-6wl3mf7PEeGM")#'tabmoys_merge2-7.csv'
+
+
+spmn <- split(tabmoys_m2, tabmoys_m2$Mng) #decoupe par niveau d'N
+ls_tabmoys <- vector("list", length(spmn))
+names(ls_tabmoys) <- names(spmn)
+
+for (traitN in names(spmn))
+{
+  spmn[[traitN]]$keysc <- as.factor(as.character(paste(spmn[[traitN]]$mix , spmn[[traitN]]$sc)))#spmn[[traitN]]$keysc)) #! enelve Mng de la cle!!
+  ls_tabmoys[[traitN]] <- split(spmn[[traitN]], spmn[[traitN]]$keysc)
+
+}
+
+length(ls_tabmoys[[1]])
+names(ls_tabmoys) <- c('0N', '300N', '120N')#c('0N',  '120N')#
+
+ls_keysc <- names(ls_tabmoys[[1]])#clesscenario sans doublon management
+
+
+
+
+
+library(readxl)
+
+mix <- "Fix2-nonFixSimTest"
+params <- vector("list", 2)
+names(params) <- strsplit(mix, '-')[[1]]
+
+path_param <- "C:/devel/l-egume/legume/input/liste_scenarios.xls"
+params[[1]] <- read_excel(path_param, sheet = names(params)[1])
+params[[2]] <- read_excel(path_param, sheet = names(params)[2])
+
+
+#faire le lien entre les valeurs de difference de parametre et les scenaios
+
+#liste unique des scenarios
+dt <- as.data.frame(do.call("rbind", strsplit(ls_keysc, " ")))
+lsc <- as.data.frame(do.call("rbind", strsplit(as.character((dt$V1)), "-")))
+lsp <- as.data.frame(do.call("rbind", strsplit(as.character((dt$V2)), "-")))
+dparams <- cbind(lsc, lsp)
+names(dparams) <-c("esp2", "esp1","sc1", "sc2" )#c("sc1", "sc2", "esp2", "esp1")#verif si numero espece pas inverses?
+
+
+#calcul des differences de valeurs de parametres
+res <- NULL
+for (i in 1:length(dparams$sc1))
+{
+  p1 <- params[[as.character(dparams$esp1[i])]][params[[as.character(dparams$esp1[i])]]$id_scenario == dparams$sc1[i] , c(2,3,4,5,6)]
+  p2 <- params[[as.character(dparams$esp2[i])]][params[[as.character(dparams$esp2[i])]]$id_scenario == dparams$sc2[i] , c(2,3,4,5,6)]
+  res <- rbind(res, p1-p2)
+}
+
+dparams <- cbind(dparams, res)
+dparams$keysc <- ls_keysc
+
+resnorm <- res
+names(resnorm) <- c("normq", "normLen", "normVmax2", "normRUE", "normMaxFix")
+resnorm$normq[resnorm$normq>0] <- 1
+resnorm$normq[resnorm$normq<0] <- -1
+resnorm$normLen[resnorm$normLen>0] <- 1
+resnorm$normLen[resnorm$normLen<0] <- -1
+resnorm$normVmax2[resnorm$normVmax2>0] <- 1
+resnorm$normVmax2[resnorm$normVmax2<0] <- -1
+resnorm$normRUE[resnorm$normRUE=='0.2'] <- -0.5
+resnorm$normRUE[resnorm$normRUE=='0.6'] <- -1
+resnorm$normMaxFix[resnorm$normMaxFix<0] <- 1#inverse
+
+dparams <- cbind(dparams, resnorm)
+
+
+#inputs
+nfert_level <- '300N'
+bw_q <- 0
+bw_Len <- 0
+bw_Vmax2 <- 0
+bw_RUE <- 0
+bw_Fix <- 0
+
+seletedkey <- dparams[dparams$normq == bw_q & dparams$normLen == bw_Len & dparams$normVmax2 == bw_Vmax2 & dparams$normRUE == bw_RUE & dparams$normMaxFix == bw_Fix, "keysc"]
+# 
+
+
+seletedkey <- dparams[dparams$normq == 0 & dparams$normLen == 0 & dparams$normVmax2 == 0 & dparams$normRUE == 0 & dparams$normMaxFix == 0, "keysc"]
+
+
+tabmoy <- ls_tabmoys[[nfert_level]][[seletedkey]]
+YtotvsProp(tabmoy, nom="", optProp="actual", visutext=F, cex.lab=1.2)
+OverYvsAll(ls_tabmoys[[nfert_level]], seletedkey, nom="", optProp="sowing", cex.lab=1.2, Ymax=400)
+
+#sowing prop
+bw_Fix <- 0#1#
+layout(matrix(1:3,1,3))
+for (nfert_level in c('0N','120N','300N'))
+{
+  seletedkey <- dparams[dparams$normq == bw_q & dparams$normLen == bw_Len & dparams$normVmax2 == bw_Vmax2 & dparams$normRUE == bw_RUE & dparams$normMaxFix == bw_Fix, "keysc"]
+  isfix <- grepl('Fix2-', names(ls_tabmoys[[nfert_level]]))
+  if (bw_Fix == 0) 
+  {ls_tab <- ls_tabmoys[[nfert_level]][!isfix]
+  } else 
+  {ls_tab <- ls_tabmoys[[nfert_level]][isfix]}
+  OverYvsAll(ls_tab, seletedkey, nom=paste('sowing',nfert_level, bw_Fix), optProp="sowing", cex.lab=1.2, Ymax=500)
+}
+
+
+#actual prop
+bw_Fix <- 1#0#
+layout(matrix(1:3,1,3))
+for (nfert_level in c('0N','120N','300N'))
+{
+  seletedkey <- dparams[dparams$normq == bw_q & dparams$normLen == bw_Len & dparams$normVmax2 == bw_Vmax2 & dparams$normRUE == bw_RUE & dparams$normMaxFix == bw_Fix, "keysc"]
+  isfix <- grepl('Fix2-', names(ls_tabmoys[[nfert_level]]))
+  if (bw_Fix == 0) 
+  {ls_tab <- ls_tabmoys[[nfert_level]][!isfix]
+  } else 
+  {ls_tab <- ls_tabmoys[[nfert_level]][isfix]}
+  res <- OverYvsAll(ls_tab, seletedkey, nom=paste('actual',nfert_level, bw_Fix), optProp="actual", cex.lab=1.2, Ymax=500)
+}
+
+
+
+
+
+
+#sowing histo
+bw_Fix <- 0#1#
+layout(matrix(1:3,1,3))
+for (nfert_level in c('0N','120N','300N'))
+{
+  seletedkey <- dparams[dparams$normq == bw_q & dparams$normLen == bw_Len & dparams$normVmax2 == bw_Vmax2 & dparams$normRUE == bw_RUE & dparams$normMaxFix == bw_Fix, "keysc"]
+  isfix <- grepl('Fix2-', names(ls_tabmoys[[nfert_level]]))
+  if (bw_Fix == 0) 
+  {ls_tab <- ls_tabmoys[[nfert_level]][!isfix]
+  } else 
+  {ls_tab <- ls_tabmoys[[nfert_level]][isfix]}
+  res <- OverYvsAll(ls_tab, seletedkey, nom=paste('sowing',nfert_level, bw_Fix), optProp="sowing", visuplot = F)
+  x <- hist(res$y, main=paste('sowing',nfert_level, bw_Fix), col=c(rep(0,20),rep(2,20)), xlim=c(-350,350), breaks = seq(-1000,1000,50), ylim=c(0,400), xlab="OverY")
+  #segments(0,0,0,400, col=2)
+  propsup0 <- sum(x$counts[21:40])/sum(x$counts)*100
+  propsup50 <- sum(x$counts[22:40])/sum(x$counts)*100
+  text(200, 350, round(propsup0, 2))
+  text(200, 320, round(propsup50, 2))
+}
+
+
+
+
+
+#actual histo
+bw_Fix <- 0#1#
+layout(matrix(1:3,1,3))
+for (nfert_level in c('0N','120N','300N'))
+{
+  seletedkey <- dparams[dparams$normq == bw_q & dparams$normLen == bw_Len & dparams$normVmax2 == bw_Vmax2 & dparams$normRUE == bw_RUE & dparams$normMaxFix == bw_Fix, "keysc"]
+  isfix <- grepl('Fix2-', names(ls_tabmoys[[nfert_level]]))
+  if (bw_Fix == 0) 
+  {ls_tab <- ls_tabmoys[[nfert_level]][!isfix]
+  } else 
+  {ls_tab <- ls_tabmoys[[nfert_level]][isfix]}
+  res <- OverYvsAll(ls_tab, seletedkey, nom=paste('actual',nfert_level, bw_Fix), optProp="actual", visuplot = F)
+  x <- hist(res$y, main=paste('actual',nfert_level, bw_Fix), col=c(rep(0,20),rep(2,20)), xlim=c(-350,350), breaks = seq(-1000,1000,50), ylim=c(0,400), xlab="OverY")
+  #segments(0,0,0,400, col=2)
+  propsup0 <- sum(x$counts[21:40])/sum(x$counts)*100
+  propsup50 <- sum(x$counts[22:40])/sum(x$counts)*100
+  text(200, 350, round(propsup0, 2))
+  text(200, 320, round(propsup50, 2))
+}
+
+
+
+#pour faire la comparaison avec modele neutre 
+#ligne : caluler fit sur derniere serie / faire les calcul de difference en fontion des proportion et du modele spleen fite
+#recalule OverY-neutral
+
+
+
+
+#passer tous les tab et faire de data.frame de synthse des indicateurs
+
+# A faire: recuperer un plan: (e.g.) 
+#retirer les bons id avec un %in% dans dparams
+
+#de la meme facon faire graph triangle...
+
+#ou graph sctter 3D avec pojetions comme dans leaf spectrum?
+
+
+resindice <- vector("list",2)
+names(resindice) <- c('actual','sowing')
+aa <-  vector("list",3)
+names(aa) <- c('0N','120N','300N')
+resindice[['actual']] <- aa
+resindice[['sowing']] <- aa
+
+for (outype in c('actual','sowing'))
+{
+  for (nfert_level in c('0N','120N','300N'))
+  {
+  
+    resall <- NULL
+    for (seletedkey  in names(ls_tabmoys[[nfert_level]]))
+    {
+      tabmoy <- ls_tabmoys[[nfert_level]][[seletedkey]]
+      res <- as.data.frame(YtotvsProp(tabmoy, nom="", optProp=outype, visutext=F, visuplot=F, cex.lab=1.2))
+      res$nfert <- nfert_level
+      res$keysc <- seletedkey
+      resall <- rbind(resall, res)
+    }
+    
+    #y ajouter le decodage des valeurs de parametes de dparams
+    #length(dparams$keysc)
+    #length(resall$keysc)
+    #?? ps la meme longueur?? manque 2 simul!
+    
+    
+    resall2 <- NULL
+    for (key  in resall$keysc)
+    {
+      res <- dparams[dparams$keysc == key, -10]
+      resall2 <- rbind(resall2, res)
+    }
+    
+    resindice[[outype]][[nfert_level]] <- cbind(resall, resall2)
+  }
+}
+
+nfert_level <- '120N'#"300N"#'0N'#
+outype <- "actual"
+isfix <- grepl('Fix2-', resindice[[outype]][[nfert_level]]$keysc)
+
+resindice[[outype]][[nfert_level]][isfix,]#pour les asso
+resindice[[outype]][[nfert_level]][!isfix,]#pour les purs
+
+
+
+
+#install.packages("scatterplot3d") # Install
+library("scatterplot3d")
+scatterplot3d(resindice[[outype]][[nfert_level]][isfix,c("normq","normLen","inttot")], pch = 16, color="steelblue")
+
+
+
+#plot triangle
+library(ggtern)
+require(akima)#pour interpollation
+
+
+# The biggest difficulty in the making of a ternary plot is to transform triangular coordinates into cartesian coordinates, here is a small function to do so:
+tern2cart <- function(coord)
+{
+  coord[1]->x
+  coord[2]->y
+  coord[3]->z
+  x+y+z -> tot
+  x/tot -> x  # First normalize the values of x, y and z
+  y/tot -> y
+  z/tot -> z
+  (2*y + z)/(2*(x+y+z)) -> x1 # Then transform into cartesian coordinates
+  sqrt(3)*z/(2*(x+y+z)) -> y1
+  return(c(x1,y1))
+}
+
+
+
+nfert_level <-'0N'#"300N"#'120N'# 
+outype <- "sowing"#"actual"#
+normRUE <- 0.0
+asso <- 'pur'#'asso'#
+var <- "propOpt"#"propsowing50"#"OverMax"#"inttot"#
+breaks_ <- c(-300,-200,-100,0,50,100,150,200)#"inttot"/actual
+breaks_ <- c(-400,-250,-100,0,100,200,300,400)#"inttot"/actual
+breaks_ <- c(0,0.1,0.3,0.4,0.5,0.6,0.7,0.9)#"propOpt / sowing
+
+layout(matrix(1:3,1,3))
+for (nfert_level in c('0N','120N','300N'))
+{
+  
+  #mise en forme donnee
+  isfix <- grepl('Fix2-', resindice[[outype]][[nfert_level]]$keysc)
+  islevRUE <- resindice[[outype]][[nfert_level]]$normRUE == 0.0
+  
+  if (asso=='asso')
+  {
+  plan <- resindice[[outype]][[nfert_level]][isfix & islevRUE, c("normq","normLen","normVmax2",var)]  
+  } else
+  {plan <- resindice[[outype]][[nfert_level]][!isfix & islevRUE, c("normq","normLen","normVmax2",var)]}
+  
+  df <- (plan[,c(1,2,3)]+1)/2*100 #passge en %
+  #df[26,] <- df[26,]+0.0001 #pour le point zero qui bug ->non! normal que null d'y soit pas (serait au meme endroit que 1,1,1)-> repérer nul sur l'échelle avec une fleche
+  #!! en fait 0,0,0 ps nul c'est 0.5,0.5,0.5) qui est null; mais aussi au meme endroit que 1,1,1!! probleme de cette visu
+  #df <- df[-26,]#enleve le zero (neutre)
+  retire <- c(-6,-10,-12,-21,-22,-23,-25,-26)#doublons a retirer (en dur avec modele nul)
+  df <- df[retire,]#enleve le zero (neutre)
+  
+  q <- df[,1]
+  Len <- df[,2]
+  Vmax <- df[,3] 
+  OverY <- plan[retire,4]#c(500,2324.90,2551.44,1244.50, 551.22,-644.20,-377.17,-100, 2493.04) 
+  
+  df <- data.frame(q, Len, Vmax, OverY)
+  
+  coords <- as.data.frame(t(apply(df,1,tern2cart)))
+  names(coords) <- c('X', 'Y')
+  #plot(coords)
+  #pas utilise dans le tri finalement
+  cols <- heat.colors(100, alpha = 1)
+  #idcols <- cols[round((OverY+250)/(150+250)*100, 0)]#cols[round((OverY+350)/(350+350)*100, 0)]#
+  #plot(coords, col=idcols, pch=16)
+  
+  coords$OverY <- plan[retire,4]
+  #library(lattice)
+  #levelplot(OverY~X*Y, coords)
+  #coords
+  
+  
+  #plot de la figure triangle
+  # First create the limit of the ternary plot:
+  titre <- paste(outype, nfert_level, asso, normRUE)
+  plot(NA,NA,xlim=c(-0.1,1.1),ylim=c(-0.1,sqrt(3)/2)+0.1,asp=1,bty="n",axes=F,xlab="",ylab="",main=titre)
+  
+  
+  resolution <- 0.001
+  
+  #interp(tern[,1],tern[,2],z=d, xo=seq(0,1,by=resolution), yo=seq(0,1,by=resolution)) -> tern.grid
+  interp(coords[,1],coords[,2],z=coords[,3], xo=seq(0,1,by=resolution), yo=seq(0,1,by=resolution)) -> tern.grid
+  
+  # And then plot:
+  image(tern.grid,breaks=breaks_,col=rev(heat.colors(7)),add=T)
+  contour(tern.grid,levels=breaks_,add=T)
+  points(coords[,c(1,2)],pch=19)
+  
+  #graph personalise super! a finir (gradient de couleur negatif...)
+  #titre, nom des parametres
+  #fleches
+  segments(0,0,0.5,sqrt(3)/2)
+  segments(0.5,sqrt(3)/2,1,0)
+  segments(1,0,0,0)
+  text(0.5,(sqrt(3)/2),names(df)[3], pos=3)#"c"
+  text(-0.08,0.05,names(df)[1], pos=1)#"a"
+  text(1.08,0.05,names(df)[2], pos=1)#"b"
+  
+  
+  legend(-0.1, 0.9, rev(c(-200,-100,0,50,100,150,200)), fill = heat.colors(7), col = rev(heat.colors(7)), border = NULL, bty="n", cex=0.8)
+  text(0., 0.95, var)
+  points(0.5, 0.288, col=4, pch=16, cex=1.3)#modele null
+
+}
+
+
+
+
+
+
+#plot de correlations
+pairs(resindice[['sowing']][[nfert_level]][,c(1,4,5)])
+
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+
+
+dat <- rbind(resindice[['sowing']][['0N']][,c(1,4,5)], resindice[['sowing']][['120N']][,c(1,4,5)], resindice[['sowing']][['300N']][,c(1,4,5)])
+pairs(dat[dat$OverMax<410,], lower.panel = panel.cor, upper.panel = panel.smooth)
+
+
+
+pairs(resindice[['actual']][[nfert_level]][,c(1,4,5,6,7,9)])
+pairs(resindice[['actual']][[nfert_level]][,c(1,4,5,6,7,9)])
+
+plot(resindice[['sowing']][[nfert_level]]$inttot, resindice[['actual']][[nfert_level]]$inttot)
+#??
+
+#pb dans la boucme??
+
+
+ggtern(df,aes(df[,1],df[,2],df[,3])) + 
+  geom_point(aes(fill=plan[retire,4]))
+
+
+
+#retirer de df les points doublons
+
+df <- cbind(df,coords)
+
+#faire une cle unique pour tier et enlever les doublons
+
+#df$charx <- as.character(coords['X'])
+
+
+
+
+
+
+library(ggtern)
+
+
+#Orignal Data as per Question
+q <- df[,1]#c(0.1, 0.5,0.5, 0.6, 0.2, 0          , 0         , 0.004166667, 0.45) 
+Len <- df[,2]#c(0.75,0.5,0  , 0.1, 0.2, 0.951612903,0.918103448, 0.7875     , 0.45)
+Vmax <- df[,3]#c(0.15,0  ,0.5, 0.3, 0.6, 0.048387097,0.081896552, 0.208333333, 0.10) 
+OverY <- plan[retire,4]#c(500,2324.90,2551.44,1244.50, 551.22,-644.20,-377.17,-100, 2493.04) 
+df <- data.frame(q, Len, Vmax, OverY)
+
+#For labelling each point.
+df$id <- 1:nrow(df)
+ggtern(data=df,aes(x=Vmax,y=q,z=Len),aes(x,y,z)) + 
+  stat_density_tern(geom="polygon",color='black',
+                    n=400,h=0.75,expand = 1.1,
+                    base='identity',
+                    aes(fill   = ..level..,weight = d),
+                    na.rm = TRUE) + 
+  geom_point(color="black",size=5,shape=21) +
+  geom_text(aes(label=id),size=3) + 
+  scale_fill_gradient(low="yellow",high="red") + 
+  scale_color_gradient(low="yellow",high="red") + 
+  theme_rgbw() + 
+  theme(legend.justification=c(0,1), legend.position=c(0,1)) +
+  theme_gridsontop() + 
+  guides(fill = guide_colorbar(order=1),color="none") + 
+  labs(  title= "Ternary Plot and Filled Contour",fill = "Value, OverY")
+
+
+
+
+#seulement 19 points et as 27???
+#7 doublons dont je ne comprends pas trop l'origine?
+cbind(plan, coords, df)
+#comment lit on le graph?
+#is a barycentric plot on three variables which sum to a constant!!! -> ma somme n'est pas constante!
+#comment fait tilman?
+#2 variables ou cube....
+
+#piste : diagramme chromatique (aussi en triangle) -> transformation differente
+#comme pour les couleur la somme des range est constante
+
+
+ggtern(plan,aes(plan[,1],plan[,2],plan[,3])) + 
+  geom_interpolate_tern(aes(value=d,fill=..level..),
+                        binwidth=500,
+                        colour="white") +
+  geom_point(aes(fill=plan[,4])),color="black",shape=21,size=3) + 
+  scale_fill_gradient(low="yellow",high="red") +
+  theme(legend.position=c(0,1),legend.justification=c(0,1)) + 
+  labs(fill="Value, d")
+
+
+ggtern(plan,aes(plan[,1],plan[,2],plan[,3])) + 
+  geom_point(aes(fill=plan[,4]))
+
+
+
+
+
+
+
+
+#exemple1
+a<- c (0.1, 0.5, 0.5, 0.6, 0.2, 0, 0, 0.004166667, 0.45) 
+b<- c (0.75,0.5,0,0.1,0.2,0.951612903,0.918103448,0.7875,0.45)
+c<- c (0.15,0,0.5,0.3,0.6,0.048387097,0.081896552,0.208333333,0.1) 
+d<- c (500,2324.90,2551.44,1244.50, 551.22,-644.20,-377.17,-100, 2493.04) 
+df<- data.frame (a, b, c)
+
+
+# First create the limit of the ternary plot:
+plot(NA,NA,xlim=c(0,1),ylim=c(0,sqrt(3)/2),asp=1,bty="n",axes=F,xlab="",ylab="")
+segments(0,0,0.5,sqrt(3)/2)
+segments(0.5,sqrt(3)/2,1,0)
+segments(1,0,0,0)
+text(0.5,(sqrt(3)/2),"c", pos=3)
+text(0,0,"a", pos=1)
+text(1,0,"b", pos=1)
+
+# The biggest difficulty in the making of a ternary plot is to transform triangular coordinates into cartesian coordinates, here is a small function to do so:
+tern2cart <- function(coord)
+{
+  coord[1]->x
+  coord[2]->y
+  coord[3]->z
+  x+y+z -> tot
+  x/tot -> x  # First normalize the values of x, y and z
+  y/tot -> y
+  z/tot -> z
+  (2*y + z)/(2*(x+y+z)) -> x1 # Then transform into cartesian coordinates
+  sqrt(3)*z/(2*(x+y+z)) -> y1
+  return(c(x1,y1))
+}
+
+# Apply this equation to each set of coordinates
+t(apply(df,1,tern2cart)) -> tern
+
+# Intrapolate the value to create the contour plot
+resolution <- 0.001
+require(akima)
+interp(tern[,1],tern[,2],z=d, xo=seq(0,1,by=resolution), yo=seq(0,1,by=resolution)) -> tern.grid
+
+# And then plot:
+image(tern.grid,breaks=c(-1000,0,500,1000,1500,2000,3000),col=rev(heat.colors(6)),add=T)
+contour(tern.grid,levels=c(-1000,0,500,1000,1500,2000,3000),add=T)
+points(tern,pch=19)
+
+
+
+
+#exemple 2
+#Orignal Data as per Question
+a <- c(0.1, 0.5,0.5, 0.6, 0.2, 0          , 0         , 0.004166667, 0.45) 
+b <- c(0.75,0.5,0  , 0.1, 0.2, 0.951612903,0.918103448, 0.7875     , 0.45)
+c <- c(0.15,0  ,0.5, 0.3, 0.6, 0.048387097,0.081896552, 0.208333333, 0.10) 
+d <- c(500,2324.90,2551.44,1244.50, 551.22,-644.20,-377.17,-100, 2493.04) 
+df <- data.frame(a, b, c, d)
+
+#For labelling each point.
+df$id <- 1:nrow(df)
+
+#Build Plot
+ggtern(data=df,aes(x=c,y=a,z=b),aes(x,y,z)) + 
+  stat_density2d(geom="polygon",
+                 n=400,
+                 aes(fill=..level..,
+                     weight=d,
+                     alpha=abs(..level..)),
+                 binwidth=100) + 
+  geom_density2d(aes(weight=d,color=..level..),
+                 n=400,
+                 binwidth=100) +
+  geom_point(aes(fill=d),color="black",size=5,shape=21) + 
+  geom_text(aes(label=id),size=3) + 
+  scale_fill_gradient(low="yellow",high="red") + 
+  scale_color_gradient(low="yellow",high="red") + 
+  theme_tern_rgbw() + 
+  theme(legend.justification=c(0,1), legend.position=c(0,1)) + 
+  guides(fill = guide_colorbar(order=1),
+         alpha= guide_legend(order=2),
+         color="none") + 
+  labs(  title= "Ternary Plot and Filled Contour",
+         fill = "Value, V",alpha="|V - 0|")
+
+
+#exemple3
+df <- data.frame(a, b, c, d)
+ggtern(df,aes(a,c,b)) + 
+  geom_interpolate_tern(aes(value=d,fill=..level..),
+                        binwidth=500,
+                        colour="white") +
+  geom_point(aes(fill=d),color="black",shape=21,size=3) + 
+  scale_fill_gradient(low="yellow",high="red") +
+  theme(legend.position=c(0,1),legend.justification=c(0,1)) + 
+  labs(fill="Value, d")
+
+
+
+#exemple 4 (updae ggtern https://stackoverflow.com/questions/36071015/how-to-get-ternary-contour-plots-with-ggtern-2-1-0)ok!!
+library(ggtern)
+
+#Orignal Data as per Question
+a <- c(0.1, 0.5,0.5, 0.6, 0.2, 0          , 0         , 0.004166667, 0.45) 
+b <- c(0.75,0.5,0  , 0.1, 0.2, 0.951612903,0.918103448, 0.7875     , 0.45)
+c <- c(0.15,0  ,0.5, 0.3, 0.6, 0.048387097,0.081896552, 0.208333333, 0.10) 
+d <- c(500,2324.90,2551.44,1244.50, 551.22,-644.20,-377.17,-100, 2493.04) 
+df <- data.frame(a, b, c, d)
+
+#For labelling each point.
+df$id <- 1:nrow(df)
+ggtern(data=df,aes(x=c,y=a,z=b),aes(x,y,z)) + 
+  stat_density_tern(geom="polygon",color='black',
+                    n=400,h=0.75,expand = 1.1,
+                    base='identity',
+                    aes(fill   = ..level..,weight = d),
+                    na.rm = TRUE) + 
+  geom_point(color="black",size=5,shape=21) +
+  geom_text(aes(label=id),size=3) + 
+  scale_fill_gradient(low="yellow",high="red") + 
+  scale_color_gradient(low="yellow",high="red") + 
+  theme_rgbw() + 
+  theme(legend.justification=c(0,1), legend.position=c(0,1)) +
+  theme_gridsontop() + 
+  guides(fill = guide_colorbar(order=1),color="none") + 
+  labs(  title= "Ternary Plot and Filled Contour",fill = "Value, V")
+
+
+
+OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visuplot=T,...)
+{
+  #key <- ls_keysc[20]
+  #figure de tous les overyielding
+  ls_keysc = names(ls_tabmoys)
+  
+  if (optProp=="sowing")
+  { labx <- 'Sowing proportion (Esp. 1)'}
+  if (optProp=="actual")
+  { labx <- 'Actual proportion (Esp. 1)'}
+  
+  if (visuplot==T)
+  {
+    plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
+    segments(0, 0, 1, 0, col=1)
+  }
+  
+  resx <- NULL
+  resy <- NULL
+  
+  for (keysc in ls_keysc)
+  {
+    #keysc <- ls_keysc[3]
+    tabmoy <- ls_tabmoys[[keysc]]
+    
+    #xx <- tabmoy$Semprop1#tabmoy$Yprop1#
+    yy <- tabmoy$Ytot
+    #actual or sowing proportions?
+    if (optProp=="sowing")
+    {
+      xx <- tabmoy$Semprop1
+      labx <- 'Sowing proportion (Esp. 1)'
+    }
+    if (optProp=="actual")
+    {
+      xx <- tabmoy$Yprop1
+      labx <- 'Actual proportion (Esp. 1)'
+    }
+    
+    lintot <- lsfit(c(xx[1], xx[7]), c(yy[1], yy[7]))
+    ylin <- lintot$coefficients[["Intercept"]] + xx*lintot$coefficients[["X"]]
+    overY <- yy - ylin
+    
+    if (keysc != key)
+    {
+      if (visuplot==T)
+      { points(xx, overY, pch=16, col='light grey') }
+      resx <- cbind(resx,xx)
+      resy <- cbind(resy,overY)
+    } else
+    {
+      savexx <- xx
+      saveyy <- overY
+    }
+  }
+  if (visuplot==T)
+  { points(savexx, saveyy, pch=16, col='blue', type='b')}
+  resx <- cbind(resx,savexx)
+  resy <- cbind(resy,saveyy)
+  data.frame(x=as.numeric(resx), y=as.numeric(resy))
+}
+
+
+
+
+
+
+#modif liste fichier
+nom<-file.choose()#"C:\\simul\\PMA18\\dtoto3ok.csv"
+
+dtoto <- read.table(nom, header = TRUE,row.names=F, sep=";", dec=".")
+
+dtoto <- read.table("clipboard", header = TRUE, sep="\t", dec=".")
+
+
+
+
+names(dtoto)
+dtoto[dtoto$scenario =="55-55" & dtoto$nbplt1==48, ]
+
+#usm 3415 a retirer = ligne211
+dtoto <- dtoto[-211,]
+
+tabmoys <- do.call("rbind", ls_tabmoys) #merge a list of data.frames - do.call equalent de map
+write.csv(tabmoys, "tabmoys3ok_.csv", row.names=F)
 
