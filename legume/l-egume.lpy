@@ -143,7 +143,7 @@ visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
-movDisplay = 1 # #sauvegarde toutes les vues pour faire un film
+movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
 
 #550 it en 2013s/1940s
 #curieusement plante (memory error??) quand pas de visualisation??-> a creuser
