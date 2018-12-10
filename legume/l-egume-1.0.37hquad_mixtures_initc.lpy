@@ -3608,7 +3608,7 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
     PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
 	
-    #Ajout Quentin
+    #Ajout Quentin 
     try :
         PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
         print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
