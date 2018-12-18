@@ -23,8 +23,8 @@ import IOtable
 
 #lecture de la liste des usm
 #path_ = r'H:\devel\grassland\grassland\L-gume'
-mn_path = os.path.join(path_,'multisim','liste_usms_mix.xls')#(path_,'liste_usms_mix_these lucas.xls')#
-ongletBatch = 'SimTest'#'complement'#'Feuil1'#'Sensi'#
+mn_path = os.path.join(path_,'test\inputs','liste_usms_nonregression.xls')#(path_,'multisim','liste_usms_mix.xls')#(path_,'liste_usms_mix_these lucas.xls')#
+ongletBatch = 'test'#'SimTest'#'complement'#'Feuil1'#'Sensi'#
 usms = IOxls.xlrd.open_workbook(mn_path)
 ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
 
@@ -37,6 +37,9 @@ mn_sc = os.path.join(path_,'liste_scenarios.xls')#(path_,'liste_scenarios_these_
 
 
 
+#modif script pour pouvoir lancer en 1 ligne de commande python avec bon noms de fichiers...
+# pb exit... ecriture fichier ou pb e dossier sortie?
+#+deja dossier test a la racine
 
 
 #cree la liste de L-systems et liste des noms
@@ -83,7 +86,12 @@ for i in range(len(ls_usms['ID_usm'])):
         optdamier = int(ls_usms['damier'][i])
         nbcote = int(ls_usms['nbcote'][i])
         ### testsim[name].ParamP = damier8(g4,g5,opt=optdamier)
-        nommix = '_'+ongletP+'-'+ongletPvois+'_'+'damier'+str(optdamier)+'_scenario'+str(idscenar2)+'-'+str(idscenar1)
+        if str(ls_usms['arrangement'][i]) == 'damier8':
+            arrang = 'damier'+str(optdamier)
+        else:
+            arrang = str(ls_usms['arrangement'][i])+str(optdamier)
+
+        nommix = '_'+ongletP+'-'+ongletPvois+'_'+arrang+'_scenario'+str(idscenar2)+'-'+str(idscenar1)
         
         testsim[name].ongletS = str(ls_usms['ongletS'][i])
         testsim[name].ongletP = ongletP
@@ -127,7 +135,7 @@ for i in range(len(ls_usms['ID_usm'])):
 
 nb_usms =len(names)#len(ls_usms['ID_usm'])#len(names)#
 
-
+#print nb_usms, names
 
 
 #function to run an L-system from the 'testsim' dictionnary
