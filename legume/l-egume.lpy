@@ -16,15 +16,13 @@ sys.path.insert(0, path_leg)
 #from rpy_options import set_options
 #set_options(RHOME='c:/progra~1/R/R-2.12.1')
 #from rpy import r
-import rpy2.rpy_classic as rpy
-rpy.set_default_mode(rpy.NO_CONVERSION)
-rpy.r.source(os.path.join(path_, 'dist_tetaf.r'))#'dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
-rpy.r.source(os.path.join(path_, 'calc_root_tropism.r'))#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
-rpy.set_default_mode(rpy.BASIC_CONVERSION)
+#import rpy2.rpy_classic as rpy
+#rpy.set_default_mode(rpy.NO_CONVERSION)
+#rpy.r.source(os.path.join(path_, 'dist_tetaf.r'))#'dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
+#rpy.r.source(os.path.join(path_, 'calc_root_tropism.r'))#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
+#rpy.set_default_mode(rpy.BASIC_CONVERSION)
 #r.source('dist_tetaf.r') #in L-gume folder
 #r.source('calc_root_tropism.r') #in L-gume folder
-
-
 
 
 from numpy.random import binomial, seed
@@ -34,6 +32,7 @@ import string
 import time
 from openalea.plantgl.all import *
 from Obj3Dutils import *
+
 
 try:
     from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
@@ -100,7 +99,7 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 #initialisation des variables globale de simulation
 DOYdeb = 60#49#159#124#
-DOYend = 335#610#120#250#244#282#
+DOYend = 180#335#610#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
@@ -143,7 +142,7 @@ visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
-movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
+movDisplay = 1 # #sauvegarde toutes les vues pour faire un film
 
 #550 it en 2013s/1940s
 #curieusement plante (memory error??) quand pas de visualisation??-> a creuser
@@ -253,6 +252,8 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
         ParamP = [g4]*nbcote*nbcote
     elif type == 'damier8':#damier binaire 64 plantes
         ParamP = damier8(g4,g5,opt=opt)
+        if nbcote!=8:
+            print('Warning! : damier8 option is for a 64 plant design')
     else:#defautl= force nb plante comme nbcote
         ParamP = [g4]*nbcote
         #ParamP = [g4]*10#*2#*30#[g6, g4, g6, g4, g6, g4, g6]#[g6,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4]#[g4] 
@@ -276,11 +277,9 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
       ParamP[nump]['profilStipI_larg'] = []
       ParamP[nump]['profilPetI_l'] = []
       ParamP[nump]['profilLeafI_nfol'] = []
-      ParamP[nump]['k_teta_distf'] = rpy.r.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD']) #proportion de feuille par        classe d'incli pour calcul des k_teta
+      ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD'])#proportion de feuille par        classe d'incli pour calcul des k_teta
       
-      rpy.set_default_mode(rpy.NO_CONVERSION)
-      ParamP[nump]['profilRoot'] = rpy.r.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#trajet d'une racine fille II
-      rpy.set_default_mode(rpy.BASIC_CONVERSION)
+      ParamP[nump]['profilRoot'] = rt.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#rpy.r.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#trajet d'une racine fille II
       
       for rank in range(1,51): #!limite a 50 noeuds!
           Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0]*rank+ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2]*rank+ParamP[nump]['profilLeafI_Rlen'][3])
@@ -2803,6 +2802,10 @@ def End(lstring,lscene):
 # mais force a 2 groupe_resid pour initialisation car sinon bug qd des residus de l'esp 2 seulement: revoir comment gerer ca...
 #ajout d'options de visualisation du sol, des racine et des tiges (regles d'interpretation optionnelles)
 
+#version_r
+#debranche r: retire dist_tetaf.r ->OK -> dans rir5.py
+#retire calc_root_tropism & idLong ->OK -> sans rootMorpho2.py
+#rpy2 debranche!
 
 #A faire 
 # pour pivot respe a zero! -> ajute variable de mort des plante et disparition des racines et pivots qd ca arrive -> A faire
@@ -3672,9 +3675,9 @@ GetPos(X0,Y0,Z0)RLAP(nump,nsh,age,rankp,l, Horiz):
     #RprospectProfil[nump][Horiz] = l+dl
     
     #calculation new enveloppe
-    id = rpy.r.idLong(l, ParamP[nump]['profilRoot'])
-    larg = ParamP[nump]['profilRoot']['y']['y'][id[0]]#['y'][id]
-    long = min(max(dz_sol ,ParamP[nump]['profilRoot']['x']['x'][id[0]]), prof_sol_max+Z0)#['x'][id]), prof_sol_max+Z0)
+    id = rt.idLong(l, ParamP[nump]['profilRoot'])#rpy.r.idLong(l, ParamP[nump]['profilRoot'])
+    larg = ParamP[nump]['profilRoot']['y'][id]#['y'][id[0]]#['y'][id]
+    long = min(max(dz_sol ,ParamP[nump]['profilRoot']['x'][id]), prof_sol_max+Z0)#['x'][id[0]]), prof_sol_max+Z0)#['x'][id]), prof_sol_max+Z0)
     ls_systrac[nump].append([X0,Y0,-Z0,larg,long])
     
     if age<=(ParamP[nump]['GDs1']+ParamP[nump]['GDs2'])/2:#durre expansion enveloppe secondaire determinee par Dmax et D2 -> devrait utiliser varD pour laterales les plus larges
@@ -3848,10 +3851,10 @@ RLB(nump,nsh,age,rankp, Horiz):
         produce ;(0)Sphere(0.4)
 
 RLAP(nump,nsh,age,rankp, l, Horiz): 
-    id = rpy.r.idLong(l, ParamP[nump]['profilRoot'])
-    #print id, l
-    larg = ParamP[nump]['profilRoot']['y']['y'][id[0]]#['y'][id]
-    long = max(dz_sol ,ParamP[nump]['profilRoot']['x']['x'][id[0]])#['x'][id])
+    id = rt.idLong(l, ParamP[nump]['profilRoot'])#rpy.r.idLong(l, ParamP[nump]['profilRoot'])
+    #print id, l, ParamP[nump]['profilRoot']['y']
+    larg = ParamP[nump]['profilRoot']['y'][id]#['y'][id[0]]#['y'][id]#
+    long = max(dz_sol ,ParamP[nump]['profilRoot']['x'][id])#['x'][id[0]])#['x'][id])
     if visu_root==1:
         produce ;(0)_(larg)F(long)
         #produce ;(0)_(l)F(dz_sol)

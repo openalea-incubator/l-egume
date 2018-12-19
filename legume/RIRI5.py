@@ -8,8 +8,9 @@
 
 
 from numpy import linspace
-from scipy import array, exp, zeros, set_printoptions, pi, radians, cos, sin, tan, arccos
+from scipy import array, exp, zeros, set_printoptions, pi, radians, cos, sin, tan, arccos, histogram
 from copy import deepcopy
+from numpy.random import seed, normal
 
 def get_lsparami(ParamP, param):
     """ recupere une liste des parametre param de chaque plante de L-egume """
@@ -329,3 +330,22 @@ def rfr_calc_relatif(relI0,a=3.09,b=1.59,c=0,d=1.12,x1=0.,x2=2.):
 
 #applique a la matrice des transmis res_trans_form
 #res_rfr = rfr_calc_relatif(res_trans_form)
+
+def disttetaf(mf, sdf, nbs=10000, seed=0):
+    """ python version of dist_tetaf.r"""
+    # mf = 5.
+    # sdf = 10.
+    # n = 100#00
+    # seed = 0
+
+    # random.seed(seed)
+    x = normal(loc=mf, scale=sdf, size=nbs)  # numpy.random.normal
+    x
+    x[x < 0] = -x[x < 0]
+    x[x > 90] = 90 - (x[x > 90] - 90)
+    x[x < 0] = -x[x < 0]
+    x[x > 90] = 90 - (x[x > 90] - 90)
+    x
+    res = histogram(x, bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90])
+    return res[0] / float(nbs)
+    # print 't', disttetaf(5., 10.)

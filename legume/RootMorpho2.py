@@ -1,4 +1,4 @@
-from scipy import pi, array, sqrt
+from scipy import pi, array, sqrt, arange, cos, sin, amax, where
 
 ## gestion des enveloppe et des tropisme -> fonctions dans fichier R 'calc_root_tropism.r'
 
@@ -412,4 +412,43 @@ def calc_root_senescence(dl2, dl3, dur2, dur3, SRL):
     dRLenSentot = dRLenSen2+dRLenSen3
     dMSenRoot = dRLenSentot/(SRL+10e-15)
     return dRLenSentot, dMSenRoot
+
+
+def rootTropism(alpha0, g, segment=0.3, Long=10.):
+    """python version of rootTropism.r """
+    # calcul coordonees de n segments sur longueur Long avec incli initiale = alpha0 et tropisme=g
+
+    # alpha0 = 70. #degre (par rapport a verticale)
+    # segment = 0.3 #cm
+    # g = 0.5 #gravitropisme
+    # Long = 10.#cm
+
+    cumlen = arange(0, Long, segment)  # seq(0, Long, segment)#equivalent python?
+    # 2 1er point (inclinaison initiale)
+    ang_actu = alpha0
+    x = [0., segment * cos(alpha0 * pi / 180.)]
+    # axe vertical
+    y = [0., segment * sin(alpha0 * pi / 180.)]
+    # axe horizontal
+    reste_angle = alpha0
+
+    # n points pour faire Long
+    for i in range(1, len(cumlen) - 1):  # int((Long-segment)/segment + 1)):
+        ang_actu = ang_actu - reste_angle * g
+        x.append(x[-1] + segment * cos(ang_actu * pi / 180.))  # axe vertical
+        y.append(y[-1] + segment * sin(ang_actu * pi / 180.))  # axe horizontal
+        reste_angle = ang_actu
+
+    # pd.DataFrame({'x':x, 'y':y, 'cumlen':cumlen})
+    return {'x': x, 'y': y, 'cumlen': cumlen}  # pd.DataFrame({'x':x, 'y':y, 'cumlen':cumlen})##data.frame(x, y, cumlen)#pd df...
+    # test = rootTropism(70,0.5)
+    # rq: pandas pas necessaire; marche en dico
+
+
+def idLong(Long, tabTropism):
+    """ python fonction for idLong.r"""
+    # id du dataframe immediatement inferieur a Long en longueur cumulee
+    id = amax(where(tabTropism["cumlen"] < Long))  # amax = mas array; where = pyhon for which
+    return id
+    # idLong(Long=5.1, tabTropism=test)
 
