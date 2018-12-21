@@ -16,14 +16,15 @@ dir <- choose.dir()
 
 source(paste(dir, "fonctions_analyses.r",sep="\\"))
 
-dir0 <- paste(dir, "control_v1.0",sep="\\")
+#dir0 <- paste(dir, "control_v1.0",sep="\\")
+dir0 <- paste(dir, "previouscheck",sep="\\")
 dirlast <-  paste(dir, "lastcheck",sep="\\")
 
 
 
 #recupere dico de reference (a refaire si ajoute vaiables...)
 setwd(dir0)
-dtotoref <- read.csv("dico_controlv0.csv")
+dtotoref <- read.csv("dicolast.csv")#("dico_controlv0.csv")
 
 setwd(dirlast)#(dir0)#
 ls_files <- list.files(dirlast)#(dir0)#

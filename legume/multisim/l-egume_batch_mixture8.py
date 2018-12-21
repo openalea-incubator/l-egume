@@ -21,10 +21,30 @@ import IOxls
 import IOtable
 
 
+#to define if used for multisimulation or non-regression tests
+opttest = 1#2#0#
+if opttest == 1 or opttest==2 : #si multisim des test de non regression
+    global foldin, fxls, ongletBatch, fscenar
+    foldin = 'test\inputs'
+    fxls = 'liste_usms_nonregression.xls'
+    fscenar = 'liste_scenarios.xls'
+    if opttest == 1:#non regression
+        ongletBatch = 'test'
+    elif opttest == 2:#obssim
+        ongletBatch = 'valid'
+else: #other multisimulation to be defined
+    global foldin, fxls, ongletBatch, fscenar
+    foldin = 'multisim'
+    fxls = 'liste_usms_mix.xls'
+    ongletBatch = 'SimTest'
+    fscenar = 'liste_scenarios.xls'
+
+
+
 #lecture de la liste des usm
 #path_ = r'H:\devel\grassland\grassland\L-gume'
-mn_path = os.path.join(path_,'test\inputs','liste_usms_nonregression.xls')#(path_,'multisim','liste_usms_mix.xls')#(path_,'liste_usms_mix_these lucas.xls')#
-ongletBatch = 'test'#'SimTest'#'complement'#'Feuil1'#'Sensi'#
+mn_path = os.path.join(path_, foldin, fxls)#(path_,'test\inputs','liste_usms_nonregression.xls')#(path_,'multisim','liste_usms_mix.xls')#(path_,'liste_usms_mix_these lucas.xls')#
+#ongletBatch = 'test'#'SimTest'#'complement'#'Feuil1'#'Sensi'#
 usms = IOxls.xlrd.open_workbook(mn_path)
 ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
 
