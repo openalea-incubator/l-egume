@@ -15,6 +15,8 @@ dir <- choose.dir()
 
 
 source(paste(dir, "fonctions_analyses.r",sep="\\"))
+source(paste(dir, "fonctions_mef.r",sep="\\"))
+
 
 #dir0 <- paste(dir, "control_v1.0",sep="\\")
 dir0 <- paste(dir, "previouscheck",sep="\\")

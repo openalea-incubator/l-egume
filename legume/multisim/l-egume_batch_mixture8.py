@@ -22,7 +22,7 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 1#2#0#
+opttest = 2#1#0#
 if opttest == 1 or opttest==2 : #si multisim des test de non regression
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
@@ -143,12 +143,12 @@ for i in range(len(ls_usms['ID_usm'])):
 
         #path fichiers de sortie
         testsim[name].path_out = os.path.join(path_, str(ls_usms['folder_out'][i]))
-        testsim[name].outvarfile = 'toto_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
-        testsim[name].lsorgfile = 'lsAxes_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
-        testsim[name].outHRfile = 'outHR_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
-        testsim[name].resrootfile = 'resroot_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
-        testsim[name].outBilanNfile = 'BilanN_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.csv'
-        testsim[name].outimagefile = 'scene_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'.bmp'#'scene.bmp'
+        testsim[name].outvarfile = 'toto_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'_'+str(ls_usms['ongletM'][i])+'_'+'.csv'
+        testsim[name].lsorgfile = 'lsAxes_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'_'+str(ls_usms['ongletM'][i])+'_'+'.csv'
+        testsim[name].outHRfile = 'outHR_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'_'+str(ls_usms['ongletM'][i])+'_'+'.csv'
+        testsim[name].resrootfile = 'resroot_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'_'+str(ls_usms['ongletM'][i])+'_'+'.csv'
+        testsim[name].outBilanNfile = 'BilanN_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'_'+str(ls_usms['ongletM'][i])+'_'+'.csv'
+        testsim[name].outimagefile = 'scene_'+name+nommix+'_'+str(ls_usms['ongletMn'][i])+'_'+str(seednb)+'_'+str(ls_usms['ongletM'][i])+'_'+'.bmp'#'scene.bmp'
 
         #plante si dossier out pas cree
         #pourrait faire la lecture les ls_usm directement dans le l-system pour faciliter...+
@@ -196,5 +196,6 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(int(nb_usms)):
         pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur)
     pool.close()
     pool.join()

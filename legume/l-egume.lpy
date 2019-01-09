@@ -53,36 +53,36 @@ import random
 
 ## lecture fichier meteo
 #faire une fonction??
-meteo_path = os.path.join(path_leg,'meteo_exemple_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
-ongletM = 'Lusignan302ans'#'Lusignan30'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
+meteo_path = os.path.join(path_leg,'meteo_exemple3_lucas.xls')#'meteo_exemple_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
+ongletM = 'combileg15'##'Lusignan302ans'#'Lusignan30'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
 meteo = IOxls.read_met_file(meteo_path, ongletM)
 
 ## lecture fichier management
-mn_path = os.path.join(path_leg,'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
-ongletMn = 'Lusignan30IrrN2ans'#'Lusignan30IrrN'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
+mn_path = os.path.join(path_leg,'management_exemple6_lucas.xls')#'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
+ongletMn = 'combileg15-LUZTVhcut3'#'Lusignan30IrrN2ans'#'Lusignan30IrrN'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
 mng = IOxls.read_met_file(mn_path, ongletMn)
 
 ## lecture fichier initialisation
-inis_path = os.path.join(path_leg,'Initialisation_sol_exemple.xls')
-ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'
+inis_path = os.path.join(path_leg,'Initialisation_sol_exemple3_lucas.xls')#'Initialisation_sol_exemple.xls')
+ongletIn = 'combileg15'#'morpholeg_rhizo'#'Lusignan30_5x5'#'Lusignan30'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'
 inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 
 ## lecture fichier plante
-path_plante = os.path.join(path_leg,'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Fix2'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+path_plante = os.path.join(path_leg,'Parametres_plante_v35rac.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
+ongletP = 'timbale'#'Fix2'#'Fix1'#'Fix'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+ongletPvois = 'timbale'#'nonFixSimTest'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 #lecture des parametres du sol
-path_sol = os.path.join(path_leg,'Parametres_sol_exemple2_debugL_glbis.xls')#
-ongletS = 'lusignan99'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#
+path_sol = os.path.join(path_leg,'Parametres_sol_exemple4_lucas.xls')#'Parametres_sol_exemple2_debugL_glbis.xls')#
+ongletS = 'combileg2015norgplus'#'morpholeg'#'lusignan99'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#
 par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
 par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg en irrigue!
 
 #lecture scenario (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'nonFixSimTest'#'default'#'Fix2'#
-ongletScenar2 = 'nonFixSimTest'#'nonFix1'#'default'
+ongletScenar1 = 'default'#'nonFixSimTest'#'Fix2'#
+ongletScenar2 = 'default'#'nonFixSimTest'#'nonFix1'#
 
 #lecture fichiers et variables de sortie
 path_outf = os.path.join(path_leg,'mod_susm.xls')#
@@ -103,20 +103,20 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 
 #initialisation des variables globale de simulation
-DOYdeb = 60#49#159#124#
-DOYend = 180#335#610#120#250#244#282#
-Rseed = 1#0#2#0 #random seed
+DOYdeb = 154#60#49#159#124#
+DOYend = 251#180#335#610#120#250#244#282#
+Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
-nbcote = 8#1#10
-optdamier = 4
-typearrangement='damier8'#'homogeneous'
+nbcote = 1#1#10
+optdamier = 0
+typearrangement='homogeneous'#'damier8'#
 idscenar1 = -1 #inferieur a zero=defaut et fait rien
-idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
+idscenar2 = -1 #1#inferieur a zero=defaut et fait rien
 opt_sky = 'V'#'VXpXmYpYm'
 
-cote = 40.#100.#100#25.#25.#cm
+cote = 100.#40.#100#25.#25.#cm
 dz_aerien = 2.#2.#2.5#5.#7.5#10.#7.#cm dz vise
 Hmaxcouv = 150.#150.# 200. #cm
 latitude = 46.43 #Lusignan (degre) -> a passer dans le fichier inis
@@ -2825,7 +2825,6 @@ def End(lstring,lscene):
 #ajout d'un fichier d'entree (mod_susm.xls) pour controler fichiers ecrits en sorties et variables incluses dans toto file 
 
 #pb: detecte pb de nombre aleatoire: graine marche pas (sortie differente avec meme entree + deja de las dans version 64bit avec rpy2...?)
-#geometrie proche (meme azi tige incli ini) mais legerement differente au final...
 
 
 #A faire 
@@ -3000,7 +2999,7 @@ module sol(S, nbcol) #objet sol entier (nbcol en y)
 module solxy(S, idcol) #colone de sol pour visu 2D
 module attente(n) #pour attendre initialisation des variables avant de representer le sol
 
-Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)]#[Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)]
+Axiom: [attente(1)][Sd(0)]#[Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)]#[Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)]
 
 #Axiom: [pattern(0)sol(S)]plantation(nbplantes-1)
 
