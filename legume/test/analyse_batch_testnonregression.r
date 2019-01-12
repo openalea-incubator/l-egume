@@ -54,21 +54,6 @@ sp_dtoto <- split(dtoto, dtoto$keysc)
 
 
 
-read_ltoto <- function(ls_toto)
-{
-  #recuperer les fichiers toto du dossier e travail dans une liste ltoto
-  ltoto <- vector('list', length(ls_toto))
-  names(ltoto) <- ls_toto
-  
-  for (i in 1:length(ls_toto))
-  {
-    name <- ls_toto[i]
-    ltoto[[name]] <- read.table(name, header=T, sep=';')
-  }
-  ltoto
-}
-
-
 
 #didcols <- as.data.frame(residcols[seq(1,21,3), ])
 #didcols$damier <- unique(as.character(dtoto$damier))
@@ -235,7 +220,7 @@ sp_dtotoref <- split(dtotoref, dtotoref$keysc)
 
 
 #
-nomvar <- "QNtot" #"Ytot"# 
+#nomvar <- "QNtot" #"Ytot"# 
 #keysc <- names(sp_dtoto)[1]
 
 plot_nonregression <- function(dtoto, dtotoref, nomvar)

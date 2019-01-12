@@ -22,7 +22,7 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 2#1#0#
+opttest = 1#2#0#
 if opttest == 1 or opttest==2 : #si multisim des test de non regression
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
@@ -92,15 +92,23 @@ for i in range(len(ls_usms['ID_usm'])):
         path_plante = os.path.join(path_, 'input',str(ls_usms['plante'][i]))
         ongletP = str(ls_usms['ongletP'][i])
         ongletPvois = str(ls_usms['ongletVoisin'][i])
-        ### g4 = IOxls.read_plant_param(path_plante, ongletP)
-        ### g5 = IOxls.read_plant_param(path_plante, ongletvois)
+        testsim[name].path_plante = path_plante
         
         #la, lire scenario et changer parametres
         idscenar1 = int(ls_usms['scenario1'][i])
         idscenar2 = int(ls_usms['scenario2'][i])
         ongletScenar2 = ongletPvois #fait porter les changements sur fichier parametre voisin
         ongletScenar1 = ongletP
-        
+
+        #sol
+        path_sol = os.path.join(path_, 'input',str(ls_usms['sol'][i]))
+        ongletS = str(ls_usms['ongletS'][i])
+        par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+        par_SN['concrr'] = 0.  # force eau de pluie dans ls test (a retirer)
+        #testsim[name].ongletS = str(ls_usms['ongletS'][i])
+        testsim[name].par_SN = par_SN
+        testsim[name].par_sol = par_sol
+
         #nbcote=7 # a passer ext
         #testsim[name].ParamP = [g4]*int(ls_usms['nbplt'][i])#nbcote*nbcote
         optdamier = int(ls_usms['damier'][i])
@@ -113,7 +121,7 @@ for i in range(len(ls_usms['ID_usm'])):
 
         nommix = '_'+ongletP+'-'+ongletPvois+'_'+arrang+'_scenario'+str(idscenar2)+'-'+str(idscenar1)
         
-        testsim[name].ongletS = str(ls_usms['ongletS'][i])
+
         testsim[name].ongletP = ongletP
         testsim[name].ongletPvois = ongletPvois
         testsim[name].nbcote = nbcote

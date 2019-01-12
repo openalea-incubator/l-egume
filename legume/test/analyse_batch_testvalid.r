@@ -114,7 +114,7 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 #construction du ls_dobsim d'une espece pour les plante isolee
 esp_ <- 'timbale'#'giga'#'formica'#'sevanskij'#'leo'#'canto'#'kayanne'#
 #ls_expe <- c('morpholeg14', 'morpholeg15')
-ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("homogeneous0", names(sp_dtoto))]#cle comportant le bon geno
+ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("homogeneous0", names(sp_dtoto)) & grepl("morpholeg", names(sp_dtoto))]#cle comportant le bon geno
 #ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("damier4", names(sp_dtoto))]#cle comportant le bon geno
 ls_var <- c('NBI','nb_phyto_tot','surf_tot','Hmax','MSaerien')#,'long_pivot')
 ls_varsim <- c('NBI','NBphyto','LAI', 'Hmax','MSA')#, 'RDepth')
