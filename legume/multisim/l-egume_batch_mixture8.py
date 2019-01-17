@@ -145,20 +145,22 @@ nb_usms =len(names)#len(ls_usms['ID_usm'])#len(names)#
 
 #function to run an L-system from the 'testsim' dictionnary
 def runlsystem(n):
-    axiom = testsim[names[n]].axiom
+    lsys =  testsim[names[n]]
+    lstring = lsys.axiom
     nb_iter = 45
 
     for i in range(nb_iter):
         print 'iter ',i,n
-        runL = run(testsim[names[n]], axiom=axiom, nbstep=10)
-        print 'ici'
-        axiom = runL[0]
+        lstring = lsys.derive(lstring, i, 1)
+        #runL = run(testsim[names[n]], axiom=axiom, nbstep=1)
+        print 'ici',lsys.cote
+        #axiom = runL[0]
 
-        s_leg = runL[1].sceneInterpretation(runL[0]).deepcopy()
+        s_leg = lsys.sceneInterpretation(lstring)
 
+        s_leg.save("s_leg.bgeom")
 
-
-        Dico_Apex_ID, Dico_conv, Dico_In, Dico_Pet, Dico_Stp, s_leg2 = Fc.PrepareScene(scene=s_leg, runL=runL)
+        Dico_Apex_ID, Dico_conv, Dico_In, Dico_Pet, Dico_Stp, s_leg2 = Fc.PrepareScene(scene=s_leg, runL=lsys)
 
 
         Dico_val = {}
@@ -169,7 +171,7 @@ def runlsystem(n):
             Dico_val[x] = Dico_In[x]
 
         if (Dico_val!= {} ):
-            Dico_Sensors, dico_VoxtoID, dico_IDtoVox, s_capt = Fc.create_Sensors_V2(runL, Dico_val, nbplantes)
+            Dico_Sensors, dico_VoxtoID, dico_IDtoVox, s_capt = Fc.create_Sensors_V2(lsys, Dico_val, nbplantes)
 
             #Definition du pattern et des proprietes optique
             s = s_leg2
@@ -193,25 +195,25 @@ def runlsystem(n):
 
             #Prepa Dico de reponse
             try :
-                Dico_rep, Dico_PARif = Fc.Dico_Reponse(Dico_val, runL, Dico_ValCapt_Direct_Rc, Dico_ValCapt_Direct_Rs, dico_VoxtoID, nbplantes)
+                Dico_rep, Dico_PARif = Fc.Dico_Reponse(Dico_val, lsys, Dico_ValCapt_Direct_Rc, Dico_ValCapt_Direct_Rs, dico_VoxtoID, nbplantes)
             except:
                 pass
             try :
-                Dico_rep_PAR = Fc.PrePa_Reponse_PAR_Tresh(aggregated_direct, runL, dico_VoxtoID, Dico_Apex_ID)
+                Dico_rep_PAR = Fc.PrePa_Reponse_PAR_Tresh(aggregated_direct, lsys, dico_VoxtoID, Dico_Apex_ID)
             except:
                 pass
 
-            Dico_Compare = Fc.CompareVoxCaribu(Dico_val, runL, aggregated_direct, Dico_conv)
+            Dico_Compare = Fc.CompareVoxCaribu(Dico_val, lsys, aggregated_direct, Dico_conv)
             fout = open('Compare_Voxel_CaribuOrgane.dat', 'a')
             for k in Dico_Compare:
                 fout.write("%s;%s;%s;%s;%s;%s;%s \n" % (k, Dico_Compare[k][0], Dico_Compare[k][1], Dico_Compare[k][2], Dico_Compare[k][3], Dico_Compare[k][4], Dico_Compare[k][5]  ))
 
             #injection
-            runL[1].Dico_rep = Dico_rep
-            runL[1].Dico_rep_PAR = Dico_rep_PAR
-            runL[1].Dico_PARif = Dico_PARif
+            lsys.Dico_rep = Dico_rep
+            lsys.Dico_rep_PAR = Dico_rep_PAR
+            lsys.Dico_PARif = Dico_PARif
 
-            print 'Pas de temps ',runL[1].DOY
+            print 'Pas de temps ',lsys.DOY
     #testsim[names[n]].derive()
     testsim[names[n]].clear()
     print(''.join((names[n]," - done")))
