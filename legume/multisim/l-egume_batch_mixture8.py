@@ -1,6 +1,17 @@
 #batch pour L-egume 23/12/17
 #version GL utilisee pour melanges binaires (8*8)
 
+#import des fonctions de Quentin
+from generateScene import run
+import Fonct_Comp as Fc
+
+#Imports Caribu comme Quentin
+from params_Ciel import*
+from alinea.caribu.CaribuScene import CaribuScene
+from alinea.caribu.sky_tools import GenSky, GetLight, Gensun, GetLightsSun
+from alinea.caribu.caribu_shell import *
+from openalea.plantgl.all import *
+
 #import the modules necessary to initiate the L-systems
 from openalea.lpy import *
 import multiprocessing
@@ -42,7 +53,7 @@ mn_sc = os.path.join(path_,'liste_scenarios.xls')#(path_,'liste_scenarios_these_
 #cree la liste de L-systems et liste des noms
 testsim={}
 names = []
-for i in range(len(ls_usms['ID_usm'])):
+for i in range(1):#len(ls_usms['ID_usm'])):
     if int(ls_usms['torun'][i]) == 1:#si 1 dans la colonne 'torun' l'ajoute a la liste
         name = str(int(ls_usms['ID_usm'][i]))+'_'+str(ls_usms['l_system'][i])[0:-4]
         seednb = int(ls_usms['seed'][i])
@@ -103,7 +114,7 @@ for i in range(len(ls_usms['ID_usm'])):
         testsim[name].DOYend = int(ls_usms['DOYend'][i])
         
         #mise a jour derivartionLength & axiom
-        testsim[name].derivationLength = int(ls_usms['DOYend'][i]) - int(ls_usms['DOYdeb'][i])#derivationLength variable predefinie dans L-py
+        testsim[name].derivationLength = 1#int(ls_usms['DOYend'][i]) - int(ls_usms['DOYdeb'][i])#derivationLength variable predefinie dans L-py
         nbplantes = nbcote*nbcote
         a=AxialTree()
         a.append(testsim[name].attente(1))
@@ -125,6 +136,8 @@ for i in range(len(ls_usms['ID_usm'])):
         #plante si dossier out pas cree
         #pourrait faire la lecture les ls_usm directement dans le l-system pour faciliter...+
 
+        print 'Fin initialisation '
+
 nb_usms =len(names)#len(ls_usms['ID_usm'])#len(names)#
 
 
@@ -132,7 +145,74 @@ nb_usms =len(names)#len(ls_usms['ID_usm'])#len(names)#
 
 #function to run an L-system from the 'testsim' dictionnary
 def runlsystem(n):
-    testsim[names[n]].derive()
+    axiom = testsim[names[n]].axiom
+    nb_iter = 45
+
+    for i in range(nb_iter):
+        print 'iter ',i,n
+        runL = run(testsim[names[n]], axiom=axiom, nbstep=10)
+        print 'ici'
+        axiom = runL[0]
+
+        s_leg = runL[1].sceneInterpretation(runL[0]).deepcopy()
+
+
+
+        Dico_Apex_ID, Dico_conv, Dico_In, Dico_Pet, Dico_Stp, s_leg2 = Fc.PrepareScene(scene=s_leg, runL=runL)
+
+
+        Dico_val = {}
+
+        for x in Dico_Pet:
+            Dico_val[x] = Dico_Pet[x]
+        for x in Dico_In:
+            Dico_val[x] = Dico_In[x]
+
+        if (Dico_val!= {} ):
+            Dico_Sensors, dico_VoxtoID, dico_IDtoVox, s_capt = Fc.create_Sensors_V2(runL, Dico_val, nbplantes)
+
+            #Definition du pattern et des proprietes optique
+            s = s_leg2
+            pat, opt = Fc.Opt_And_Pattern(scene=s, xmax=lsys.cote, ymax=lsys.cote)
+
+            #Calculs Caribu Direct
+            #Soleil vertical
+            soleil = [(1.0, (0., -0.0, -1))]#Fc.Sky_turtle6()
+            d_sphere = 0.05 # simu 1 = 0.1  simu 2 = 0.05m
+
+            print 'Calcul Caribu'
+            cc_scene = CaribuScene(scene = s, opt = opt, light = soleil, pattern = pat)
+            _, aggregated_direct = cc_scene.run(direct = False, infinite = False, split_face = True, sensors= Dico_Sensors, d_sphere= d_sphere)
+
+
+            #Resultats
+            Dico_ValCapt_Direct_Rc = aggregated_direct['rc']['sensors']['Ei']
+            Dico_ValCapt_Direct_Rs = aggregated_direct['rs']['sensors']['Ei']
+
+
+
+            #Prepa Dico de reponse
+            try :
+                Dico_rep, Dico_PARif = Fc.Dico_Reponse(Dico_val, runL, Dico_ValCapt_Direct_Rc, Dico_ValCapt_Direct_Rs, dico_VoxtoID, nbplantes)
+            except:
+                pass
+            try :
+                Dico_rep_PAR = Fc.PrePa_Reponse_PAR_Tresh(aggregated_direct, runL, dico_VoxtoID, Dico_Apex_ID)
+            except:
+                pass
+
+            Dico_Compare = Fc.CompareVoxCaribu(Dico_val, runL, aggregated_direct, Dico_conv)
+            fout = open('Compare_Voxel_CaribuOrgane.dat', 'a')
+            for k in Dico_Compare:
+                fout.write("%s;%s;%s;%s;%s;%s;%s \n" % (k, Dico_Compare[k][0], Dico_Compare[k][1], Dico_Compare[k][2], Dico_Compare[k][3], Dico_Compare[k][4], Dico_Compare[k][5]  ))
+
+            #injection
+            runL[1].Dico_rep = Dico_rep
+            runL[1].Dico_rep_PAR = Dico_rep_PAR
+            runL[1].Dico_PARif = Dico_PARif
+
+            print 'Pas de temps ',runL[1].DOY
+    #testsim[names[n]].derive()
     testsim[names[n]].clear()
     print(''.join((names[n]," - done")))
 
@@ -162,11 +242,12 @@ def runlsystem(n):
 
 ### Nouvelle methode ###
 if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    CPUnb=multiprocessing.cpu_count()-1 #nombre de processeurs, moins un par prudence. (et pour pouvoir faire d'autres choses en meme temps)
-    print 'nb CPU: '+str(CPUnb)
-    pool = multiprocessing.Pool(processes=CPUnb)
-    for i in range(int(nb_usms)):
-        pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
+    #multiprocessing.freeze_support()
+    #CPUnb=multiprocessing.cpu_count()-1 #nombre de processeurs, moins un par prudence. (et pour pouvoir faire d'autres choses en meme temps)
+    print 'debiut'#nb CPU: '+str(CPUnb)
+    #pool = multiprocessing.Pool(processes=CPUnb)
+    for i in range(1):#int(nb_usms)):
+        runlsystem(i)
+        #pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
     pool.close()
     pool.join()

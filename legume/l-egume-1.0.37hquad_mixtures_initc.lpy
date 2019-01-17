@@ -99,7 +99,7 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 
 #initialisation des variables globale de simulation
-DOYdeb = 60#49#159#124#
+DOYdeb = 65#49#159#124#
 DOYend = 335#610#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
@@ -1397,7 +1397,7 @@ def Start():
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des esidu de l'esp 1 seulement
         ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
     
-    print len(ls_mat_res) #= [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]
+    print 'len',len(ls_mat_res) #= [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]
     
     #initialisation des variables d'etat plante
     global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root 
@@ -1909,7 +1909,7 @@ def EndEach(lstring,lscene):
     DOY+=1
     meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','I0','Et0','Precip','Tsol'], 'DOY', val=DOY)
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
-    print DOY
+    print 'DOY ', DOY
     for k in meteo_j.keys(): meteo_j[k]=meteo_j[k][0]
     for k in mng_j.keys(): mng_j[k]=mng_j[k][0]
     
@@ -2981,7 +2981,7 @@ Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8
 #Axiom: [pattern(0)sol(S)]plantation(nbplantes-1)
 
 
-derivation length: DOYend-DOYdeb#200#98#224#73#93#66#93#66#149#119#179#300#365#(jours)
+derivation length: 10#DOYend-DOYdeb#200#98#224#73#93#66#93#66#149#119#179#300#365#(jours)
 production:
 
 #plantation(nbplt):
@@ -3020,7 +3020,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     except:
         pass
 
-		
+    
     #control de la vitesse de tallage
     if nsh==0:#tige seminale -> pas d'attente
         deldeb = 0
@@ -3115,7 +3115,7 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, phyllotax):
     
     #print PARapex, PARlf
     PARsense = max(PARapex, PARlf) #niveau percu = mas d'apex ou feuille
-	
+    
     #Ajout Quentin
     lst_Dico = [vox[0],vox[1],vox[2]]
     name_A = idsh + str(rank)
@@ -3130,7 +3130,7 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, phyllotax):
 
     except:
         pass
-	
+    
     
     #print nump, age #malgre retard, tous les A ont le meme age
     if age >= ParamP[nump]['phyllochron']/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDev'][nump]): # introduit arret developpement des apex en fonction gradient vertical PAR
@@ -3347,20 +3347,20 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             PARif = max(ls_PARif)#min ou moy?
             strate = max(ls_strate)#?? pas correct
             PARaF = sum(ls_PARaF)
-			#Ajout Quentin
-			lst_Dico = [vox[0],vox[1],vox[2]]
-			name_A2 = str(nsh) + str(rank) + str(rankp)
-			Dico_ParTresh[nump]['A2'][name_A2] = []
-			Dico_ParTresh[nump]['A2'][name_A2].append(lst_Dico)
-			#print('coucou A2 plante {} name_A2 ={}').format(nump,name_A2)
-
-			try:
-				PARapex = Dico_rep_PAR[nump]['A2'][name_A2]
-				#print('utilisation des valeurs CARIBU !')
-
-			except:
-				pass
-			
+            #Ajout Quentin
+            lst_Dico = [vox[0],vox[1],vox[2]]
+            name_A2 = str(nsh) + str(rank) + str(rankp)
+            Dico_ParTresh[nump]['A2'][name_A2] = []
+            Dico_ParTresh[nump]['A2'][name_A2].append(lst_Dico)
+            #print('coucou A2 plante {} name_A2 ={}').format(nump,name_A2)
+          
+            try:
+              PARapex = Dico_rep_PAR[nump]['A2'][name_A2]
+            #print('utilisation des valeurs CARIBU !')
+            
+            except:
+              pass
+          
         else:
             vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
             strate = vox[2] #starte z
@@ -3481,7 +3481,7 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         except:
             pass
 
-		
+        
         I_I0 =  PARif/meteo_j['I0']
         classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.
         
@@ -3542,14 +3542,14 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
         pass
 
 
-	
+    
     I_I0 =  PARif/meteo_j['I0']
     classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.
     I_I0profilPetPlant[nump][classI_I0] += lpet
     #photomorphogenese
     
     RFR=res_rfr[vox[2]][vox[1]][vox[0]]
-	
+    
     #Ajout quentin
     try:
         RFR = Dico_rep[nump][str(X0)][str(Y0)][str(Z0)]
@@ -3564,9 +3564,9 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
         print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
 
     except:
-        pass
-	
-	
+        pass  
+    
+    
     RFR_effect=(ParamP[nump]['photomorphRFR_pet'][0]*RFR)+ParamP[nump]['photomorphRFR_pet'][1]
     
     durjour = DayLength (latitude,DecliSun (DOY % 365))
@@ -3607,7 +3607,7 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     
     vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
     PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
-	
+    
     #Ajout Quentin 
     try :
         PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
@@ -3615,13 +3615,13 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
 
     except:
         pass
-	
-	
+    
+    
     I_I0 =  PARif/meteo_j['I0']
     classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.    
     
     RFR=RFR=res_rfr[vox[2]][vox[1]][vox[0]]
-	
+    
     #Ajout Quentin FeedBack CARIBU
     try:
         RFR = Dico_rep[nump][str(X0)][str(Y0)][str(Z0)]
@@ -3629,8 +3629,8 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     except:
         #print ("Caribu pas pris en compte")
         pass
-	
-	
+    
+    
     RFR_effect=(ParamP[nump]['photomorphRFR_int'][0]*RFR)+ParamP[nump]['photomorphRFR_int'][1]
     
     durjour = DayLength (latitude,DecliSun (DOY % 365))
