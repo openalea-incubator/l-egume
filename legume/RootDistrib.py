@@ -202,6 +202,33 @@ def build_ls_roots_mult(RLTot, dic_systrac, lims):
 
     
 
+def convd(d):
+    """ pour recupere sortie d'un dico profil en liste"""
+    ks = d.keys()
+    ks.sort()
+    res=[]
+    for k in ks: res.append(d[k])
+    return res
+
+
+#plus utilise pour racines
+#def filtre_ratio(ratio, tresh=1.):
+#    """ pour filtrer les valeur < a un seuil - array de 0 et 1 """
+#    res = ratio>=tresh
+#    return res*1.
+
+
+#plus utilise pour racine
+#def updateRootLenprofil(RLtot_, RprospectProfil_, RLProfil_):
+#    if sum(RprospectProfil_)==0.:#secondaires pas developpees
+#        RLProfil_[0] = RLtot_ #toute la surface d'echange dans le premier horizon
+#    else:
+#        vols = array(RprospectProfil_)*array(RprospectProfil_)
+#        props = vols*1./sum(vols).tolist()
+#        for k in range(len(RprospectProfil_)):
+#            RLProfil_[k] = RLtot_*props[k]
+#
+#    return RLProfil_
 
 
 ##Test: 1) produire liste de Root-system avec le modele L-egume et les visualiser dans une grille 2D

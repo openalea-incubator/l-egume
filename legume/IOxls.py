@@ -171,3 +171,76 @@ def read_met_file(meteo_path, ongletM):
     return meteo
 
 
+def modif_param(gx, ongletP, ongletScenar, idscenar, idlist=1, mn_sc=None):
+    """ met a jour ParamP d'un genotype gx pour les variables et valeurs indiques dans ongletScnar """
+    """ fait rien si ongletScenar='default' ou iscenar<0 ou onglet correspond pas a celui a modifier; sinon va modifier selon fichier scenario"""
+    if ongletP == ongletScenar and idscenar > 0 and mn_sc != None:  # si onglet correspond a ongletscenat a modifier
+        usc = xlrd.open_workbook(mn_sc)
+        ls_sc = conv_dataframe(get_xls_col(usc.sheet_by_name(ongletScenar)))
+        nb_modif = len(ls_sc.keys()) - 1  # nb de param a modifier
+        ls_sc['id_scenario'] = map(int, ls_sc['id_scenario'])
+
+        if nb_modif > 0:  # s'il y a des parametre a modifier
+            idok = ls_sc['id_scenario'].index(idscenar)
+            keys_modif = ls_sc.keys()
+            keys_modif.remove('id_scenario')
+            for k in keys_modif:
+                if str(ls_sc[k][idok]) != '' or str(ls_sc[k][idok]) != 'NA':  # y a un valeur specifiee
+                    if type(gx[k]) == type(0.):  # gere uniquement les parametres avec 1 seule valeur float (pas liste)
+                        gx[k] = ls_sc[k][idok]
+                    elif type(gx[k]) == list:  # pour les liste, gere uniquement un id de la liste (1 par defaut)
+                        gx[k][idlist] == ls_sc[k][idok]
+    return gx
+
+
+
+def dic2vec(nbplantes, dic):
+    """ mise en liste 'nump'par plante un dico deja par plante """
+    res3 = []
+    for nump in range(nbplantes):
+        try:
+            key_ = str(nump)
+            res3.append(dic[key_])
+        except:
+            res3.append(0.)
+
+    return res3
+
+
+# plus utilise ds l-egume
+def dic_sum(ls_dict):
+    "somme par cle les element de dico d'un meme format ; e.g [{0: 0, 1: 1, 2: 2}, {0: 3, 1: 4, 2: 5}] "
+    # prepa d'un dico nul avec meme cles
+    res = {}
+    for k in ls_dict[0].keys(): res[k] = 0.
+    # somme des dico
+    for k in ls_dict[0].keys():
+        for i in range(len(ls_dict)):
+            res[k] += ls_dict[i][k]
+
+    return res
+
+
+def append_dic(dic, key, element):
+    """ add an element to a list in a dictionnary or create the list if the key is not present"""
+    try:
+        dic[key].append(element)
+    except:
+        dic[key] = [element]
+
+
+def add_dic(dadd, dini):
+    """ add the values of the k keys of a dictionary dadd to an existing dictionnary dini with the same keys - creates keys in dini if not already existing"""
+    for k in dadd.keys():
+        try:
+            dini[k] += dadd[k]
+        except:
+            dini[k] = dadd[k]
+    return dini
+
+
+def sum_ls_dic(dic):
+    """ sum of the element by keys in a dictionnary of lists """
+    for k in dic.keys():
+        dic[k] = sum(dic[k])
+

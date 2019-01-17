@@ -23,7 +23,7 @@ import IOtable
 
 #to define if used for multisimulation or non-regression tests
 opttest = 1#2#0#
-if opttest == 1 or opttest==2 : #si multisim des test de non regression
+if opttest == 1 or opttest==2 : #si multisim des test de non regression (1 or 2)
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
     fxls = 'liste_usms_nonregression.xls'
@@ -32,8 +32,9 @@ if opttest == 1 or opttest==2 : #si multisim des test de non regression
         ongletBatch = 'test'
     elif opttest == 2:#obssim
         ongletBatch = 'valid'
-else: #other multisimulation to be defined
+else: #other multisimulation to be defined (0)
     global foldin, fxls, ongletBatch, fscenar
+    #to be manually updated
     foldin = 'multisim'
     fxls = 'liste_usms_mix.xls'
     ongletBatch = 'SimTest'
@@ -204,6 +205,6 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(int(nb_usms)):
         pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
-        #runlsystem(i) #pour debug hors multisim (messages d'ereur)
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
     pool.close()
     pool.join()

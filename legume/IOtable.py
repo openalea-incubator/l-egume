@@ -266,3 +266,4 @@ def write_dicttables(path_file, dic, keys_):
             f = file (path_file, 'a')
             ecriture_csv(dic[keys_[i]], f)
             f.close()
+

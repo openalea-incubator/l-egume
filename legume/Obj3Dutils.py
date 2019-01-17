@@ -143,3 +143,75 @@ def compute_surface_list(ind_ls, pt_ls):
         s_ls.append(triangle_area(p1, p2, p3))
 
     return s_ls
+
+
+def leg_leaf(Lmax, largmax, alpha=0., gamma=0., unifol=0):
+    gamma = gamma * 3.14 / 180  # en radians
+    lf, la, pe, br, crois = 21. / 21., 6.5 / 21., 10. / 21., 3.6 / 21., 0.1 / 21.  # leaf Trudeau modifie
+    leaf = quadform(array([0., 0., 0.]), array([0.5, 0.5, 0.]), array([0., 1., 0.]), array([-0.5, 0.5, 0.]),
+                    opt=2)  # prends pas alpha en compte
+    leaf = transformation(leaf, largmax, Lmax, 1., 0, 0, 0, 0, 0, 0)
+    up = transformation(leaf, 1, 1, 1, 0, 0, gamma, 0, pe / lf * Lmax, 0)
+    right = transformation(leaf, 1, 1, 1, -3.14 / 180 * 80, 0, gamma, br / 2. * Lmax, crois * Lmax, 0)
+    left = transformation(leaf, 1, 1, 1, 3.14 / 180 * 80, 0, gamma, -br / 2. * Lmax, crois * Lmax, 0)
+    if unifol == 0:
+        return Group([up, right, left])  # groupe les differents geom
+    else:
+        return up  # 1 foliole pour la premiere feuille
+
+
+def leg_leaf_lucas(Lmax, largmax, alpha=0., gamma=0., nfol=3, angfol=10., ecfol=6., anginit=45.,
+                   geom=True):  # angfol : pi/nombre de rangs n?ssaires pour boucler le demi-cercle // ecfol : longueur de rachis entre chaque paire de folioles (mm).
+    nr = (nfol - 1) / 2 if nfol % 2 == 1 else nfol / 2  # nombre de paires de folioles lateraux
+    angfol = 10  # 180/nr #demi-cercle complet obtenu sur le nombre de rangs de paires de folioles. Attention, ne marche que si l'ecartement ecfol est constant!
+    gamma = gamma * 3.14 / 180  # en radians
+    anginit = anginit * 3.14 / 180
+    angfol = angfol * 3.14 / 180
+    ecfol = ((
+                         1.88 * nfol ** -0.54) * Lmax) * 10  # relation empirique entre nombre de folioles et ecartement entre deux rang? pour le sainfoin.
+
+    ls_pts = []
+
+    lf, la, pe, br, crois = 21. / 21., 6.5 / 21., 10. / 21., 3.6 / 21., 0.1 / 21.  # leaf Trudeau modifie
+    leaf = quadform(array([0., 0., 0.]), array([0.5, 0.5, 0.]), array([0., 1., 0.]), array([-0.5, 0.5, 0.]),
+                    opt=2)  # prends pas alpha en compte
+    leaf = transformation(leaf, largmax, Lmax, 1., 0, 0, 0, 0, 0, 0)
+    angup = (angfol * -(nr - 1)) - 3.14 - anginit  # angle de placement du foliole central, au bout de la chaine
+    up = transformation(leaf, 1, 1, 1, 0, 0, gamma, 0, (pe / lf * Lmax) + (ecfol * (cos(angup) + cos(anginit))),
+                        ecfol * (sin(angup) - sin(anginit)))
+    ls_pts.append(
+        array([0, (pe / lf * Lmax) + (ecfol * (cos(angup) + cos(anginit))), ecfol * (sin(angup) - sin(anginit))]))
+    # right = transformation(leaf, 1,1,1,-3.14/180*80,0,gamma, br/2.*Lmax, crois*Lmax,0)
+    # left = transformation(leaf, 1,1,1,3.14/180*80,0,gamma, -br/2.*Lmax, crois*Lmax,0)
+    listfol = [up] if nfol % 2 == 1 else []
+    for i in range(nr):  # nombre de paires de folioles lateraux
+        ang = (angfol * -i) - 3.14 - anginit
+        ecfolopp = (sin(ang) - sin(anginit)) * ecfol
+        ecfoladj = (cos(ang) + cos(anginit)) * ecfol
+        listfol.append(transformation(leaf, 1, 1, 1, -3.14 / 180 * 80, 0, gamma, br / 2. * Lmax, ecfoladj, ecfolopp))
+        listfol.append(transformation(leaf, 1, 1, 1, 3.14 / 180 * 80, 0, gamma, -br / 2. * Lmax, ecfoladj, ecfolopp))
+        ls_pts.append(array([br / 2. * Lmax, ecfoladj, ecfolopp]))
+        ls_pts.append(array([-br / 2. * Lmax, ecfoladj, ecfolopp]))
+
+    if geom == True:
+        return Group(listfol)  # groupe les differents geom
+    else:
+        return ls_pts
+
+
+def geomstip(Lmax, largmax, alpha=0., gamma=0.):
+    gamma = gamma * 3.14 / 180  # en radians
+    stip = quadform(array([0., 0., 0.]), array([0.5, 0.5, 0.]), array([0., 1., 0.]), array([-0.5, 0.5, 0.]),
+                    opt=2)  # prends pas alpha en compte
+    stip = transformation(stip, largmax, Lmax, 1., 0, 0, 0, 0, 0, 0)
+    if Lmax >= largmax:
+        right = transformation(stip, 1, 1, 1, -3.14 / 180 * alpha, -gamma, 0, 0, 0, 0)
+        left = transformation(stip, 1, 1, 1, 3.14 / 180 * alpha, gamma, 0, 0, 0, 0)
+    else:
+        right = transformation(stip, 1, 1, 1, -3.14 / 180 * alpha, 0, gamma, 0, 0, 0)
+        left = transformation(stip, 1, 1, 1, 3.14 / 180 * alpha, 0, gamma, 0, 0, 0)
+    return Group([right, left])
+    # par convention choisi longueur dans direction du petiole?
+    # faire porter gamma sur la plus grande direction -> marche normalement pour pois
+    # reprendre gammaFeuil pour le gamma (pas IncPet petiole)
+
