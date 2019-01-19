@@ -46,7 +46,7 @@ except:
 import RootDistrib as rtd
 import RootMorpho2 as rt
 import ShootMorpho as sh
-from daily_loop import daily_growth_loop
+import daily_loop as loop #import daily_growth_loop, step_bilanWN_sol, Update_stress_loop, update_residue_mat
 import IOtable
 import IOxls
 import random
@@ -649,7 +649,8 @@ def Start():
     global outvar, id_out, out_HR
     outvar, id_out, out_HR = init_outputs(ParamP, nbplantes)
     
-    
+    #initialisation des variables d'echange avec exterieur pour couplages sol/rayonnement
+    global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step, tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr
     
     ##seed nombre aleatoires
     #global Rseed
@@ -667,6 +668,8 @@ def Start():
 def StartEach():
     global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
     
+    global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr    
+    
     #calcul TT
     STEPS_ = sh.dTT(meteo_j['TmoyDay'], [ParamP[0]['Tdev'], ParamP[0]['Tmin'], ParamP[0]['Tmax'], ParamP[0]['q']]) #prend valeur de nump=0 -> reference pour la simulation!
     TT = TT+STEPS_
@@ -682,20 +685,32 @@ def StartEach():
             invar['TTsol'][nump] = invar['TTsol'][nump] + invar['dTTsol'][nump]
     
     
-    #calcul profil surface couvert et calcul de PAR voxel
+    
+    ############
+    # step light transfer coupling
+    ############
+    
+    #calcul profil surface couvert 
     mlaicot = sh.calc_surfcoty(invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #ajoute surface des cotyledons
     m_lais = deepcopy(m_lais_construct) + mlaicot
-    #plante qd ajoute mlaicot?? -> OK unite
-    #pb: toujours surplante de zero et pas de production de biomasse
     
-    res_trans, res_abs_i = riri.calc_extinc_allray_multi(m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX, optsky='soc')
-    res_rfr = riri.rfr_calc_relatif(res_trans/(meteo_j['I0']*surf_refVOX))#calcul de zeta
+    
+    #PAR / Blue voxel
+    tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
+    local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi(*tag_light_inputs, optsky='soc')#(m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX, optsky='soc')
+    res_trans, res_abs_i = local_res_trans, local_res_abs_i #mise a jour variables globales
+    
+    #R_FR voxel (calcul de zeta)
+    tag_light_inputs2 = [res_trans/(meteo_j['I0']*surf_refVOX)] #input tag
+    local_res_rfr = riri.rfr_calc_relatif(*tag_light_inputs2)#(res_trans/(meteo_j['I0']*surf_refVOX))
+    res_rfr = local_res_rfr #mise a jour variables globales
+    
+    
+    
+    
+    #remise a zero m_lais_construct et LAIprofilplant pour nouvelle iteration  
     m_lais_construct = zeros([n_gamagroup, na[2], na[1], na[0]])
     
-    
-    
-    
-    #remise a zero LAIprofilplant pour nouvelle iteration  
     LAIp  = {}
     for i in range(0, len(SurfprofilPlant[0].keys())): LAIp[i]=0.
     SurfprofilPlant = [] #liste de LAIprofil par plante
@@ -753,22 +768,43 @@ def StartEach():
     invar_sc['ax']['PonderStressHRac']={}
 
 
+
 def EndEach(lstring,lscene):
     
-    #daily loop
+    
     global S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_mat_res
     global lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, I_I0profilInPlant, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses
     global ParamP, par_SN, invar, invar_sc, outvar, res_trans
+    global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step
     
     
-    #ParamP, par_SN, invar, invar_sc, outvar, res_trans, S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_mat_res, lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses = daily_growth_loop(ParamP, par_SN, invar, invar_sc, outvar, res_trans, S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_mat_res, lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses)
+    #################
+    #  daily loop 
+    #################
+    #tag variables to facilitate outside coupling and data exchange with third party application
+    # * unpacks the list of arguments
+    
+    #Potential plant growth
+    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll)
+    #step soil 
+    tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
+    res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
+    S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt = res_soil_step #unpacks results from a list and updates global variables
+    #update stress variables
+    invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress = loop.Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar)  
+    #update soil residues
+    tag_inputs_residue_updt = [ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu] #input tag
+    res_residue_step = loop.update_residue_mat(*tag_inputs_residue_updt)
+    ls_mat_res, S = res_residue_step #unpacks results from a list and updates global variables
+    
+    #pourquoi ls_res_mat remis a zero juste apres????
     
     
-    invar, invar_sc, outvar, S, stateEV, I_I0profilInPlant, ls_ftswStress, ls_NNIStress = daily_growth_loop(ParamP, par_SN, invar, invar_sc, outvar, res_trans, S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_mat_res, lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses)
     
-    #invar, invar_sc, outvar, S = daily_growth_loop(ParamP, par_SN, invar, invar_sc, outvar, res_trans, S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_mat_res, lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses)    
+    #################
+    # fin des mises a jour variables (meteo...) pour step suivant
+    #################
     
-    #mise a jour variables meteo
     DOY+=1
     meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','I0','Et0','Precip','Tsol'], 'DOY', val=DOY)
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
@@ -798,7 +834,13 @@ def EndEach(lstring,lscene):
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des residus de l'esp 1 seulement
         ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
     
-    #pour gerer les vues pour 1 film - lucas
+    
+    
+    
+    #################
+    # pour gerer les vues pour 1 film - lucas (movDisplay == 1)
+    #################
+    
     outimagepathtemp = os.path.join(path_out, 'scene_'+str(DOY)+'.bmp')#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
     if movDisplay == 1:
         ## fait pour simul depuis L-py reglee manuellement
