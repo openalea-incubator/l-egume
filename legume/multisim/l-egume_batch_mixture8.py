@@ -147,17 +147,22 @@ nb_usms =len(names)#len(ls_usms['ID_usm'])#len(names)#
 def runlsystem(n):
     lsys =  testsim[names[n]]
     lstring = lsys.axiom
-    nb_iter = 45
+    print "longueur lstring",len(lstring)
+    nb_iter = 1
 
+    print "axiom debut ", lstring
+    s_leg = lsys.sceneInterpretation(lstring)
+    s_leg.save("s_leg1.bgeom")
     for i in range(nb_iter):
         print 'iter ',i,n
+        #s_leg = lsys.sceneInterpretation(lstring)
         lstring = lsys.derive(lstring, i, 1)
         #runL = run(testsim[names[n]], axiom=axiom, nbstep=1)
         print 'ici',lsys.cote
         #axiom = runL[0]
 
         s_leg = lsys.sceneInterpretation(lstring)
-
+        #s_leg.remove(s_leg[0])
         s_leg.save("s_leg.bgeom")
 
         Dico_Apex_ID, Dico_conv, Dico_In, Dico_Pet, Dico_Stp, s_leg2 = Fc.PrepareScene(scene=s_leg, runL=lsys)

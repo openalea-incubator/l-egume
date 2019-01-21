@@ -99,12 +99,22 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 
 #initialisation des variables globale de simulation
-DOYdeb = 65#49#159#124#
-DOYend = 335#610#120#250#244#282#
+DOYdeb = 70#49#159#124#
+DOYend = 71#610#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
+#Ajout Quentin Reponse PAR_Tresh
+nbplantes = 64
+
+Dico_ParTresh = {}
+for nump in range(0,nbplantes+1):
+    Dico_ParTresh[nump] = {}
+    Dico_ParTresh[nump]['B'] = {}
+    Dico_ParTresh[nump]['A'] = {}
+    Dico_ParTresh[nump]['A2'] = {}
+	
 nbcote = 8#1#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'
@@ -138,12 +148,12 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 
 #options de simation
 opt_residu = 1 #si 0, pas ativation de mineralisation
-visu_root=1#1# pour visualisation/interpretation root
+visu_root=0#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
-visu_solsurf=1#0 pour visualisation du pattern
+visu_solsurf=0#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
-movDisplay = 1 # #sauvegarde toutes les vues pour faire un film
+movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
 
 #550 it en 2013s/1940s
 #curieusement plante (memory error??) quand pas de visualisation??-> a creuser
@@ -242,7 +252,8 @@ def modif_param(gx, ongletP, ongletScenar, idscenar, idlist=1):
 
 
 def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default',idscenar1=1, idscenar2=1):
-    
+    #global Dico_ParTresh
+	#Dico_ParTresh = {}
     #1) cree liste des paramtres plante (1dico par plante)
     #nbcote = nombre de plante sur un cote en supposant repartition homogene
     g4 = IOxls.read_plant_param(path_plante, ongletP)
@@ -300,6 +311,12 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
           ParamP[nump]['profilLeafI_nfol'].append(int(max(1,Normnfol*ParamP[nump]['nfol'])))#max 1 pour interdire les feuilles sans folioles.
     
     nbplantes = len(ParamP)
+	#for nump in range(0,nbplantes+1):
+	#	Dico_ParTresh[nump] = {}
+	#	Dico_ParTresh[nump]['B'] = {}
+	#	Dico_ParTresh[nump]['A'] = {}
+	#	Dico_ParTresh[nump]['A2'] = {}
+
     return ParamP, nbplantes
 
 
@@ -2975,13 +2992,13 @@ module Coll(posi) #Collar
 module sol(S, nbcol) #objet sol entier (nbcol en y)
 module solxy(S, idcol) #colone de sol pour visu 2D
 module attente(n) #pour attendre initialisation des variables avant de representer le sol
-
-Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)]#[Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)]
+module pattern(n)
+Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)][Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)]#[Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)]
 
 #Axiom: [pattern(0)sol(S)]plantation(nbplantes-1)
 
 
-derivation length: 10#DOYend-DOYdeb#200#98#224#73#93#66#93#66#149#119#179#300#365#(jours)
+derivation length: 1#DOYend-DOYdeb#200#98#224#73#93#66#93#66#149#119#179#300#365#(jours)
 production:
 
 #plantation(nbplt):
