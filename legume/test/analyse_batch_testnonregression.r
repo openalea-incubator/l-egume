@@ -279,11 +279,20 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 #Constant Final Yield Law (Fig 6.1a Louarn & Faverjon 2018)
 cexval <- 1.5
 x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30IrrN"]]
-plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield")
+plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield - Fix2")
 x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30"]]
 points(x$densite2, x$Ytot, pch=16,cex=cexval)
 x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30Irr"]]
 points(x$densite, x$Ytot, col='grey', pch=16,cex=cexval)
+
+#avec mineralisation des residu active
+x <- sp_dtoto[["1-1 Fix2-Fix2 Lusignan30IrrN"]]
+plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield - Fix2 - Resid+")
+
+#pour TB
+x <- sp_dtoto[["-1--1 giga-giga Lusignan30IrrN"]]
+plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield - giga")
+
 
 
 #Neutral binary mixture

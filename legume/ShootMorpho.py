@@ -26,6 +26,7 @@ def dTT(T, p):
     return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
 
 
+
 #Light response functions
 def DecliSun(DOY):
     """ Declinaison (rad) du soleil en fonction du jour de l'annee """

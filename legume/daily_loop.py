@@ -178,10 +178,12 @@ def step_bilanWN_sol(S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j
                                                                      ls_demandeN_bis)
     S.stepNINFILT(mapN_Rain, mapN_Irrig, mapN_fertNO3, mapN_fertNH4, Drainage, opt=1)
 
-    return [S,  stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt]
+    temps_sol = [evapo_tot, Drainage, ls_m_transpi, m_evap, ActUpNtot, ls_DQ_N, idmin] #other output variables
+
+    return [S,  stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol]
     #lims_sol et surfsolref pourrait pas etre fournie via S.?
     #pourquoi b_ et Uval trainent la? (paramtres sol??)
-    #return more output variables??
+    #return more output variables?? -> OK temps_sol
     #move to soil module?
 
 
