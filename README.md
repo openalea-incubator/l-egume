@@ -41,17 +41,17 @@ To install and use *L-egume*, you need first to install the dependencies.
 	* Activate the new environment using the following command line:
 		activate py27_64
 
-3. Install OpenAlea PlantGL:  
 
-    * go to https://github.com/openalea/plantgl to check latest install recommendations for PlantGL
+3. Install scipy package (v1.1.0):  
     * in your acivated conda environment, install successively : 
-		conda install -c openalea openalea.core
-		conda install -c openalea openalea.deploy
-		conda install -c openalea qhull
-		conda install -c openalea ann
-		conda install -c openalea/label/unstable openalea.plantgl
+		conda install -c anaconda scipy
+		
+4. Install xlrd package (v1.2.0):  
+    * in your acivated conda environment, install successively : 
+		conda install -c conda-forge xlrd
 
-4. Install OpenAlea L-py:  
+
+5. Install OpenAlea L-py:  
 
     * go to https://github.com/openalea/lpy to check latest install recommendations for PlantGL
     * in your acivated conda environment, install successively : 
@@ -63,12 +63,6 @@ To install and use *L-egume*, you need first to install the dependencies.
 		- write inside the following command line:
 			python -c "from openalea.lpy.gui.lpystudio import main ; main()"
 		- you can now launch lpy studio from your acivated conda environment using  “mylpy”
-
-		
-5. Install xlrd package:  
-    * in your acivated conda environment, install successively : 
-		conda install -c anaconda xlrd
-
 
 
 	
@@ -89,7 +83,7 @@ To install *L-egume* in "end-user" mode:
 * go to your local copy of project *L-egume* (you can get the latest version from https://sourcesup.renater.fr/projects/l-egume/),
 * run command: `python setup.py install --user`.
 
-#### 1.2.2 Install *L-egume* in "develop" mode
+#### 1.2.2 Install *L-egume* in "develop" mode (recommended: will handle shortcuts)
 
 Install *L-egume* in "develop" mode if you want to get *L-egume* installed and then 
 be able to frequently edit the code and not have to re-install *L-egume* to have the 
@@ -108,7 +102,7 @@ To run a simulation example, two options:
 * 1. open Lpy platform,
 	 load l-egume.lpy file from legume folder,
 	 Use Run or animate button to launch a simulation
-  2. Run l-egume from a python script (see l-egume_batch_mixture8.py in multisim folder for an example)
+  2. Run l-egume from a python script (see l-egume_batch_mixture8.py in multisim folder for an example; require mutiprocessing)
 
 See the user guide for a step by step explanation of how to set and run model *L-egume*.
 
