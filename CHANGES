@@ -1,3 +1,13 @@
+L-egume 1.1
+--------------------
+
+First updated version of L-egume 
+-remove R dependencies of the model 
+-compatible win64 / linux
+-add non-regression tests
+
+
+
 L-egume 1.0
 --------------------
 

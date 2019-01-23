@@ -34,13 +34,13 @@ from setuptools import setup, find_packages
 import legume
 
 if sys.version_info < (2, 7):
-    print('ERROR: lgrass requires at least Python 2.7 to run.')
+    print('ERROR: l-egume requires at least Python 2.7 to run.')
     sys.exit(1)
 
 if sys.version_info >= (3, 0):
-    print('WARNING: lgrass has not been tested with Python 3.')
+    print('WARNING: l-egume has not been tested with Python 3.')
 
-pkg_resources.require('numpy')#noms des package a revoir, 'VPlants.Lpy', 'VPlants.PlantGL')#('numpy>=1.11.0', 'pandas>=0.18.0', 'sphinx>=1.4.8', 'VPlants.Lpy', 'VPlants.PlantGL', 'OpenAlea.Mtg')
+pkg_resources.require('numpy')#'scipy', 'xlrd', 'openalea.plantgl.all', 'openalea.lpy','multiprocessing'
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()

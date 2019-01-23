@@ -19,73 +19,74 @@ machine.
 
 To install and use *L-egume*, you need first to install the dependencies.
 
-*L-egume* has been tested on Windows.
+*L-egume* has been tested on Windows 7/10 64bit.
  
 #### 1.1.1 Install the dependencies on Windows 10 64 bit
 
-1. Install Python  
+1. Install Python  2.7 using Anaconda 
 
-    * go to https://www.python.org/downloads/windows/download, 
-    * click on "Latest Python 2 Release [...]", 
-    * download "Windows x86-64 MSI installer" and install it selecting the following options:
+    * go to https://www.anaconda.com/download/ 
+    * click on "64-Bit Graphical Installer", 
+    * download "Anaconda2-2018.12-Windows-x86_64.exe" and install it selecting the following options:
         * install for all users,
         * default destination directory,
         * install all subfeatures, including subfeature "Add python.exe to Path".
 
-2. Install OpenAlea Vplants:  
+		
+2. Create and Activate a conda environment using  'Anaconda Prompt':
+	* Open an 'Anaconda Prompt' console
+	* Create a new environment (e.g. py27_64) using the following command lines:
+		set CONDA_FORCE_32BIT=
+		conda create -n py27_64 python=2.7
+	* Activate the new environment using the following command line:
+		activate py27_64
 
-    * go to http://openalea.gforge.inria.fr/dokuwiki/doku.php?id=download:windows, 
-    * download `OpenAlea 1.2` and `Vplants 1.2`,
-    * install both installers: 
-		  
-3. Install NumPy:  
+3. Install OpenAlea PlantGL:  
 
-    * go to http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy, 
-    * download `NumPy+MKL` for Python 2 64 bit,
-    * install it using `pip` installer: 
-        * open a command line interpreter,
-        * go to the directory where you saved `NumPy+MKL` for Python 2 64 bit,
-        * install `NumPy+MKL` from the downloaded wheel file.  
-          For example, if you downloaded file "numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl", 
-          type: `pip install "numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl"`.
+    * go to https://github.com/openalea/plantgl to check latest install recommendations for PlantGL
+    * in your acivated conda environment, install successively : 
+		conda install -c openalea openalea.core
+		conda install -c openalea openalea.deploy
+		conda install -c openalea qhull
+		conda install -c openalea ann
+		conda install -c openalea/label/unstable openalea.plantgl
 
-4. Install Pandas  
+4. Install OpenAlea L-py:  
 
-    * go to http://www.lfd.uci.edu/~gohlke/pythonlibs/#pandas, 
-    * download `Pandas` for Python 2 64 bit,
-    * install it using `pip` installer: 
-        * open a command line interpreter,
-        * go to the directory where you saved `Pandas` for Python 2 64 bit,
-        * install `Pandas` from the downloaded wheel file.  
-          For example, if you downloaded file "pandas-0.20.3-cp27-cp27m-win_amd64.whl", 
-          type: `pip install "pandas-0.20.3-cp27-cp27m-win_amd64.whl"`.
-          
-5. Install Sphinx
+    * go to https://github.com/openalea/lpy to check latest install recommendations for PlantGL
+    * in your acivated conda environment, install successively : 
+		conda install -c openalea openalea.lpy
+		
+	* To correct lpy console display bug:
+		- go to envs\nom_environnement\library\bin
+		- create a new file 'mylpy.bat'
+		- write inside the following command line:
+			python -c "from openalea.lpy.gui.lpystudio import main ; main()"
+		- you can now launch lpy studio from your acivated conda environment using  “mylpy”
 
-    * go to http://www.lfd.uci.edu/~gohlke/pythonlibs/#misc, 
-    * download `Sphinx` for Python 2,
-    * install it using `pip` installer: 
-        * open a command line interpreter,
-        * go to the directory where you saved `Sphinx` for Python 2,
-        * install `Sphinx` from the downloaded wheel file.  
-          For example, if you downloaded file "Sphinx-1.6.3-py2.py3-none-any.whl", 
-          type: `pip install "Sphinx-1.6.3-py2.py3-none-any.whl"`.
-          
+		
+5. Install xlrd package:  
+    * in your acivated conda environment, install successively : 
+		conda install -c anaconda xlrd
+
+
+
+	
 ### 1.2 Installing
 
 __Note__: We suppose you already installed the dependencies for your operating system. Otherwise follow these [instructions](prerequisites "Prerequisites").
 
-You can install *L-grass* either in "install" or "develop" mode.
+You can install *L-egume* either in "install" or "develop" mode.
 
-#### 1.2.1 Install *L-grass* in "install" mode
+#### 1.2.1 Install *L-egume* in "install" mode
 
-Install *L-grass* in "install" mode if you're not going to develop, edit or debug 
+Install *L-egume* in "install" mode if you're not going to develop, edit or debug 
 it, i.e. you just want to used it as third party package.
 
 To install *L-egume* in "end-user" mode:
 
-* open a command line interpreter,
-* go to your local copy of project *L-egume*,
+* open and activate a conda environment with installed dependencies,
+* go to your local copy of project *L-egume* (you can get the latest version from https://sourcesup.renater.fr/projects/l-egume/),
 * run command: `python setup.py install --user`.
 
 #### 1.2.2 Install *L-egume* in "develop" mode
@@ -96,8 +97,8 @@ changes to take effect immediately.
 
 To install *L-egume* in "develop" mode:
 
-* open a command line interpreter,
-* go to your local copy of project *L-egume*,
+* open and activate a conda environment with installed dependencies,
+* go to your local copy of project *L-egume* (you can get the latest version from https://sourcesup.renater.fr/projects/l-egume/),
 * run command: `python setup.py develop --user`.
 
 ### 1.3 Running
@@ -105,11 +106,17 @@ To install *L-egume* in "develop" mode:
 To run a simulation example, two options:
 
 * 1. open Lpy platform,
-	 load lgrass.lpy file from lgrass folder,
+	 load l-egume.lpy file from legume folder,
 	 Use Run or animate button to launch a simulation
-  2. Run lgrass from a python script (see main.py in test folder for an example)
+  2. Run l-egume from a python script (see l-egume_batch_mixture8.py in multisim folder for an example)
 
 See the user guide for a step by step explanation of how to set and run model *L-egume*.
+
+
+
+[AFTER: TO BE COMPLETED!!!]
+
+
 
 ## 2. Reading the docs
 
@@ -167,7 +174,7 @@ We use a Git repository on [SourceSup](https://sourcesup.renater.fr) for
 versioning: https://sourcesup.renater.fr/projects/l-egume/.  
 If you need an access to the current development version of the model, please send 
 an email to <lgrass-request@groupes.renater.fr>.
-For versionning, use a git client and get git clone git+ssh://git@git.renater.fr:2222/lgrass.git. SSH will is required
+For versionning, use a git client and get git clone git+ssh://git@git.renater.fr:2222/l-egume.git SSH will is required
 
 ## Authors
 
