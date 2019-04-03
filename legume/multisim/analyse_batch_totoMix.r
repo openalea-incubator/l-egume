@@ -1315,7 +1315,7 @@ nfert_level <-'0N'#"300N"#'120N'#
 outype <- "sowing"#"actual"#
 normRUE <- 0.0
 asso <- 'pur'#'asso'#
-var <- "propOpt"#"propsowing50"#"OverMax"#"inttot"#
+var <- "propOpt"#"propsowing50"#"inttot"#"OverMax"#
 breaks_ <- c(-300,-200,-100,0,50,100,150,200)#"inttot"/actual
 breaks_ <- c(-400,-250,-100,0,100,200,300,400)#"inttot"/actual
 breaks_ <- c(0,0.1,0.3,0.4,0.5,0.6,0.7,0.9)#"propOpt / sowing

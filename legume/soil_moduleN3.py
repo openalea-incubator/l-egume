@@ -63,7 +63,7 @@ from soil_module5 import *
 
 
 class SoilN(Soil):
-    def __init__(self, par_sol, parSN, soil_number , dxyz, vDA,  vCN, vMO, vARGIs, vNO3, vNH4,  vCALCs, Tsol, pH, ZESX, CFES, obstarac=None):
+    def __init__(self, par_sol, parSN, soil_number , dxyz, vDA,  vCN, vMO, vARGIs, vNO3, vNH4,  vCALCs, Tsol, pH, ZESX, CFES, obstarac=None, pattern8=[[0,0],[100.,100.]]):
         """
         par_sol SN contient en plus pour l'azote:
             'FMIN1G'        #(day-1) (p145)
@@ -110,7 +110,7 @@ class SoilN(Soil):
         bilanC et bilanN: dictionnaires contenant les variables dynamiques et les cumuls necessaire a l'etablissement des bilans C et N (kg C/N.ha-1)
         """
         #initialisation sol et teneur en eau
-        Soil.__init__(self,par_sol, soil_number , dxyz, vDA, ZESX, CFES, obstarac)
+        Soil.__init__(self,par_sol, soil_number , dxyz, vDA, ZESX, CFES, obstarac, pattern8)
         self.compute_teta_lim(par_sol)
         self.init_asw()
 

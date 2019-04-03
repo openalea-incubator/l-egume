@@ -99,6 +99,15 @@ for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
   QNupttot <- NULL
   QNuptleg <- NULL
   
+  PARi1 <- NULL
+  PARi2 <- NULL
+  Surf1 <- NULL
+  Surf2 <- NULL
+  LRac1 <- NULL
+  LRac2 <- NULL
+  MRac1 <- NULL
+  MRac2 <- NULL
+  
   for (i in 1:length(ls_toto_paquet))#(ls_toto))
   {
     name <- ls_toto_paquet[i]
@@ -146,13 +155,28 @@ for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
       ProdIaer1 <- rowSums(MS1) / s
       Nuptake_sol_leg <- as.matrix(dat1[dat1$V1=='Nuptake_sol',3:(3+nb1-1)], ncol=nb1)
       Nuptake_sol_leg <- as.numeric(rowSums(Nuptake_sol_leg) / s)
+      jPARi1 <- rowSums(as.matrix(dat1[dat1$V1=='PARiPlante' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jSurf1 <- rowSums(as.matrix(dat1[dat1$V1=='SurfPlante' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jLRac1 <- rowSums(as.matrix(dat1[dat1$V1=='RLTot' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jMRac1 <- rowSums(as.matrix(dat1[dat1$V1=='MS_rac_fine' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jMPiv1 <- rowSums(as.matrix(dat1[dat1$V1=='MS_pivot' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      
     } else
     {
       ProdIaer1 <- 0 #pas de plante de l'esp1
       Nuptake_sol_leg <- 0
+      jPARi1 <- 0
+      jSurf1 <- 0
+      jLRac1 <- 0
+      jMRac1 <- 0
+      jMPiv1 <- 0
     }
     YEsp1 <- cbind(YEsp1, sum(ProdIaer1))#cumul des 5 coupes
     QNuptleg <- cbind(QNuptleg, sum(Nuptake_sol_leg))
+    PARi1 <- cbind(PARi1, sum(jPARi1))
+    Surf1 <- cbind(Surf1, sum(jSurf1))
+    LRac1 <- cbind(LRac1, max(jLRac1))
+    MRac1 <- cbind(MRac1, max(jMRac1)+max(jMPiv1))
     
     #YEsp2
     #if (esp==esp2 & grep('damier', damier)==1)#si deux fois le meme nom d'espece, mais mixture damier
@@ -171,12 +195,28 @@ for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
     {
       MS2 <- as.matrix(dat2[dat2$V1=='MSaerien' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)
       ProdIaer2 <- rowSums(MS2) / s
+      jPARi2 <- rowSums(as.matrix(dat2[dat2$V1=='PARiPlante' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jSurf2 <- rowSums(as.matrix(dat2[dat2$V1=='SurfPlante' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jLRac2 <- rowSums(as.matrix(dat2[dat2$V1=='RLTot' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jMRac2 <- rowSums(as.matrix(dat2[dat2$V1=='MS_rac_fine' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jMPiv2 <- rowSums(as.matrix(dat2[dat2$V1=='MS_pivot' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      
     }
     else
     {
       ProdIaer2 <- 0 #pas de plante de l'esp2
+      jPARi2 <- 0
+      jSurf2 <- 0
+      jLRac2 <- 0
+      jMRac2 <- 0
+      jMPiv2 <- 0
     }
     YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
+    YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
+    PARi2 <- cbind(PARi2, sum(jPARi2))
+    Surf2 <- cbind(Surf2, sum(jSurf2))
+    LRac2 <- cbind(LRac2, max(jLRac2))
+    MRac2 <- cbind(MRac2, max(jMRac2)+max(jMPiv2))
     
   }
   
@@ -198,6 +238,27 @@ for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
   dtoto$QNuptleg <- as.numeric(QNuptleg)
   dtoto$QNtot <- dtoto$QNfix + dtoto$QNupttot
 
+  #new var
+  dtoto$Pari1 <- as.numeric(PARi1)
+  dtoto$Pari2 <- as.numeric(PARi2)
+  dtoto$Surf1 <- as.numeric(Surf1)
+  dtoto$Surf2 <- as.numeric(Surf2)
+  dtoto$PhiSurf1 <- as.numeric(PARi1) / (as.numeric(Surf1) + 10e-12)#Phi Surf
+  dtoto$PhiSurf2 <- as.numeric(PARi2) / (as.numeric(Surf2) + 10e-12)
+  dtoto$PhiMass1 <- as.numeric(PARi1) / (as.numeric(YEsp1) + 10e-12)#Phi Mass
+  dtoto$PhiMass2 <- as.numeric(PARi2) / (as.numeric(YEsp2) + 10e-12)
+  dtoto$LRac1 <- as.numeric(LRac1)
+  dtoto$LRac2 <- as.numeric(LRac2)
+  dtoto$MRac1 <- as.numeric(MRac1)
+  dtoto$MRac2 <- as.numeric(MRac2)
+  dtoto$UptNLen1 <- (as.numeric(QNupttot) - as.numeric(QNuptleg)) / (as.numeric(LRac1) + 10e-12)#Uptake par Len
+  dtoto$UptNLen2 <- as.numeric(QNuptleg) / (as.numeric(LRac2) + 10e-12)
+  dtoto$UptNMass1 <- (as.numeric(QNupttot) - as.numeric(QNuptleg)) / (as.numeric(MRac1) + 10e-12)#Uptake par Mass root
+  dtoto$UptNMass2 <- as.numeric(QNuptleg) / (as.numeric(MRac2) + 10e-12)
+  
+  
+  
+  
   #remise du dtoto locl dans sp_dtoto
   sp_dtoto[[key]] <- dtoto
   

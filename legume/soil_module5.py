@@ -9,6 +9,7 @@ from copy import deepcopy
 
 
 ##changements version 5
+#ajout d'un patern en entree pour initialisation + stocke info surfsolref (facilite couplage racine dans impulse)
 # ajout d'une entree obstarac (matrice 2D de profondeur d'obtacle en m ; None par defaut) et d'une matrice d'effet sur la disponibilite des ressource (m_obstrac)
 # mise a jour d calcul de FTSW pour tenir compte de m_obstrac
 # retire des ; dans le calcul de transpiration
@@ -103,7 +104,7 @@ def pF(h):
 
 
 class Soil(object):
-    def __init__(self, par_sol, soil_number = [13]*10, dxyz = [[1.], [1.], [0.2]*10], vDA=[1.2]*10, ZESX=0.3, CFES=1., obstarac=None):
+    def __init__(self, par_sol, soil_number = [13]*10, dxyz = [[1.], [1.], [0.2]*10], vDA=[1.2]*10, ZESX=0.3, CFES=1., obstarac=None, pattern8=[[0,0],[100.,100.]]):
         """  
         dxyz : dimensions des voxels selon x, y, z (m)
         m_soil_vol : volume des voxels (m3)
@@ -144,6 +145,14 @@ class Soil(object):
         """
 
         self.dxyz = dxyz
+        size = map(len, dxyz)
+        self.size = size[2:]+size[0:2] #z,x,y
+        self.pattern = pattern8 #cm
+        self.origin = array(pattern8[0]+[0.])/100. #m
+        Lsol = max((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
+        largsol = min((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
+        self.surfsolref = Lsol * largsol  # m2
+
         self.m_1 = []
         self.m_soil_vox = []#voxel positions
         self.m_soil_vol = []#voxel volume

@@ -72,8 +72,8 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Fix2'#'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletP = 'Fix2'#'solnu'#'giga'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+ongletPvois = 'nonFixSimTest'#'solnu'#'giga'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 #lecture des parametres du sol
 path_sol = os.path.join(path_leg,'Parametres_sol_exemple.xls')#'Parametres_sol_exemple2_debugL_glbis.xls')#
@@ -349,8 +349,8 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
 
 
 
-def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,obstarac =None):
-    
+def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol, pattern8, opt_residu, obstarac =None):
+    """ soil initialisation from L-py"""
     #vecteurs d'initialisation du sol
     Tsol = meteo_j['Tsol']#15. #degresC
     num_nb = map(int, inis['num_nb'])#[6,6,18] #nbr de couche de chaque num de sol 
@@ -385,7 +385,7 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,obstara
     
     
     ## soil initialisation
-    S = solN.SoilN(par_sol, par_SN, soil_number = vsoilnumbers, dxyz = [[Lsol/discret_solXY[0]]*discret_solXY[0], [largsol/discret_solXY[1]]*discret_solXY[1], [dz_sol/100.]*ncouches_sol], vDA=vDA, vCN=vCN,vMO=vMO, vARGIs = vARGIs,vNO3=vNO3,vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol,pH=par_SN['pH'], ZESX=par_SN['ZESX'] , CFES=par_SN['CFES'],obstarac=obstarac)
+    S = solN.SoilN(par_sol, par_SN, soil_number = vsoilnumbers, dxyz = [[Lsol/discret_solXY[0]]*discret_solXY[0], [largsol/discret_solXY[1]]*discret_solXY[1], [dz_sol/100.]*ncouches_sol], vDA=vDA, vCN=vCN,vMO=vMO, vARGIs = vARGIs,vNO3=vNO3,vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol,pH=par_SN['pH'], ZESX=par_SN['ZESX'] , CFES=par_SN['CFES'],obstarac=obstarac, pattern8=pattern8)
     
     
     if HRpinit!=[]:#initialise humidite si un vecteur est fourni
@@ -630,7 +630,7 @@ def Start():
     
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr
-    S, Tsol, Uval, stateEV, b_ = init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,obstarac_)
+    S, Tsol, Uval, stateEV, b_ = init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,  pattern8, opt_residu, obstarac_)
     #mat_res = 0.*S.m_1 #en faire 
     ls_groupe_resid = map(int, riri.get_lsparami(ParamP, 'groupe_resid'))
     setr = list(set(ls_groupe_resid)) #set equivalent fonction r.unique!

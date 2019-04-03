@@ -164,7 +164,7 @@ CalcPropactu50 <- function (modelesp1, modelesp2, idopt)
 }
 
 
-YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, visutext=T, ...)
+YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, visutext=T, labx=NA,...)
 {
   ## calcul des composante de l'overyielding biomasse et fait un plot (visutext=visualisation des valeurs; visuplot=visulaisation des )
   
@@ -173,12 +173,14 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
   if (optProp=="sowing")
   {
     xx <- tabmoy$Semprop1
-    labx <- 'Sowing proportion (Esp. 1)'
+    if (is.na(labx))
+    {labx <- 'Sowing proportion (Sp. 1)'}
   }
   if (optProp=="actual")
   {
     xx <- tabmoy$Yprop1
-    labx <- 'Actual proportion (Esp. 1)'
+    if (is.na(labx))
+    {labx <- 'Actual proportion (Sp. 1)'}
   }
   
   #calcul des fits des valeurs moyennes
@@ -223,8 +225,8 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
   if (visutext==T & visuplot==T)
   {
     text(0.15, 0.97*Ymax, paste('overY: ' ,round(inttot,2)))
-    text(0.15, 0.93*Ymax, paste('Esp1: ' , round(intesp1,2)),col=2)
-    text(0.15,0.89*Ymax, paste('Esp2: ' ,round(intesp2,2)),col=4)
+    text(0.15, 0.93*Ymax, paste('Sp1: ' , round(intesp1,2)),col=2)
+    text(0.15,0.89*Ymax, paste('Sp2: ' ,round(intesp2,2)),col=4)
   }
   
   #renvoie valeurs calculees
@@ -235,7 +237,7 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
 }
 
 
-QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, visutext=T, ...)
+QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, visutext=T, labx=NA,...)
 {
   ## calcul des composante de l'overyielding Ntot et fait un plot (visutext=visualisation des valeurs; visuplot=visulaisation des plots)
   
@@ -244,12 +246,14 @@ QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, 
   if (optProp=="sowing")
   {
     xx <- tabmoy$Semprop1
-    labx <- 'Sowing proportion (Esp. 1)'
+    if (is.na(labx))
+    {labx <- 'Sowing proportion (Sp. 1)'}
   }
   if (optProp=="actual")
   {
     xx <- tabmoy$Yprop1
-    labx <- 'Actual proportion (Esp. 1)'
+    if (is.na(labx))
+    {labx <- 'Actual proportion (Sp. 1)'}
   }
   
   #calcul des fits des valeurs moyennes
@@ -302,4 +306,66 @@ QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, 
 }
 
 
+
+OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visuplot=T,labx=NA,...)
+{
+  #key <- ls_keysc[20]
+  #figure de tous les overyielding
+  ls_keysc = names(ls_tabmoys)
+  
+  if (optProp=="sowing" & is.na(labx))
+  { labx <- 'Sowing proportion (Sp. 1)'}
+  if (optProp=="actual" & is.na(labx))
+  { labx <- 'Actual proportion (Sp. 1)'}
+  
+  if (visuplot==T)
+  {
+    plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
+    segments(0, 0, 1, 0, col=1)
+  }
+  
+  resx <- NULL
+  resy <- NULL
+  
+  for (keysc in ls_keysc)
+  {
+    #keysc <- ls_keysc[3]
+    tabmoy <- ls_tabmoys[[keysc]]
+    
+    #xx <- tabmoy$Semprop1#tabmoy$Yprop1#
+    yy <- tabmoy$Ytot
+    #actual or sowing proportions?
+    if (optProp=="sowing")
+    {
+      xx <- tabmoy$Semprop1
+      labx <- 'Sowing proportion (Esp. 1)'
+    }
+    if (optProp=="actual")
+    {
+      xx <- tabmoy$Yprop1
+      labx <- 'Actual proportion (Esp. 1)'
+    }
+    
+    lintot <- lsfit(c(xx[1], xx[7]), c(yy[1], yy[7]))
+    ylin <- lintot$coefficients[["Intercept"]] + xx*lintot$coefficients[["X"]]
+    overY <- yy - ylin
+    
+    if (keysc != key)
+    {
+      if (visuplot==T)
+      { points(xx, overY, pch=16, col='light grey') }
+      resx <- cbind(resx,xx)
+      resy <- cbind(resy,overY)
+    } else
+    {
+      savexx <- xx
+      saveyy <- overY
+    }
+  }
+  if (visuplot==T)
+  { points(savexx, saveyy, pch=16, col='blue', type='b')}
+  resx <- cbind(resx,savexx)
+  resy <- cbind(resy,saveyy)
+  data.frame(x=as.numeric(resx), y=as.numeric(resy))
+}
 
