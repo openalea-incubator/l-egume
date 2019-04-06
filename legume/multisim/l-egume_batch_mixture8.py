@@ -22,7 +22,7 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 3#'exemple'#2#0#1
+opttest = 'autre'#3#'exemple'#2#0#1
 if opttest == 1 or opttest==2 or opttest==3: #si multisim des test de non regression (1 or 2)
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
@@ -32,6 +32,7 @@ if opttest == 1 or opttest==2 or opttest==3: #si multisim des test de non regres
         ongletBatch = 'test'
     elif opttest == 2:#obssim
         ongletBatch = 'valid'
+
     elif opttest == 3:#solnu
         ongletBatch = 'solnu'#
 elif opttest == 'exemple':
@@ -43,9 +44,9 @@ elif opttest == 'exemple':
 else: #other multisimulation to be defined (0)
     global foldin, fxls, ongletBatch, fscenar
     #to be manually updated
-    foldin = 'multisim'
-    fxls = 'liste_usms_mix.xls'
-    ongletBatch = 'SimTest'
+    foldin = 'input'#'multisim'
+    fxls = 'liste_usms_essais.xls'#'liste_usms_mix.xls'
+    ongletBatch = 'Champs'#'SimTest'
     fscenar = 'liste_scenarios.xls'
 
 
@@ -125,6 +126,8 @@ for i in range(len(ls_usms['ID_usm'])):
         ### testsim[name].ParamP = damier8(g4,g5,opt=optdamier)
         if str(ls_usms['arrangement'][i]) == 'damier8':
             arrang = 'damier'+str(optdamier)
+        elif str(ls_usms['arrangement'][i]) == 'row4':
+            arrang = 'row'+str(optdamier)
         else:
             arrang = str(ls_usms['arrangement'][i])+str(optdamier)
 
@@ -149,7 +152,11 @@ for i in range(len(ls_usms['ID_usm'])):
         
         #mise a jour derivartionLength & axiom
         testsim[name].derivationLength = int(ls_usms['DOYend'][i]) - int(ls_usms['DOYdeb'][i])#derivationLength variable predefinie dans L-py
-        nbplantes = nbcote*nbcote
+        if str(ls_usms['arrangement'][i]) == 'row4':#carre rang heterogene
+            nbplantes = nbcote * 4
+        else: #carre homogene
+            nbplantes = nbcote*nbcote
+
         a=AxialTree()
         a.append(testsim[name].attente(1))
         for j in range(0,nbplantes):

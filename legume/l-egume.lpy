@@ -113,7 +113,7 @@ deltalevsd = 15
 
 nbcote = 8#1#10
 optdamier = 4
-typearrangement='damier8'#'homogeneous'
+typearrangement='damier8'#'row4'#'homogeneous'#
 idscenar1 = -1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 opt_sky = 'V'#'VXpXmYpYm'
@@ -187,7 +187,7 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     #deltalevsd = 15
     test_retard = []#pour gerer un decalage a la levee/reprise
     
-    for i in range(138): test_retard.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
+    for i in range(510): test_retard.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
     #for i in range(138): test_retard.append(0)#pas de retard.
     # a affectr a ['TT']!!
     
@@ -209,6 +209,8 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
         ParamP = sh.damier8(g4,g5,opt=opt)
         if nbcote!=8:
             print('Warning! : damier8 option is for a 64 plant design')
+    elif type == 'row4':#4 rangs - 500pl.m-2
+        ParamP, cart_ = sh.row4(g4,g5,nbprow= nbcote, opt=opt)
     else:#defautl= force nb plante comme nbcote
         ParamP = [g4]*nbcote
         #ParamP = [g4]*10#*2#*30#[g6, g4, g6, g4, g6, g4, g6]#[g6,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4]#[g4] 
@@ -259,7 +261,7 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
 
 
 
-def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
+def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv, type='damier8'):
     #initialoise la scene: arrangement des plantes (carto), discretisation souterraine, discretisation aerienne
     # 1) CARTO
     distplantes = cote/nbcote#1. #cm
@@ -288,15 +290,18 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
     #xxx = [-10.75, -8.35, -5.95, -3.55, -1.15, 1.25, 3.65, 6.05, 8.45, 10.85]
     
     
-    #pour carre distance homogene
-    yyy = [distplantes/2.]
-    for i in range(1,nbcote):yyy.append(yyy[-1]+distplantes)
-    xxx = yyy
-    
-    carto = []
-    for i in range(len(xxx)): 
-        for j in range(len(yyy)):
-            carto.append(array([xxx[i],yyy[j],0.]))
+    if type=='row4': #pour carre 4 rangs heterogenes
+        Param_, carto = sh.row4(1,2,Lrow=cote , nbprow=nbcote)
+    else:
+        #pour carre distance homogene
+        yyy = [distplantes/2.]
+        for i in range(1,nbcote):yyy.append(yyy[-1]+distplantes)
+        xxx = yyy
+        
+        carto = []
+        for i in range(len(xxx)): 
+            for j in range(len(yyy)):
+                carto.append(array([xxx[i],yyy[j],0.]))
     
     
     # 2) definition du pattern et discretisation sol
@@ -626,7 +631,7 @@ def Start():
     #initialisation de la scene
     global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
     
-    carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv)
+    carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv,type=typearrangement)
     
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr

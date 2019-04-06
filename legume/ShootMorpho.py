@@ -593,6 +593,34 @@ def damier8(p, vois, opt=4):
     return res
     #dans un fichier d'initialiation?
 
+def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
+    """ cree un melange 50/50 alterne ou pur sur 4 rangs distance interow chanmp"""
+    if opt == 2:  # 50/50
+        motif = [p, vois, p, vois]
+    elif opt == 0:  # 0/100
+        motif = [vois, vois, vois, vois]
+    elif opt == 4:  # 100/0
+        motif = [p, p, p, p]
+
+    res = []
+    for i in range(nbprow):
+        res = res + motif
+
+    inter = Lrow / 4.
+    onrow = Lrow / nbprow
+    xxx = arange(0., Lrow, onrow)+onrow/2.
+    yyy = [0. * inter + inter/2.] + [1. * inter + inter/2.] + [2. * inter + inter/2.] + [3. * inter + inter/2.]  # 4 rangs
+    carto = []
+    for i in range(len(xxx)):
+        for j in range(len(yyy)):
+            carto.append(array([xxx[i], yyy[j], 0.]))  # +origin
+
+    return res ,carto
+    #pourrait renvoyer carto aussi ds homogeneous et damier8....
+    #res ,carto=row4(1, 2, Lrow=50., nbprow=125,  opt=0)
+    # dans un fichier d'initialiation?
+    #prevoir nbprow different par esp... et melange on row...
+
 
 #old - non utilise
 # a retirer
