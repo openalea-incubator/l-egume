@@ -227,6 +227,7 @@ def calc_extinc_allray_multi(ls_mlai, ls_triplets_dir ,ls_distf , I0, optsky=Non
     """ presupose que ls_triplets tout ou partie d'un turtle 6 => dx=dy=dz / tan(0.4637) = 2*dz !"""
     res = deepcopy(ls_triplets_dir) #liste des triplets de voxel par direction, associe a res_trans et res_abs_i
 
+    #print 'verif riri',ls_mlai, ls_triplets_dir ,ls_distf , I0
     alfa_turtle6 = 0.4637 #radians / 26.57 degre
     # distribution de I0 entre sources
     n_dir = len(ls_triplets_dir)

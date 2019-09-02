@@ -96,6 +96,8 @@ outHRfile = 'outHR.csv'#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
 outBilanNfile = 'BilanN.csv'#r'H:\devel\grassland\grassland\L-gume\BilanN.csv'
 resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
+#choix du type de modele de lumiere : 1 : RIRI, 2: CARIBU faces, 3 : CARIBU organe
+ETR = 1
 
 
 #initialisation des variables globale de simulation
@@ -106,7 +108,7 @@ deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
 #Ajout Quentin Reponse PAR_Tresh
-nbplantes = 64
+nbplantes = 9
 
 Dico_ParTresh = {}
 for nump in range(0,nbplantes+1):
@@ -115,16 +117,16 @@ for nump in range(0,nbplantes+1):
     Dico_ParTresh[nump]['A'] = {}
     Dico_ParTresh[nump]['A2'] = {}
 	
-nbcote = 8#1#10
+nbcote = 3#1#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'
 idscenar1 = -1 #inferieur a zero=defaut et fait rien
-idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
+idscenar2 = -1#-1 #inferieur a zero=defaut et fait rien
 opt_sky = 'V'#'VXpXmYpYm'
 
-cote = 40.#100.#100#25.#25.#cm
+cote = 10.#100.#100#25.#25.#cm
 dz_aerien = 2.#2.#2.5#5.#7.5#10.#7.#cm dz vise
-Hmaxcouv = 150.#150.# 200. #cm
+Hmaxcouv = 200.#150.# 200. #cm
 latitude = 46.43 #Lusignan (degre) -> a passer dans le fichier inis
 
 obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transpose() #matice 2D de valeurs de profondeur d'obstacle en m #None #
@@ -147,7 +149,7 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 
 
 #options de simation
-opt_residu = 1 #si 0, pas ativation de mineralisation
+opt_residu = 0 #si 0, pas ativation de mineralisation
 visu_root=0#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
@@ -325,7 +327,7 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
 def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
     #initialoise la scene: arrangement des plantes (carto), discretisation souterraine, discretisation aerienne
     # 1) CARTO
-    distplantes = cote/nbcote#1. #cm
+    distplantes = cote#/nbcote#1. #cm
     
     ## pour ilot
     #carto = [array([0.,0.,0.]), array([distplantes,0.,0.]),array([-distplantes,0.,0.]),array([0.5*distplantes,0.866*distplantes,0.]),array([-0.5*distplantes,0.866*distplantes,0.]), array([0.5*distplantes,-0.866*distplantes,0.]), array([-0.5*distplantes,-0.866*distplantes,0.])]#, array([-10.,0.,0.]), array([0.,7.,0.])] #liste des localisations (1pt par plante) -> a lire en fichier #LF - cos (pi/3) = 0.5   sin (pi/3) = 0.866
@@ -403,9 +405,10 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
     
     res_trans, res_abs_i = [],[]
     res_rfr = []
+    res_trpar = []
     
     
-    return carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr
+    return carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr, res_trpar
     #par logique, passer cote et nbcote dans ini?
 
 
@@ -1400,9 +1403,9 @@ def Start():
     
     
     #initialisation de la scene
-    global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
+    global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr, res_trpar
     
-    carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv)
+    carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr, res_trpar = init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv)
     
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr
@@ -1441,7 +1444,7 @@ def Start():
 
 
 def StartEach():
-    global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
+    global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, res_trpar, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
     
     #calcul TT
     STEPS_ = dTT(meteo_j['TmoyDay'], [ParamP[0]['Tdev'], ParamP[0]['Tmin'], ParamP[0]['Tmax'], ParamP[0]['q']]) #prend valeur de nump=0 -> reference pour la simulation!
@@ -1464,8 +1467,12 @@ def StartEach():
     #plante qd ajoute mlaicot?? -> OK unite
     #pb: toujours surplante de zero et pas de production de biomasse
     
+	#possibilite de mettre la condition if ETR==1
     res_trans, res_abs_i = riri.calc_extinc_allray_multi(m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX, optsky='soc')
+    
     res_rfr = riri.rfr_calc_relatif(res_trans/(meteo_j['I0']*surf_refVOX))#calcul de zeta
+    res_trpar = res_trans/(meteo_j['I0']*surf_refVOX)
+    #print res_trans#,meteo_j['I0'],surf_refVOX
     m_lais_construct = zeros([n_gamagroup, na[2], na[1], na[0]])
     
     
@@ -1804,6 +1811,7 @@ def EndEach(lstring,lscene):
     
     #ajout dans la matrice des residus
     for nump in range(len(invar['dMSenRoot'])):
+        #print 'carto',nump,len(carto),len(invar['dMSenRoot']),carto[nump] 
         voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
         groupe_resid = int(ParamP[nump]['groupe_resid'])
         ls_mat_res[groupe_resid*4+2][voxsol[2]][voxsol[1]][voxsol[0]] += invar['dMSenRoot'][nump]
@@ -1919,7 +1927,7 @@ def EndEach(lstring,lscene):
     #res_root.append(convd(RLProfil[0])) #pour exporter profil de racine (le faire pour tous les systemes?
     
     #HR sol
-    #out_HR.append([DOY]+mean(S.HRp(), axis=1)[id_out,0].tolist())
+    out_HR.append([DOY]+mean(S.HRp(), axis=1)[id_out,0].tolist())
     
     
     #mise a jour variables meteo
@@ -1933,7 +1941,7 @@ def EndEach(lstring,lscene):
     
     #archivage de lsOrgans
     savelsOrgans.append(lsOrgans)
-    
+    #print 'savelsorgans',savelsOrgans
     
     #print invar['germination'], invar['TT']
     #print invar_sc['sh']['Surf'], lsSurfSh
@@ -1955,15 +1963,16 @@ def EndEach(lstring,lscene):
     #pour gerer les vues pour 1 film - lucas
     outimagepathtemp = os.path.join(path_out, 'scene_'+str(DOY)+'.bmp')#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
     if movDisplay == 1:
+        print 'image',
         ## fait pour simul depuis L-py reglee manuellement
-        #frameDisplay(True)
-        #Viewer.display(lscene)
-        #Viewer.grids.setXYPlane(0)
+        frameDisplay(True)
+        Viewer.display(lscene)
+        Viewer.grids.setXYPlane(0)
         #Viewer.camera.setPosition((0,-150,20))
         #Viewer.camera.lookAt((0,-150,20),(20,20,-20))#((15,100,100),(0,0,0))
         Viewer.frameGL.setSize(600,500)
         Viewer.frameGL.saveImage(outimagepathtemp)
-        #Viewer.stop()
+        Viewer.stop()
 
 
 
@@ -2022,6 +2031,7 @@ def End(lstring,lscene):
     
     lsorgpath = os.path.join(path_out, lsorgfile)#r'H:\devel\grassland\grassland\L-gume\lsAxes.csv'
     f = file (lsorgpath, 'w')
+    #print 'savelsorgans II',savelsOrgans,DOY
     IOtable.ecriture_csv_fromlist(savelsOrgans,  f)#savelsOrgans=liste des lsOrgans pour chaque iteration #lsOrgans #lsAxes #lsApex #lsApexStop #ls_systrac[0] 
     f.close()
     
@@ -2031,7 +2041,7 @@ def End(lstring,lscene):
     
     outHRpath = os.path.join(path_out, outHRfile)#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
     f = file (outHRpath, 'w')
-    #IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
+    IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
     f.close()
     
     #pour gerer la vue de la sortie finale - lucas
@@ -3022,21 +3032,30 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
         invar['NBBexp'][nump]+=1
     
     vox = riri.WhichVoxel(carto[nump], origin_grid, na, dxyz)
-    newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX # A ameliorer :pris sur carto et position reelle des bourgeosn-> pb pour stolons?
     nbExp_Prev = outvar['NBBexp'][-1][0][nump+2]+1
-
-    #Ajout Quentin
-    lst_Dico = [vox[0],vox[1],-1]
-    name_B = str(nsh) + str(posi) + str(nrhiz)
-    Dico_ParTresh[nump]['B'][name_B] = []
-    Dico_ParTresh[nump]['B'][name_B].append(posi)
-
-    try:
-        newpar = Dico_rep_PAR[nump]['B'][name_B]
-        #print('utilisation des valeurs CARIBU !')
-    except:
-        pass
-
+    newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX # A ameliorer :pris sur carto et position reelle des bourgeosn-> pb pour stolons?
+    #      
+    #    print 'ETR ',ETR
+    #    if ETR==1:
+    #      newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX # A ameliorer :pris sur carto et position reelle des bourgeosn-> pb pour stolons?
+    #      
+    #    else:
+    #      #Ajout Quentin
+    #      
+    #      lst_Dico = [vox[0],vox[1],-1]
+    #      name_B = str(nsh) + str(posi) + str(nrhiz)
+    #      Dico_ParTresh[nump]['B'][name_B] = []
+    #      Dico_ParTresh[nump]['B'][name_B].append(posi)
+    #      
+    #      try:
+    #        newpar = Dico_rep_PAR[nump]['B'][name_B]
+    #        #print('utilisation des valeurs CARIBU !')
+    #      except:
+    #        #pour eviter pas de retour de rayonnement (et donc plantage) car pas de Pet ni In pour Cairbu, on met newpar =1
+    #        print 'sortie alternative',res_trans[-1][vox[1]][vox[0]],surf_refVOX
+    #        newpar = 1./surf_refVOX
+    #        #pass
+        
     
     #control de la vitesse de tallage
     if nsh==0:#tige seminale -> pas d'attente
@@ -3122,33 +3141,50 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, phyllotax):
     PARdown = res_trans[vox[2]][vox[1]][vox[0]] / surf_refVOX
     PARapex = PARup - (PARup-PARdown)*(Z0%dxyz[2]) / dxyz[2] #interpolation lineaire a l'iterieur du voxel
     I_I0 = PARapex/meteo_j['I0']
-    
-    ##invar_sc['ax']['MaxPARaF']
-    
     try:
-        PARlf = invar_sc['ax']['MaxPARaF'][idax]
+      PARlf = invar_sc['ax']['MaxPARaF'][idax]
     except:
-        PARlf = 0.
+      PARlf = 0.
     
     #print PARapex, PARlf
     PARsense = max(PARapex, PARlf) #niveau percu = mas d'apex ou feuille
     
-    #Ajout Quentin
-    lst_Dico = [vox[0],vox[1],vox[2]]
-    name_A = idsh + str(rank)
-    Dico_ParTresh[nump]['A'][name_A] = []
-    Dico_ParTresh[nump]['A'][name_A].append(lst_Dico)
 
-    #print('coucou plante {} name_A ={}').format(nump,name_A)
-
-    try:
-        PARsense = Dico_rep_PAR[nump]['A'][name_A]
-        #print('utilisation des valeurs CARIBU !')
-
-    except:
-        pass
-    
-    
+    #    if ETR==1:
+    #      
+    #      PARup = meteo_j['I0'] if vox[2] == 1 else res_trans[vox[2]-1][vox[1]][vox[0]] / surf_refVOX
+    #      PARdown = res_trans[vox[2]][vox[1]][vox[0]] / surf_refVOX
+    #      PARapex = PARup - (PARup-PARdown)*(Z0%dxyz[2]) / dxyz[2] #interpolation lineaire a l'iterieur du voxel
+    #      I_I0 = PARapex/meteo_j['I0']
+    #      
+    #      ##invar_sc['ax']['MaxPARaF']
+    #      
+    #      try:
+    #        PARlf = invar_sc['ax']['MaxPARaF'][idax]
+    #      except:
+    #        PARlf = 0.
+    #      
+    #      #print PARapex, PARlf
+    #      PARsense = max(PARapex, PARlf) #niveau percu = mas d'apex ou feuille
+    #      
+    #    else:
+    #      
+    #      #Ajout Quentin
+    #      lst_Dico = [vox[0],vox[1],vox[2]]
+    #      name_A = idsh + str(rank)
+    #      Dico_ParTresh[nump]['A'][name_A] = []
+    #      Dico_ParTresh[nump]['A'][name_A].append(lst_Dico)
+    #      
+    #      #print('coucou plante {} name_A ={}').format(nump,name_A)
+    #      
+    #      try:
+    #        PARsense = Dico_rep_PAR[nump]['A'][name_A]
+    #        #print('utilisation des valeurs CARIBU !')
+    #        
+    #      except:
+    #        pass
+    #    
+        
     #print nump, age #malgre retard, tous les A ont le meme age
     if age >= ParamP[nump]['phyllochron']/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDev'][nump]): # introduit arret developpement des apex en fonction gradient vertical PAR
         if PARsense>=meteo_j['I0']*ParamP[nump]['par_tresh']:
@@ -3223,22 +3259,27 @@ GetPos(X0,Y0,Z0)A2(nump, nsh, statut, age, duromb, rank, rankp, phyllotax):
     PARup = meteo_j['I0'] if vox[2] == 1 else res_trans[vox[2]-1][vox[1]][vox[0]] / surf_refVOX
     PARdown = res_trans[vox[2]][vox[1]][vox[0]] / surf_refVOX
     PARapex = PARup - (PARup-PARdown)*(Z0%dxyz[2]) / dxyz[2] #interpolation lineaire a l'iterieur du voxel
-
-    #Ajout Quentin
-    lst_Dico = [vox[0],vox[1],vox[2]]
-    name_A2 = str(nsh) + str(rank) + str(rankp)
-    Dico_ParTresh[nump]['A2'][name_A2] = []
-    Dico_ParTresh[nump]['A2'][name_A2].append(lst_Dico)
-    #print('coucou A2 plante {} name_A2 ={}').format(nump,name_A2)
-
-    try:
-        PARapex = Dico_rep_PAR[nump]['A2'][name_A2]
-        #print('utilisation des valeurs CARIBU !')
-
-    except:
-        pass
-
-
+    #    if ETR==1:
+    #      
+    #      PARup = meteo_j['I0'] if vox[2] == 1 else res_trans[vox[2]-1][vox[1]][vox[0]] / surf_refVOX
+    #      PARdown = res_trans[vox[2]][vox[1]][vox[0]] / surf_refVOX
+    #      PARapex = PARup - (PARup-PARdown)*(Z0%dxyz[2]) / dxyz[2] #interpolation lineaire a l'iterieur du voxel
+    #    else:
+    #      #Ajout Quentin
+    #      lst_Dico = [vox[0],vox[1],vox[2]]
+    #      name_A2 = str(nsh) + str(rank) + str(rankp)
+    #      Dico_ParTresh[nump]['A2'][name_A2] = []
+    #      Dico_ParTresh[nump]['A2'][name_A2].append(lst_Dico)
+    #      #print('coucou A2 plante {} name_A2 ={}').format(nump,name_A2)
+    #      
+    #      try:
+    #        PARapex = Dico_rep_PAR[nump]['A2'][name_A2]
+    #        #print('utilisation des valeurs CARIBU !')
+    #        
+    #      except:
+    #        pass
+    #
+    
     I_I0 = PARapex/meteo_j['I0']
     
     if nsh in invar['lsApexMort'][nump]: #Meurt si tige porteuse meurt
@@ -3342,6 +3383,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         produce *
     else:
         newage = age+STEPS
+        #lsOrgans.append([TT,'Lf',nump,nsh,rank,rankp,strate,surF,PARaF,statut,age,ordre,l,Longueur,DOY,cutNB,Largeur]) #decalage de un step pour l en exp	
         
         #calcul des PARif, PARaf et complete
         if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee
@@ -3364,33 +3406,37 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             PARif = max(ls_PARif)#min ou moy?
             strate = max(ls_strate)#?? pas correct
             PARaF = sum(ls_PARaF)
-            #Ajout Quentin
-            lst_Dico = [vox[0],vox[1],vox[2]]
-            name_A2 = str(nsh) + str(rank) + str(rankp)
-            Dico_ParTresh[nump]['A2'][name_A2] = []
-            Dico_ParTresh[nump]['A2'][name_A2].append(lst_Dico)
-            #print('coucou A2 plante {} name_A2 ={}').format(nump,name_A2)
-          
-            try:
-              PARapex = Dico_rep_PAR[nump]['A2'][name_A2]
-            #print('utilisation des valeurs CARIBU !')
-            
-            except:
-              pass
-          
+            #            #Ajout Quentin A VERIFIER
+            #            lst_Dico = [vox[0],vox[1],vox[2]]
+            #            name_A2 = str(nsh) + str(rank) + str(rankp)
+            #            Dico_ParTresh[nump]['A2'][name_A2] = []
+            #            Dico_ParTresh[nump]['A2'][name_A2].append(lst_Dico)
+            #            #print('coucou A2 plante {} name_A2 ={}').format(nump,name_A2)
+            #          
+            #            try:
+            #              PARapex = Dico_rep_PAR[nump]['A2'][name_A2]
+            #            #print('utilisation des valeurs CARIBU !')
+            #            
+            #            except:
+            #              pass
+            #          
         else:
             vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
             strate = vox[2] #starte z
             PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise 
-
-            #Ajout Quentin
-            try :
-                PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
-                print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
-            except:
-                pass
-            
-            # -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (elongation noeud?)
+            #            if ETR==1:
+            #              
+            #              strate = vox[2] #starte z
+            #              PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise 
+            #            else:
+            #              #Ajout Quentin
+            #              try :
+            #                PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
+            #                print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
+            #              except:
+            #                pass
+            #            
+                        # -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (elongation noeud?)
             sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]#surface folaire dans le voxel
             if sVOX>0.:
                 PARaF = res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surF/sVOX *3600.*24/1000000.
@@ -3409,7 +3455,8 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         Longueur = ParamP[nump]['profilLeafI_l'][ranklong]*l*cor_ordre
         Largeur = ParamP[nump]['profilLeafI_larg'][ranklong]*l*cor_ordre
         
-        lsOrgans.append([TT,'Lf',nump,nsh,rank,rankp,strate,surF,PARaF,statut,newage,ordre,l,Longueur,DOY,cutNB,Largeur]) #decalage de un step pour l en exp
+        #lsOrgans.append([TT,'Lf',nump,nsh,rank,rankp,strate,surF,PARaF,statut,newage,ordre,l,Longueur,DOY,cutNB,Largeur]) #decalage de un step pour l en exp
+        lsOrgans.append([TT,'Lf',nump,nsh,rank,rankp,strate,surF,PARaF,statut,age,ordre,l,Longueur,DOY,cutNB,Largeur]) #decalage de un step pour l en exp
         invar['SurfPlante'][nump].append(surF)
         I_I0profilLfPlant[nump][classI_I0] += surF
         
@@ -3489,16 +3536,23 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         
         surF = calc_surS(nump, rank, rankp, ordre, l) #m2
         PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
-
-        #Ajout Quentin
-        try :
-            PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
-            print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
-
-        except:
-            pass
-
         
+        #        if ETR==1:
+        #          
+        #          strate = vox[2] #starte z
+        #          
+        #          surF = calc_surS(nump, rank, rankp, ordre, l) #m2
+        #          PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
+        #        else:
+        #          #Ajout Quentin
+        #          try :
+        #            PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
+        #            print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
+        #            
+        #          except:
+        #            pass
+        #
+                
         I_I0 =  PARif/meteo_j['I0']
         classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.
         
@@ -3544,46 +3598,57 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
 Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
     global ls_ftswStress
     STEPS = invar['dTT'][nump]
-    
     newage = age+STEPS
     lpet = calc_Lpet(nump, rank, rankp, ordre, l)
+    #lsOrgans.append([TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,age,ordre,l,lpet,DOY,cutNB,'NA'])#decalage de un step pour l avec age en exp ou mort    
     
     vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
     PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
-
-    #Ajout Quentin
-    try :
-        PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
-        print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
-    except:
-        pass
-
-
+    
+    
+    
+    #strategie qui consistait a englober PAR et RFR Caribu mais on cible RFR
+    #    if ETR==1:
+    #      
+    #      PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
+    #    else:
+    #      #Ajout Quentin
+    #      try :
+    #        PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
+    #        print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
+    #      except:
+    #        pass
+    #
+    
     
     I_I0 =  PARif/meteo_j['I0']
     classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.
     I_I0profilPetPlant[nump][classI_I0] += lpet
-    #photomorphogenese
     
-    RFR=res_rfr[vox[2]][vox[1]][vox[0]]
-    
-    #Ajout quentin
-    try:
+    if ETR==1:
+      #photomorphogenese
+      
+      RFR=res_rfr[vox[2]][vox[1]][vox[0]]
+      #print "verif zeta",RFR,res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX,res_trans[vox[2]][vox[1]][vox[0]],surf_refVOX
+    else:
+      #Ajout quentin
+      try:
         RFR = Dico_rep[nump][str(X0)][str(Y0)][str(Z0)]
         #print("Utilisation donnee caribu")
-    except:
-        #print ("Caribu pas pris en compte")
+      except:
+        print ("Caribu pas pris en compte 1"),X0,Y0,Z0,nump,vox[2],vox[1],vox[0],'\n',Dico_rep[nump].keys(),age,l
+        RFR=res_rfr[vox[2]][vox[1]][vox[0]]
         pass
-
-    #Ajout Quentin
-    try :
-        PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
-        print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
-
-    except:
-        pass  
-    
-    
+      
+    #      #Ajout Quentin
+    #      try :
+    #        PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
+    #        print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
+    #        
+    #      except:
+    #        pass  
+    #    
+        
     RFR_effect=(ParamP[nump]['photomorphRFR_pet'][0]*RFR)+ParamP[nump]['photomorphRFR_pet'][1]
     
     durjour = DayLength (latitude,DecliSun (DOY % 365))
@@ -3593,7 +3658,11 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
     invar['phmgPet'][nump].append(photomorph)
     invar['phmgPet_m'][nump].append(photomorph)
     
-    lsOrgans.append([TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre,l,lpet,DOY,cutNB,'NA'])#decalage de un step pour l avec age en exp ou mort
+    #print 'verif ',TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre,l,lpet,DOY,cutNB,'NA'
+    #lsOrgans.append([TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre,l,lpet,DOY,cutNB,'NA'])#decalage de un step pour l avec age en exp ou mort
+    lsOrgans.append([TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,age,ordre,l,lpet,DOY,cutNB,'NA'])#decalage de un step pour l avec age en exp ou mort
+	
+    #print 'lsorgans',lsOrgans
     
     if age> ParamP[nump]['spanMrt'] or nsh in invar['lsApexMort'][nump]:#mort du module
         voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
@@ -3618,33 +3687,40 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
 GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     global ls_ftswStress, lsOrgans      
     STEPS = invar['dTT'][nump]
-    
     newage = age+STEPS
     lent = calc_Lent(nump, rank, nsh, ordre, l)#cm
+    #lsOrgans.append([TT,'In',nump,nsh,rank,rankp,'NA','NA','NA',statut,age,ordre, l,lent,DOY,cutNB,'NA']) #decalage de un step pour l et age en exp!    
     
     vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
     PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
-    
-    #Ajout Quentin 
-    try :
-        PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
-        print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
-
-    except:
-        pass
-    
+    #    if ETR==1:
+    #      
+    #      PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise
+    #    else:
+    #      #Ajout Quentin 
+    #      try :
+    #        PARif = Dico_PARif[X0][Y0][Z0] / surf_refVOX
+    #        print 'PARifVoxel :',res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX, 'PARifCaribu :',PARif
+    #        
+    #      except:
+    #        pass
+    #    
     
     I_I0 =  PARif/meteo_j['I0']
     classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.    
     
-    RFR=RFR=res_rfr[vox[2]][vox[1]][vox[0]]
-    
-    #Ajout Quentin FeedBack CARIBU
-    try:
+    if ETR==1:
+      RFR=res_rfr[vox[2]][vox[1]][vox[0]]
+      #print 'Compare voxel ',vox[2],vox[1],vox[0],res_trans[vox[2]][vox[1]][vox[0]],RFR
+    else:
+      #Ajout Quentin FeedBack CARIBU
+      try:
+        #print Dico_rep
         RFR = Dico_rep[nump][str(X0)][str(Y0)][str(Z0)]
         #print("Utilisation donnee caribu")
-    except:
-        #print ("Caribu pas pris en compte")
+      except:
+        print ("Caribu pas pris en compte 2"),X0,Y0,Z0,nump,vox[2],vox[1],vox[0],'\n',Dico_rep[nump].keys(),age,l
+        RFR=res_rfr[vox[2]][vox[1]][vox[0]]
         pass
     
     
@@ -3657,7 +3733,9 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     invar['phmgEntr'][nump].append(photomorph)
     invar['phmgEntr_m'][nump].append(photomorph)
     
-    lsOrgans.append([TT,'In',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre, l,lent,DOY,cutNB,'NA']) #decalage de un step pour l et age en exp!
+    #lsOrgans.append([TT,'In',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre, l,lent,DOY,cutNB,'NA']) #decalage de un step pour l et age en exp!
+    lsOrgans.append([TT,'In',nump,nsh,rank,rankp,'NA','NA','NA',statut,age,ordre, l,lent,DOY,cutNB,'NA']) #decalage de un step pour l et age en exp!
+    #print 'age In', newage
     invar['NBphyto'][nump] += 1 #comptage du phytomere 
     
     if nsh in invar['lsApexMort'][nump]: #Meurt si tige meurt meurt

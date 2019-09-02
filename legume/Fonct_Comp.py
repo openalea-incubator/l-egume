@@ -2,6 +2,7 @@ from numpy import *
 from openalea.lpy import *
 from openalea.plantgl.all import *
 from generateScene import run
+import RIRI5 as riri
 
 def Init_Lpy(lpy_filename, fichier_pois):
 
@@ -85,13 +86,15 @@ def PrepareScene(scene,runL):
     Dico_Pet = {}
     Dico_In = {}
     Dico_Stp = {}
+    Dico_Lf = {}
     Dico_Apex_ID = {}
+
+    dico_genre = {'Pet': 100, 'In': 200,'A': 300, 'Stp': 400, 'Lf': 500}
 
     for x in s_leg:
         #if x.id != s_leg[0].id and x.id != s_leg[1].id: #test a faire quand y a le sol ?
         #print x.id,sc[x.id]
         nump = sc[x.id][0]
-
         if (sc[x.id].name == 'Pet'):
             liste = []
             liste.append(nump)
@@ -123,6 +126,20 @@ def PrepareScene(scene,runL):
 
             Dico_In[count_ID] = liste
 
+
+        #ajout didier
+
+        if (sc[x.id].name == 'Lf'):
+            liste = []
+            liste.append(nump)
+            liste.append(x.id)
+
+            liste.append(sc[x.id - 2][0])
+            liste.append(sc[x.id - 2][1])
+            liste.append(sc[x.id - 2][2])
+
+            Dico_Lf[count_ID] = liste
+
         if (sc[x.id].name == 'A'):
             name_A = str(sc[x.id][0])+'_'+str(sc[x.id][1])+str(sc[x.id][5])
             Dico_Apex_ID[name_A] = x.id
@@ -130,11 +147,21 @@ def PrepareScene(scene,runL):
         if (sc[x.id].name != 'solxy' and sc[x.id].name != 'p' and sc[x.id].name != 'RLAP' and sc[
             x.id].name != 'RS' and sc[x.id].name != 'RLB' and sc[x.id].name != 'RA' ):
 
-            if (sc[x.id].name == 'A' or sc[x.id].name == 'Stp' or sc[x.id].name == 'Pet'):  # Feuille
+            if (sc[x.id].name == 'A' or sc[x.id].name == 'Stp' or sc[x.id].name == 'Lf'):  # Feuille
                 esp_opt = 100000000000
-                n_plt = 100000 + 100000 * nump
-                tp_org = 00000
-                count_sh = esp_opt + n_plt + tp_org + nb_tri
+                n_plt = 000000 + 1000000 * (nump+1)
+                label_rank = sc[x.id].rank * 10000
+                label_nsh = sc[x.id].nsh * 100000000
+
+                if sc[x.id].name == 'A':
+                    tp_org = 1000#*int(sc[x.id][5]+1)
+                if sc[x.id].name == 'Stp':
+                    tp_org = 1000#*int(sc[x.id+4][3]+1)
+                if sc[x.id].name == 'Lf':
+                    tp_org = 1000#*int(sc[x.id][3]+1)
+
+                #count_sh = esp_opt + n_plt + tp_org + 1#nb_tri
+                count_sh = esp_opt + label_nsh + n_plt + label_rank + tp_org + dico_genre[sc[x.id].name] + 1  # nb_tri
                 nb_tri += 1
 
                 if (sc[x.id].name == 'Stp'):
@@ -146,11 +173,24 @@ def PrepareScene(scene,runL):
                     Dico_Stp[count_ID] = liste
 
 
-            if (sc[x.id].name == 'S' or sc[x.id].name == 'Lf' or sc[x.id].name == 'In'):  # Tige
+            # if (sc[x.id].name == 'S' or sc[x.id].name == 'Pet' or sc[x.id].name == 'In'):  # Tige
+            #     esp_opt = 100000000000
+            #     n_plt = 00000 + 1000000 * (nump+1)
+            #     tp_org = 00000
+            #     count_sh = esp_opt + n_plt + tp_org + nb_tri
+            #     nb_tri += 1
+
+            if (sc[x.id].name == 'S' or sc[x.id].name == 'Pet' or sc[x.id].name == 'In'):  # Tige
+                #print 'nom organe',sc[x.id].name
                 esp_opt = 100000000000
-                n_plt = 00000 + 100000 * nump
-                tp_org = 10000
-                count_sh = esp_opt + n_plt + tp_org + nb_tri
+                n_plt = 00000 + 1000000 * (nump+1)
+                if sc[x.id].name == 'In':
+                    label_rank = sc[x.id].rank*10000
+                else:
+                    label_rank = sc[x.id+3].rank * 10000
+                label_nsh = sc[x.id].nsh*100000000
+                tp_org = 00000
+                count_sh = esp_opt + label_nsh + n_plt + label_rank + tp_org + dico_genre[sc[x.id].name] + 1#nb_tri
                 nb_tri += 1
 
             s_leg2.add(Shape(geometry=x.geometry, id=x.id, appearance=x.appearance))
@@ -161,7 +201,7 @@ def PrepareScene(scene,runL):
             count_ID += 1
 
 
-    return Dico_Apex_ID, Dico_conv, Dico_In, Dico_Pet, Dico_Stp, s_leg2
+    return Dico_Apex_ID, Dico_conv, Dico_In, Dico_Pet, Dico_Stp, s_leg2, esp_opt + n_plt + tp_org + nb_tri, Dico_Lf
 
 
 
@@ -181,7 +221,8 @@ def create_Sensors(runL):
     y = xyz[1]
     z = xyz[2]
 
-    points = [(0, 0, 0),(x,0,0), (x,y,0),(0,y,0)]
+    #points = [(0, 0, 0),(x,0,0), (x,y,0),(0,y,0)] #capeur bas oriente vers le bas
+    points = [(0, 0, 0), (x, 0, 0), (x, y, 0), (0, y, 0)]#capeur bas oriente vers le haut
     normals = [(0, 0, 1) for i in range(4)]
     indices = [(0, 1, 2, 3)]
 
@@ -332,7 +373,7 @@ def create_LstVox_V1(runL,Dico_val,nbplantes):
     na = runL.na
 
     Dico_ParTresh = runL.Dico_ParTresh
-
+    #print Dico_ParTresh
     lstParTresh = {}
     count = 0
     for x in range(0,nbplantes):
@@ -346,10 +387,12 @@ def create_LstVox_V1(runL,Dico_val,nbplantes):
             count += 1
 
         for z in Dico_ParTresh[x]['B']:
-            z = z.split()
-            xB = float(z[1])
-            yB = float(z[2])
-            zB = float(z[3])
+            #print "z",z
+            #z = z.split()
+            xB = float(Dico_ParTresh[x]['B'][z][0][0])
+            yB = float(Dico_ParTresh[x]['B'][z][0][1])
+            #print Dico_ParTresh[x]['B'][z]
+            zB = float(Dico_ParTresh[x]['B'][z][0][2])
             placement = array([xB, yB, zB])
             vox = WhichVoxel(placement, origin_grid, na, xyz)
             lstParTresh[count] = vox
@@ -374,6 +417,7 @@ def create_LstVox_V1(runL,Dico_val,nbplantes):
         za = Dico_val[k][4]
         placement = array([xa, ya, za])
         vox = WhichVoxel(placement, origin_grid, na, xyz)
+        #print 'WhichVowel create_LstVox_V1',k,vox,xa, ya, za
         Lst_Vox[k] = vox
 
     for count in lstParTresh:
@@ -393,6 +437,7 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
     pattern8 = runL.pattern8
     origin_grid = runL.origin_grid
     na = runL.na
+
     Lst_Vox = create_LstVox_V1(runL,Dico_val,nbplantes)
 
 
@@ -402,7 +447,7 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
     y = xyz[1]
     z = xyz[2]
 
-    points = [(0, 0, 0),(x,0,0), (x,y,0),(0,y,0)]
+    points = [(0, 0, 0),(x,0,0), (x,y,0),(0,y,0)]#capeur bas oriente vers le haut
     normals = [(0, 0, 1) for i in range(4)]
     indices = [(0, 1, 2, 3)]
 
@@ -461,7 +506,10 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
 
         ID_capt += 1
 
+        #strategie_capteur = 1 #1 pour face bas comme VGL et 2 pour les 6 faces
+        #if strategie_capteur == 2:
         #ajout face sup
+
         tz = (k+1) * z
         try:
             dico_VoxtoID[i][j][k+1] == {}
@@ -496,7 +544,12 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
     x = xyz[0]
     y = xyz[1]
     z = xyz[2]
-    points = [[(0, 0, 0), (x, 0, 0), (x, 0, z), (0, 0, z)], [(0, y, 0), (0, y, z), (x, y, z), (x, y, 0)], [(0, 0, 0), (0, y, 0), (0, y, z),(0, 0, z)], [(x, 0, 0),(x, y, 0), (x, y, z),(x, 0, z)]]
+    #version de quentin pb a la 3e face qui regarde vers l'interieur
+    # points = [[(0, 0, 0), (x, 0, 0), (x, 0, z), (0, 0, z)], [(0, y, 0), (0, y, z), (x, y, z), (x, y, 0)], [(0, 0, 0), (0, y, 0), (0, y, z),(0, 0, z)], [(x, 0, 0),(x, y, 0), (x, y, z),(x, 0, z)]]
+    points = [[(0, 0, 0), (x, 0, 0), (x, 0, z), (0, 0, z)],
+              [(0, y, 0), (0, y, z), (x, y, z), (x, y, 0)],
+              [(0, 0, 0), (0, 0, z), (0, y, z), (0, y, 0)],
+              [(x, 0, 0), (x, y, 0), (x, y, z), (x, 0, z)]]
     normals = [(0, 0, 1) for i in range(4)]
     indices = [(0, 1, 2, 3)]
 
@@ -510,6 +563,7 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
         ty = j * y
         tz = k * z
         for n in range(0, 4):
+            #print 'bug',ID_capt,i,j,k,n
             dico_VoxtoID[i][j][k].append(ID_capt)
             carre = QuadSet(points[n], indices, normals, indices)
 
@@ -536,27 +590,45 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
 
 
 
-    #Preparation capteurs
-    pt_lst = s_capt[1].geometry.geometry.pointList
-    idx_lst = s_capt[1].geometry.geometry.indexList
+    # #Preparation capteurs
+    # pt_lst = s_capt[1].geometry.geometry.pointList
+    # idx_lst = s_capt[1].geometry.geometry.indexList
 
     Dico_Sensors = {}
+    liste_hmax_capt = []
+    liste_x_capt = []
+    liste_y_capt = []
 
     for x in s_capt:
+        # Preparation capteurs
+        pt_lst = x.geometry.geometry.pointList
+        idx_lst = x.geometry.geometry.indexList
 
         for i in range(0, len(idx_lst)):
 
             x11 = pt_lst[idx_lst[i][0]][0] + dico_translat[x.id][0]
             y11 = pt_lst[idx_lst[i][0]][1] + dico_translat[x.id][1]
             z11 = pt_lst[idx_lst[i][0]][2] + dico_translat[x.id][2]
+            
+            liste_hmax_capt.append(z11)
+            liste_x_capt.append(x11)
+            liste_y_capt.append(y11)
 
             x12 = pt_lst[idx_lst[i][1]][0] + dico_translat[x.id][0]
             y12 = pt_lst[idx_lst[i][1]][1] + dico_translat[x.id][1]
             z12 = pt_lst[idx_lst[i][1]][2] + dico_translat[x.id][2]
 
+            liste_hmax_capt.append(z12)
+            liste_x_capt.append(x12)
+            liste_y_capt.append(y12)
+
             x13 = pt_lst[idx_lst[i][2]][0] + dico_translat[x.id][0]
             y13 = pt_lst[idx_lst[i][2]][1] + dico_translat[x.id][1]
             z13 = pt_lst[idx_lst[i][2]][2] + dico_translat[x.id][2]
+
+            liste_hmax_capt.append(z13)
+            liste_x_capt.append(x13)
+            liste_y_capt.append(y13)
 
             tple1 = []
             triangle = []
@@ -569,13 +641,25 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
             y21 = pt_lst[idx_lst[i][0]][1] + dico_translat[x.id][1]
             z21 = pt_lst[idx_lst[i][0]][2] + dico_translat[x.id][2]
 
+            liste_hmax_capt.append(z21)
+            liste_x_capt.append(x21)
+            liste_y_capt.append(y21)
+
             x22 = pt_lst[idx_lst[i][2]][0] + dico_translat[x.id][0]
             y22 = pt_lst[idx_lst[i][2]][1] + dico_translat[x.id][1]
             z22 = pt_lst[idx_lst[i][2]][2] + dico_translat[x.id][2]
 
+            liste_hmax_capt.append(z22)
+            liste_x_capt.append(x22)
+            liste_y_capt.append(y22)
+
             x23 = pt_lst[idx_lst[i][3]][0] + dico_translat[x.id][0]
             y23 = pt_lst[idx_lst[i][3]][1] + dico_translat[x.id][1]
             z23 = pt_lst[idx_lst[i][3]][2] + dico_translat[x.id][2]
+
+            liste_hmax_capt.append(z23)
+            liste_x_capt.append(x23)
+            liste_y_capt.append(y23)
 
             tple2 = []
             tple2.append((x21, y21, z21))
@@ -586,7 +670,7 @@ def create_Sensors_V2(runL,Dico_val,nbplantes):
             Dico_Sensors[x.id]= triangle
 
 
-    return Dico_Sensors, dico_VoxtoID, dico_IDtoVox, s_capt
+    return Dico_Sensors, dico_VoxtoID, dico_IDtoVox, s_capt, [(min(liste_x_capt)+max(liste_x_capt))/2,(min(liste_y_capt)+max(liste_y_capt))/2,max(liste_hmax_capt)]
 
 
 
@@ -614,11 +698,11 @@ def Opt_And_Pattern(scene,xmax,ymax):
 
     for obj in scene:
         if obj.name[0] != '0':
-            if (obj.name[7] == '1'):
+            if (obj.name[8] == '1'):#a VERIFIER
                 opt['rc'][obj.id] = (0.10, 0.07, 0.10, 0.07)
                 opt['rs'][obj.id] = (0.41, 0.43, 0.41, 0.43)
 
-            if (obj.name[7] == '0'):
+            if (obj.name[8] == '0'):#a VERIFIER
                 opt['rc'][obj.id] = (0.10, 0.07)
                 opt['rs'][obj.id] = (0.41, 0.43)
 
@@ -717,11 +801,14 @@ def Dico_Reponse(Dico_val, runL, Dico_ValCapt_Direct_Rc, Dico_ValCapt_Direct_Rs,
     na = runL.na
 
     Dico_rep = {}
+    Dico_repRF = {}
     Dico_PARif = {}
-
-    for nump in range(0,nbplantes+1):
+    Dico_faces = {}
+    for nump in range(0,nbplantes):#+1):
         Dico_rep[nump] = {}
+        Dico_repRF[nump] = {}
         Dico_PARif[nump] = {}
+        Dico_faces[nump] = {}
 
 
     lstId = []
@@ -732,47 +819,79 @@ def Dico_Reponse(Dico_val, runL, Dico_ValCapt_Direct_Rc, Dico_ValCapt_Direct_Rs,
         za = Dico_val[k][4]
         placement = array([xa, ya, za])
         vox = WhichVoxel(placement, origin_grid, na, xyz)
-
+        #print 'WhichVowel Dico_reponse', k, vox, xa, ya, za
         try:
             LstId_Capt = dico_VoxtoID[vox[0]][vox[1]][len(runL.res_rfr) - vox[2]]
             LstId_Capt = unique(LstId_Capt)
+            LstId_Capt = LstId_Capt.tolist()
         except:
             print('erreur avec le voxel {} plante {}').format(vox,Dico_val[k][0])
 
-        # Ajout face du dessus
-        try:
-            LstId_Capt.append(dico_VoxtoID[vox[0]][vox[1]][len(runL.res_rfr)-1  - vox[2]][0])
-            LstId_Capt = unique(LstId_Capt)
-        except:
-            pass
+        # Ajout face du dessus ATTENTION !!! Peut etre que ce n'est pas la peine de rajouter la face de dessus car deja fans la liste
+        #des capteurs
+        # try:
+        #     _LstId_Capt = dico_VoxtoID[vox[0]][vox[1]][len(runL.res_rfr)-1  - vox[2]]#[0]
+        #     _LstId_Capt = unique(_LstId_Capt)
+        #     _LstId_Capt = _LstId_Capt.tolist()
+        #     LstId_Capt = LstId_Capt + _LstId_Capt
+        #     #LstId_Capt = unique(LstId_Capt)
+        #     LstId_Capt = list(set(LstId_Capt))
+        #
+        # except:
+        #     print('face du dessus erreur avec le voxel {} plante {}').format(vox, Dico_val[k][0])
+        #     #pass
 
         try:
             face = 0
             sommeZeta = 0
+            sommeRc = sommeRs = 0
             for Id_Capt in LstId_Capt:
                 Rc = Dico_ValCapt_Direct_Rc[Id_Capt]
                 Rs = Dico_ValCapt_Direct_Rs[Id_Capt]
-                Zeta = Rc / Rs
+                if Rs != 0.0 : #PROVISOIRE car pas utilise
+                    Zeta = Rc / Rs
+                else:
+                    Zeta = 1.
                 sommeZeta += Zeta
+                sommeRc += Rc
+                sommeRs += Rs
                 face += 1
-
+            #print 'toto 1'
             #Zeta = schnute(Rc)
 
             Zeta = sommeZeta / face
+            #Rcc = sommeRc / face
+            Rcc = Dico_ValCapt_Direct_Rc[LstId_Capt[0]]#capteur du bas
+            Rss = sommeRs / face
+
             # Ecriture des resultats
             nump = Dico_val[k][0]
 
             Dico_rep[nump][str(xa)] = {}
             Dico_rep[nump][str(xa)][str(ya)] = {}
             Dico_rep[nump][str(xa)][str(ya)][str(za)] = Zeta
-
+            #print 'toto 2'
+            Dico_repRF[nump][str(xa)] = {}
+            Dico_repRF[nump][str(xa)][str(ya)] = {}
+            Dico_repRF[nump][str(xa)][str(ya)][str(za)] = riri.rfr_calc_relatif(Rcc)  # Zeta estime a partir de Schunte et Rc faces issu de Caribu
+            #print 'toto 3'
             Dico_PARif[nump][str(xa)] = {}
             Dico_PARif[nump][str(xa)][str(ya)] = {}
-            Dico_PARif[nump][str(xa)][str(ya)][str(za)] = Rc
+            Dico_PARif[nump][str(xa)][str(ya)][str(za)] = Rcc
+            #print 'toto 4'
+            Dico_faces[nump][str(xa)] = {}
+            Dico_faces[nump][str(xa)][str(ya)] = {}
+            Dico_faces[nump][str(xa)][str(ya)][str(za)] = {}
+            Dico_faces[nump][str(xa)][str(ya)][str(za)]['rc'] = Rcc
+            Dico_faces[nump][str(xa)][str(ya)][str(za)]['rs'] = Rss
+            Dico_faces[nump][str(xa)][str(ya)][str(za)]['ZetaRF'] = riri.rfr_calc_relatif(Rcc)  # Zeta estime a partir de Schunte et Rc faces issu de Caribu
+
+
         except:
+            print 'ATTENTION on passe ici',k,placement
             pass
 
-    return Dico_rep, Dico_PARif
+    return Dico_rep, Dico_PARif, Dico_faces, Dico_repRF
 
 
 
@@ -884,7 +1003,7 @@ def PrePa_Reponse_PAR_Tresh(aggregated_direct, runL, dico_VoxtoID, Dico_Apex_ID)
 
 
 
-def CompareVoxCaribu(Dico_val, runL, lstring, aggregated_direct, Dico_conv):
+def CompareVoxCaribu(Dico_val, runL, lstring, aggregated_direct, Dico_conv,nbplantes):
 
     origin_grid = runL.origin_grid
     xyz = runL.dxyz
@@ -894,10 +1013,16 @@ def CompareVoxCaribu(Dico_val, runL, lstring, aggregated_direct, Dico_conv):
     Dico_Rc = aggregated_direct['rc']['Ei_sup']
     Dico_Rs = aggregated_direct['rs']['Ei_sup']
 
+    Dico_rep = {}
+    Dico_repRF = {}
+    for nump in range(0,nbplantes):#+1):
+        Dico_rep[nump] = {}
+        Dico_repRF[nump] = {}
+
     Dico_return = {}
 
     for k in Dico_val:
-
+        nump = Dico_val[k][0]
         xa = Dico_val[k][2]
         ya = Dico_val[k][3]
         za = Dico_val[k][4]
@@ -907,27 +1032,44 @@ def CompareVoxCaribu(Dico_val, runL, lstring, aggregated_direct, Dico_conv):
         #Zeta Caribu Organe
         Id_Org = Dico_conv[k]
         Rc = Dico_Rc[Id_Org]
+        #print 'verif long Dico_Rc',(Dico_conv.keys().count(k))
         Rs = Dico_Rs[Id_Org]
 
-        Zeta = Rc / Rs
+        if Rs!=0.:
+            Zeta = Rc / Rs
+        else:
+            Zeta = 0.
+            #print 'Rs est egal a zero'
 
         # Zeta Lpy
         RFR = runL.res_rfr[vox[2]][vox[1]][vox[0]]
-        ResTrans = runL.res_trans[vox[2]][vox[1]][vox[0]]
+        #ResTrans = runL.res_trans[vox[2]][vox[1]][vox[0]]
+        ResTrans = runL.res_trpar[vox[2]][vox[1]][vox[0]]
+
+        # if sc[Dico_val[k][1]].name=='In':
+        #     print 'verif compare RFR/ResTrans',vox[2],vox[1],vox[0],RFR,ResTrans,runL.res_trpar[vox[2]][vox[1]][vox[0]]
 
 
         liste = []
         liste.append(sc[Id_Org][0])
         liste.append(Id_Org)
         liste.append(sc[Id_Org].name)
-        liste.append(RFR)
+        #print 'verif name',sc[Id_Org].name,Dico_Rc[Id_Org],Id_Org
+        liste.append(RFR) #Zeta estime par riri dans VGL
         liste.append(ResTrans)
         liste.append(Rc)
-        liste.append(Zeta)
-
+        liste.append(Rs)
+        liste.append(Zeta) #Zeta estime a partir de Rc et Rs organe calcules avec Caribu
+        liste.append(riri.rfr_calc_relatif(Rc)) #Zeta estime a partir de Schunte et Rc organe issu de Caribu
         Dico_return[k] = liste
 
+        Dico_rep[nump][str(xa)] = {}
+        Dico_rep[nump][str(xa)][str(ya)] = {}
+        Dico_rep[nump][str(xa)][str(ya)][str(za)] = Zeta
 
+        Dico_repRF[nump][str(xa)] = {}
+        Dico_repRF[nump][str(xa)][str(ya)] = {}
+        Dico_repRF[nump][str(xa)][str(ya)][str(za)] = riri.rfr_calc_relatif(Rc)
+        #print 'WhichVowel CompareVoxCaribu', k, nump, vox, xa, ya, za,Dico_repRF[nump][str(xa)][str(ya)][str(za)]
 
-
-    return Dico_return
+    return Dico_return,Dico_rep,Dico_repRF
