@@ -146,9 +146,9 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 opt_residu = 1 #si 0, pas ativation de mineralisation
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
-visu_sol=0#1# pour visualisation/interpretation sol
+visu_sol=1#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
-frDisplay = 0 #1 #sauvegarde de la derniere vue
+frDisplay = 1 #1 #sauvegarde de la derniere vue
 movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
 
 
@@ -945,8 +945,8 @@ def End(lstring,lscene):
         Viewer.display(lscene)
         Viewer.grids.setXYPlane(0)
         Viewer.camera.setPosition((0,-150,20))
-        Viewer.camera.lookAt((0,-150,20),(20,20,-20))#((15,100,100),(0,0,0))
-        Viewer.frameGL.setSize(600,850)
+        Viewer.camera.lookAt((20,20,50),(20,20,50))#((0,-150,20),(20,20,-20))#((15,100,100),(0,0,0)) #((xPos,yPos,zPos),(xDir,yDir,zDir)), si Pos=Dir -> vu du dessus, modifier z pour zoomer/dezoomer
+        Viewer.frameGL.setSize(850,850)
         Viewer.frameGL.saveImage(outimagepath)
         Viewer.stop()
     
