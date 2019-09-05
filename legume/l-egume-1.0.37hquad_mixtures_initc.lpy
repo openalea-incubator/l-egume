@@ -198,8 +198,8 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     #deltalevsd = 15
     test_retard = []#pour gerer un decalage a la levee/reprise
     
-    for i in range(138): test_retard.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
-    #for i in range(138): test_retard.append(0)#pas de retard.
+    #for i in range(138): test_retard.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
+    for i in range(138): test_retard.append(0)#pas de retard.
     # a affectr a ['TT']!!
     
     return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard 
