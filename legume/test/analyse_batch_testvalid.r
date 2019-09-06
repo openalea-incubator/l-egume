@@ -11,6 +11,7 @@ source(paste(dir, "fonctions_mef.r",sep="\\"))
 
 
 dirlast <-  paste(dir, "lastvalid",sep="\\")
+#dirlast <-  paste(dir, "test_champ",sep="\\") #pour visu dossier sorties champ
 setwd(dirlast)#(dir0)#
 pathobs <- paste(dir, "obs", sep="\\")
 
@@ -49,7 +50,7 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 
 for (key in names(sp_dtoto))#
 {
-  #key <- names(sp_dtoto)[1]
+  #key <- names(sp_dtoto)[13]
 
 
   ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -69,6 +70,10 @@ for (key in names(sp_dtoto))#
   #recup des obs correspondant
   namexl <- paste0(meteo, "_obs.xls")#"morpholeg14_obs.xls"
   trait <- if (esp == esp2 & damier=="homogeneous0") "ISO" else "HD-M2" #sera a adapter selon les melanges ou a renommer "timbale-krasno"
+  if (meteo == "DivLeg15")
+  {
+    trait <- "HD"
+  }
   #trait <- if (esp == esp2 & damier=="homogeneous0" & meteo=="morpholegRGR15") "LD"
   onglet <- paste0(meteo, "_",trait,"_",esp)#"morpholeg14_ISO_timbale" #marche pour isole; a revoir pour autres
   obs <- read_excel(paste(pathobs,namexl,sep="\\"), sheet = onglet, col_names = TRUE, na = "")

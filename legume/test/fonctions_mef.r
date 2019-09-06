@@ -133,9 +133,10 @@ dynamic_graphs <- function(simmoy, name, obs=NULL, surfsolref=NULL)
   axis(2,labels=T) #remet tick labels y
   axis(1,labels=T) #remet tick labels x
   title(xlab='DOY', outer=T)
+  if (!is.null(obs) & 'LAI' %in% names(obs))
+  { points(obs$DOY, obs$LAI, pch=16) } 
   if (!is.null(obs) & 'surf_tot' %in% names(obs))
-  { points(obs$DOY, obs$surf_tot/ (10000*surfsolref), pch=16) }
-  
+  { points(obs$DOY, obs$surf_tot/ (10000*surfsolref), pch=16) } #a reprendre fait 2 courbes actuellement pour eviter bug
   
   #2)MS et taille
   plot(simmoy$STEPS, -simmoy$RDepth, type='l', xlab='Time',ylab='RDepth', labels=F, ylim=c(-1.5*max(simmoy$RDepth),0))

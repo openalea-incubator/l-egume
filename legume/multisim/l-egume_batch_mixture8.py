@@ -22,8 +22,8 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 'autre'#3#'exemple'#2#0#1
-if opttest == 1 or opttest==2 or opttest==3: #si multisim des test de non regression (1 or 2)
+opttest = 3#4#2#'autre'#3#'exemple'#0#1
+if opttest == 1 or opttest==2 or opttest==3 or opttest==4: #si multisim des test de non regression (1 or 2)
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
     fxls = 'liste_usms_nonregression.xls'
@@ -32,9 +32,10 @@ if opttest == 1 or opttest==2 or opttest==3: #si multisim des test de non regres
         ongletBatch = 'test'
     elif opttest == 2:#obssim
         ongletBatch = 'valid'
-
     elif opttest == 3:#solnu
         ongletBatch = 'solnu'#
+    elif opttest == 4:#champ
+        ongletBatch = 'test_champ'#
 elif opttest == 'exemple':
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'multisim'

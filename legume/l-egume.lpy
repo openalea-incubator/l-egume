@@ -65,26 +65,26 @@ ongletMn = 'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'i
 mng = IOxls.read_met_file(mn_path, ongletMn)
 
 ## lecture fichier initialisation
-inis_path = os.path.join(path_leg, 'Init_sol_exemple.xls')#'Initialisation_sol_exemple.xls')
-ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'
+inis_path = os.path.join(path_leg, 'Init_sol_exemple.xls')#'Initialisation_sol_exemple.xls')#
+ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#''DivLeg15'#
 inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 
 ## lecture fichier plante
-path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Fix2'#'solnu'#'giga'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'solnu'#'giga'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v35rac.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
+ongletP = 'Fix2'#'formica'#'solnu'#'giga'#'Fix1'#'Fix'#'timbale'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+ongletPvois = 'nonFixSimTest'#'formica'#'solnu'#'giga'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 #lecture des parametres du sol
 path_sol = os.path.join(path_leg,'Parametres_sol_exemple.xls')#'Parametres_sol_exemple2_debugL_glbis.xls')#
-ongletS = 'lusignan99'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#
+ongletS = 'lusignan99'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#'DivLeg15'#
 par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
 par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg en irrigue!
 
 #lecture scenario (si changement de parametres)
-mn_sc = os.path.join(path_leg,'liste_scenarios_exemple.xls')#'liste_scenarios.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'Fix2'#'nonFixSimTest'#'default'#
-ongletScenar2 = 'nonFixSimTest'#'nonFix1'#'default'
+mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
+ongletScenar1 = 'Fix2'#'formica'#'nonFixSimTest'#'default'#
+ongletScenar2 = 'nonFix1'#'formica'#'default'
 
 #lecture fichiers et variables de sortie
 path_outf = os.path.join(path_leg,'mod_susm.xls')#
@@ -114,7 +114,7 @@ deltalevsd = 15
 nbcote = 8#1#10
 optdamier = 4
 typearrangement='damier8'#'row4'#'homogeneous'#
-idscenar1 = -1 #inferieur a zero=defaut et fait rien
+idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 opt_sky = 'V'#'VXpXmYpYm'
 
@@ -134,7 +134,7 @@ nb_res = 8
 vAmount= [0.1]*nb_res#[20.]# T Fresh Weight.ha-1 (equivalent QRES)
 vCNRESt = [40.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
 #vCNRESt = [16.]*4+[40.]*4 #g.g-1 (equivalent CsurNres)
-Vprop1 = [1./3., 1./3., 1./3.]+27*[0.] #distribution dans les horizons
+Vprop1 = [1./3., 1./3., 1./3.]+50*[0.] #distribution dans les horizons #-> change 27 en 50 pour etre sur d'avoir le nb d'horizon-> a adapter selon le vrai nbr d'horizons!!!
 vProps= [Vprop1]*nb_res#[Vprop1]#[Vprop1, Vprop1, Vprop1]
 vWC=[0.7]*nb_res# fraction d'eau des residu frais (equivalent de Crespc /(%)/100)
 vCC=[0.42]*nb_res# fraction de C des residus sec (equivalent de Crespc /(%)/100)
@@ -389,6 +389,7 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol, patter
     #HRpinit = [25.5,26.,25.,25.5,26.,26.,26.,26.5,26.5,27.,27.,27.,27.5,27.5,27.5,27.5,27.5,29,29,29,29,29,29,29,29,30,30,30,30,30]#-> mesures ahscyd au jour 195 (140711) -> init sol nu
     
     
+    
     ## soil initialisation
     S = solN.SoilN(par_sol, par_SN, soil_number = vsoilnumbers, dxyz = [[Lsol/discret_solXY[0]]*discret_solXY[0], [largsol/discret_solXY[1]]*discret_solXY[1], [dz_sol/100.]*ncouches_sol], vDA=vDA, vCN=vCN,vMO=vMO, vARGIs = vARGIs,vNO3=vNO3,vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol,pH=par_SN['pH'], ZESX=par_SN['ZESX'] , CFES=par_SN['CFES'],obstarac=obstarac, pattern8=pattern8)
     
@@ -398,7 +399,6 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol, patter
     
     
     #lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol], [largsol], [dz_sol/100.]*ncouches_sol])
-    
     if opt_residu==1:#initialisatio de residus
         S.init_residues(vCNRESt, vAmount, vProps, vWC, vCC)
     
@@ -620,7 +620,7 @@ def Start():
     
     # initialisation des parametres plante
     global ParamP, nbplantes
-    global ongletP, ongletPvois, optdamier, typearrangement
+    global ongletP, ongletPvois, optdamier, typearrangement,ongletScenar1,ongletScenar2
     #ongletP = 'Fix1'#'Fix'#'timbale'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
     #ongletPvois = 'nonFix2'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
     #optdamier = 4
@@ -643,7 +643,7 @@ def Start():
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des esidu de l'esp 1 seulement
         ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
     
-    print len(ls_mat_res) #= [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]
+    #print len(ls_mat_res) #= [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]
     
     #initialisation des variables d'etat plante
     global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root 

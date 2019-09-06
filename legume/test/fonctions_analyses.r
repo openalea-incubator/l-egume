@@ -164,7 +164,7 @@ CalcPropactu50 <- function (modelesp1, modelesp2, idopt)
 }
 
 
-YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, visutext=T, labx=NA,...)
+YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, visutext=T, labx=NA,col2=2,...)
 {
   ## calcul des composante de l'overyielding biomasse et fait un plot (visutext=visualisation des valeurs; visuplot=visulaisation des )
   
@@ -212,9 +212,9 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
     segments(xx[1], tabmoy$Ytot[1], xx[7], tabmoy$Ytot[7], lty=2)
     lines(modeltot)
     
-    points(xx, tabmoy$YEsp1,col=2)
-    segments(xx[1], tabmoy$YEsp1[1], xx[7], tabmoy$YEsp1[7], lty=2, col=2)
-    lines(modelesp1, col=2)
+    points(xx, tabmoy$YEsp1,col=col2)
+    segments(xx[1], tabmoy$YEsp1[1], xx[7], tabmoy$YEsp1[7], lty=2, col=col2)
+    lines(modelesp1, col=col2)
     
     points(xx, tabmoy$YEsp2,col=4)
     segments(xx[1], tabmoy$YEsp2[1], xx[7], tabmoy$YEsp2[7], lty=2, col=4)
@@ -307,7 +307,7 @@ QNtotvsProp <- function(tabmoy, Ymax=100, nom="", optProp="sowing", visuplot=T, 
 
 
 
-OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visuplot=T,labx=NA,...)
+OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visuplot=T,labx=NA,laby=NA,...)
 {
   #key <- ls_keysc[20]
   #figure de tous les overyielding
@@ -317,10 +317,14 @@ OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visu
   { labx <- 'Sowing proportion (Sp. 1)'}
   if (optProp=="actual" & is.na(labx))
   { labx <- 'Actual proportion (Sp. 1)'}
+  if (optProp=="sowing" & is.na(laby))
+  { laby <- 'Apparent Overyielding (g.m-2)'}
+  if (optProp=="actual" & is.na(laby))
+  { laby <- 'Overyieding (g.m-2)'}
   
   if (visuplot==T)
   {
-    plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab='Overyieding (g.m-2)', ...)
+    plot(-100, -100, ylim=c(-Ymax,Ymax), xlim=c(0,1), main=nom, xlab=labx, ylab=laby, ...)
     segments(0, 0, 1, 0, col=1)
   }
   
