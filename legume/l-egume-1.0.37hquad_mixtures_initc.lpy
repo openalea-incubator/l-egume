@@ -148,13 +148,14 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 
 
 
-#options de simation
-opt_residu = 0 #si 0, pas ativation de mineralisation
-visu_root=0#1# pour visualisation/interpretation root
-visu_shoot=1#1# pour visualisation/interpretation shoot
-visu_sol=0#1# pour visualisation/interpretation sol
-visu_solsurf=0#0 pour visualisation du pattern
-frDisplay = 0 #1 #sauvegarde de la derniere vue
+#options de simulation
+#1=actif 0=inactif
+opt_residu = 0 # activation de mineralisation
+visu_root = 0 # pour visualisation/interpretation root
+visu_shoot = 1 # pour visualisation/interpretation shoot
+visu_sol = 0 # pour visualisation/interpretation sol
+visu_solsurf = 1 # pour visualisation du pattern
+frDisplay = 1 #sauvegarde de la derniere vue
 movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
 
 #550 it en 2013s/1940s
@@ -365,7 +366,7 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv):
     
     
     # 2) definition du pattern et discretisation sol
-    pattern8 = [[0,0], [cote,cote]]
+    pattern8 = [[0,0], [cote*nbcote,cote*nbcote]]
     #pattern8 =[[min(xxx)-dp,min(yyy)-dp], [max(xxx)+dp,max(yyy)+dp]]
     #[[-2.5,-2.5], [2.5,2.5]]#[[-5.,-5.],[5.,5.]]#[[-2.5,-2.5], [5,5]]#[[-12.5,-12.5],[12.5,12.5]]
     #pattern8 = [[-22.3/2.,-49.5/2.], [22.3/2.,49.5/2.]]#pattern.8 rhizotron equivalent (cm)
@@ -2050,9 +2051,20 @@ def End(lstring,lscene):
         frameDisplay(True)
         Viewer.display(lscene)
         Viewer.grids.setXYPlane(0)
-        Viewer.camera.setPosition((0,-150,20))
-        Viewer.camera.lookAt((0,-150,20),(20,20,-20))#((15,100,100),(0,0,0))
-        Viewer.frameGL.setSize(600,850)
+        angleCam=60
+        if angleCam == 0 :
+            xCam = (nbcote*cote)/2
+            yCam = (nbcote*cote)/2
+            zCam = 100
+            Viewer.camera.lookAt((xCam,yCam,zCam),(xCam,yCam,zCam)) #((xPos,yPos,zPos),(xDir,yDir,zDir))
+            # si Pos=Dir -> vue du dessus, modifier z pour zoomer/dezoomer
+        else :
+            xCam = (nbcote*cote)/2
+            yCam = 150
+            zCam = yCam*90/angleCam-yCam
+            Viewer.camera.lookAt((xCam,yCam,zCam),(xCam,xCam,0)) 
+            # Dir  -> vue du dessus passer zDir = -zPos 0 et yPos = -yDir
+        Viewer.frameGL.setSize(850,850)
         Viewer.frameGL.saveImage(outimagepath)
         Viewer.stop()
     
