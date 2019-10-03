@@ -84,7 +84,7 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 #lecture scenario (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
 ongletScenar1 = 'Fix2'#'formica'#'nonFixSimTest'#'default'#
-ongletScenar2 = 'nonFix1'#'formica'#'default'
+ongletScenar2 = 'nonFixSimTest'#'default'#'nonFix1'#'formica'#
 
 #lecture fichiers et variables de sortie
 path_outf = os.path.join(path_leg,'mod_susm.xls')#
@@ -142,13 +142,14 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 
 
 
-#options de simation
-opt_residu = 1 #si 0, pas ativation de mineralisation
+#options de simulation
+opt_residu = 1 #si 0, pas activation de mineralisation
+optsd = 0 #1 #genere distribution des valeurs de parametres 
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
-visu_sol=1#1# pour visualisation/interpretation sol
+visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
-frDisplay = 1 #1 #sauvegarde de la derniere vue
+frDisplay = 0 #1 #sauvegarde de la derniere vue
 movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
 
 
@@ -216,8 +217,32 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
         #ParamP = [g4]*10#*2#*30#[g6, g4, g6, g4, g6, g4, g6]#[g6,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4]#[g4] 
         #[g1, g2, g3]#[g4, g5, g5, g5, g5, g5, g5] 
     
+    #2) ajout variabilite sd si optsd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
+    #test pour esp 1, Len avec sd=0.5
+    sdpar = 0.5 #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
+    ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
+    if ongletScenar1 == 'default' and optsd == 1:
+        name1 = g4['name']
+        for nump in range(len(ParamP)):
+            if ParamP[nump]['name'] == name1:#issu du bon onglet
+                g = deepcopy(g4)
+                for parname in ls_parname:
+                    g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname] ,sdpar)) #seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
+                    ParamP[nump] = g #remplace par deepcopy
     
-    #2) ajout de parametre 'recalcule'
+    if ongletScenar2 == 'default' and optsd == 1:
+        name1 = g5['name']
+        for nump in range(len(ParamP)):
+            if ParamP[nump]['name'] == name1:#issu du bon onglet
+                g = deepcopy(g5)
+                for parname in ls_parname:
+                    g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname] ,sdpar)) #seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
+                    ParamP[nump] = g #remplace par deepcopy
+    #pour le moment parametres traites independemment
+    #introduire correlation (genetique) via distribution multi-variee?
+    
+    
+    #3) ajout de parametre 'recalcule'
     for nump in range(len(ParamP)):
       #update des parametre racinaire
       rt.update_root_params(ParamP[nump]) #'lsDrac', 'nb_ordre_rac', 'lsVrac', 'lsDemanDRac', 'LDs'
@@ -627,6 +652,7 @@ def Start():
     #typearrangement='damier8'    
     ParamP, nbplantes = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
     
+    #print 'Len ', riri.get_lsparami(ParamP, 'Len')
     
     #initialisation de la scene
     global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
@@ -1818,6 +1844,15 @@ Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
         else:
             col=6
         
+        #insere pour gradient de distrib: gradient selon valeur d'un parametre
+        if optsd==1:
+            parname = 'Len' 
+            parval = ParamP[nump][parname] #test_retard[nump]#
+            vals = riri.get_lsparami(ParamP, parname) #test_retard#
+            col = 30 + int(7* (parval - min(vals)) / (max(vals) -  min(vals)))
+        
+        
+        
         #geom = o3d.leg_leaf(Long, Larg, gamma=ParamP[nump]['gammaFeuil'])
         geom = o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'])
         #print o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'], geom=False)
@@ -1981,3 +2016,27 @@ def __initialiseContext__(context):
 	Color_26 = pgl.Material("Color_26" , ambient = (217,0,0) , diffuse = 0.737327 , transparency = 0.35 , )
 	Color_26.name = "Color_26"
 	context.turtle.setMaterial(26,Color_26)
+	Color_30 = pgl.Material("Color_30" , ambient = (12,16,234) , diffuse = 0.683761 , )
+	Color_30.name = "Color_30"
+	context.turtle.setMaterial(30,Color_30)
+	Color_31 = pgl.Material("Color_31" , ambient = (37,11,232) , diffuse = 0.689337 , )
+	Color_31.name = "Color_31"
+	context.turtle.setMaterial(31,Color_31)
+	Color_32 = pgl.Material("Color_32" , ambient = (65,11,230) , diffuse = 0.694913 , )
+	Color_32.name = "Color_32"
+	context.turtle.setMaterial(32,Color_32)
+	Color_33 = pgl.Material("Color_33" , ambient = (94,10,228) , diffuse = 0.700489 , )
+	Color_33.name = "Color_33"
+	context.turtle.setMaterial(33,Color_33)
+	Color_34 = pgl.Material("Color_34" , ambient = (122,10,226) , diffuse = 0.706065 , )
+	Color_34.name = "Color_34"
+	context.turtle.setMaterial(34,Color_34)
+	Color_35 = pgl.Material("Color_35" , ambient = (149,10,225) , diffuse = 0.711641 , )
+	Color_35.name = "Color_35"
+	context.turtle.setMaterial(35,Color_35)
+	Color_36 = pgl.Material("Color_36" , ambient = (176,9,223) , diffuse = 0.717217 , )
+	Color_36.name = "Color_36"
+	context.turtle.setMaterial(36,Color_36)
+	Color_37 = pgl.Material("Color_37" , ambient = (203,9,221) , diffuse = 0.722793 , )
+	Color_37.name = "Color_37"
+	context.turtle.setMaterial(37,Color_37)
