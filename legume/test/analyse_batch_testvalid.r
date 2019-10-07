@@ -50,7 +50,8 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 
 for (key in names(sp_dtoto))#
 {
-  #key <- names(sp_dtoto)[13]
+  #analyse par usm
+  #key <- names(sp_dtoto)[14]#dileg luz
 
 
   ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -70,7 +71,7 @@ for (key in names(sp_dtoto))#
   #recup des obs correspondant
   namexl <- paste0(meteo, "_obs.xls")#"morpholeg14_obs.xls"
   trait <- if (esp == esp2 & damier=="homogeneous0") "ISO" else "HD-M2" #sera a adapter selon les melanges ou a renommer "timbale-krasno"
-  if (meteo == "DivLeg15")
+  if (meteo == "DivLeg15" | meteo == "LusignanDivLeg" | meteo == "LusignanAsso16")
   {
     trait <- "HD"
   }

@@ -106,14 +106,14 @@ resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 
 #initialisation des variables globale de simulation
 DOYdeb = 60#49#159#124#
-DOYend = 180#335#610#120#250#244#282#
+DOYend = 180#220#335#610#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
-nbcote = 8#1#10
+nbcote = 8#10
 optdamier = 4
-typearrangement='damier8'#'row4'#'homogeneous'#
+typearrangement='damier8'#'homogeneous'#'row4'#
 idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 opt_sky = 'V'#'VXpXmYpYm'
@@ -144,7 +144,9 @@ vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equ
 
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
-optsd = 0 #1 #genere distribution des valeurs de parametres 
+opt_sd = 0 #1 #genere distribution des valeurs de parametres
+opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calculé, mais pas applique)
+opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calculé, mais pas applique)
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
@@ -217,11 +219,11 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
         #ParamP = [g4]*10#*2#*30#[g6, g4, g6, g4, g6, g4, g6]#[g6,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4,g4]#[g4] 
         #[g1, g2, g3]#[g4, g5, g5, g5, g5, g5, g5] 
     
-    #2) ajout variabilite sd si optsd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
+    #2) ajout variabilite sd si opt_sd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
     #test pour esp 1, Len avec sd=0.5
     sdpar = 0.5 #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
     ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
-    if ongletScenar1 == 'default' and optsd == 1:
+    if ongletScenar1 == 'default' and opt_sd == 1:
         name1 = g4['name']
         for nump in range(len(ParamP)):
             if ParamP[nump]['name'] == name1:#issu du bon onglet
@@ -230,7 +232,7 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
                     g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname] ,sdpar)) #seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
                     ParamP[nump] = g #remplace par deepcopy
     
-    if ongletScenar2 == 'default' and optsd == 1:
+    if ongletScenar2 == 'default' and opt_sd == 1:
         name1 = g5['name']
         for nump in range(len(ParamP)):
             if ParamP[nump]['name'] == name1:#issu du bon onglet
@@ -816,7 +818,7 @@ def EndEach(lstring,lscene):
     # * unpacks the list of arguments
     
     #Potential plant growth
-    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll)
+    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW, opt_stressN)
     #step soil 
     tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
     res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
@@ -1059,7 +1061,15 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     
     #print 'B', nsh, age, deldeb
     
-    if age >= deldeb/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDevII'][nump]) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
+    
+    stressW = ls_ftswStress['WaterTreshDevI'][nump]
+    stressN = ls_NNIStress['NTreshDevII'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
+    
+    if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
         ##azi = random.uniform(0,360)
         elv0 = random.uniform(ParamP[nump]['elv0'][0],ParamP[nump]['elv0'][1])#(0,90)
         newageB = age%ParamP[nump]['phyllochron'] - test_retard[nump] 
@@ -1093,7 +1103,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
                 sh.germinate(invar, ParamP[nump], nump)
             
             produce [D(nump,newnsh,0,newageB,posini,nsh)]SHP(nump,azi,elv0,posi,0,newpar)GetPos(0,0,0)A(nump,nsh,1,newageA,0,deltaBud,azi)
-    elif age >= ParamP[nump]['phyllochron']/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDevII'][nump]) and nrhiz>=1:
+    elif age >= ParamP[nump]['phyllochron']/(0.00001+stressW*stressN) and nrhiz>=1:
         newageB = age%ParamP[nump]['phyllochron']
         produce F(ParamP[nump]['LenRhiz'])B(nump,nsh,newageB, posi,  nrhiz-1, azi, newpar, statut)
     else:
@@ -1139,8 +1149,17 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, phyllotax):
     #print PARapex, PARlf
     PARsense = max(PARapex, PARlf) #niveau percu = mas d'apex ou feuille
     
+    
+    stressW = ls_ftswStress['WaterTreshDevI'][nump]
+    stressN = ls_NNIStress['NTreshDev'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
+    
+    
     #print nump, age #malgre retard, tous les A ont le meme age
-    if age >= ParamP[nump]['phyllochron']/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDev'][nump]): # introduit arret developpement des apex en fonction gradient vertical PAR
+    if age >= ParamP[nump]['phyllochron']/(0.00001+stressW*stressN): # introduit arret developpement des apex en fonction gradient vertical PAR
         if PARsense>=meteo_j['I0']*ParamP[nump]['par_tresh']:
             if nsh==0:
                 invar['firstleaf'][nump]=min(TT,invar['firstleaf'][nump])
@@ -1215,10 +1234,19 @@ GetPos(X0,Y0,Z0)A2(nump, nsh, statut, age, duromb, rank, rankp, phyllotax):
     PARapex = PARup - (PARup-PARdown)*(Z0%dxyz[2]) / dxyz[2] #interpolation lineaire a l'iterieur du voxel
     I_I0 = PARapex/meteo_j['I0']
     
-    if nsh in invar['lsApexMort'][nump]: #Meurt si tige porteuse meurt
+    
+    stressW = ls_ftswStress['WaterTreshDevII'][nump]
+    stressN = ls_NNIStress['NTreshDevII'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
+    
+    
+    if nsh in invar['lsApexMort'][nump] or int(ParamP[nump]['ActiveBranch'])!=True: #Meurt si tige porteuse meurt ou AvtiveBranch pas active
         #print 'vrai', nsh
         produce *
-    elif age >= ParamP[nump]['phyllochronII']/(0.00001+ls_ftswStress['WaterTreshDevII'][nump]*ls_NNIStress['NTreshDevII'][nump]): # introduit arret developpement des apex en fonction gradient vertical PAR
+    elif age >= ParamP[nump]['phyllochronII']/(0.00001+stressW*stressN): # introduit arret developpement des apex en fonction gradient vertical PAR
         if PARapex>=meteo_j['I0']*ParamP[nump]['par_tresh']:
             newage = age%ParamP[nump]['phyllochronII']+STEPS
             liniF = sh.expansion(newage, ParamP[nump]['aF'], ParamP[nump]['delaiF'])
@@ -1305,6 +1333,13 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
     if Z0>Hcut and isTTcut==True:
         invar['Hplante'][nump]=Hcut
     
+    
+    stressW = ls_ftswStress['WaterTreshExpSurf'][nump]
+    stressN = ls_NNIStress['NTreshExpSurf'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
     
     #sen participe a surface et LAI (interception) mais pas au PARa (absorption)
     if age> ParamP[nump]['spanMrt'] or tt_omb> ParamP[nump]['ombF_Ttresh']+ParamP[nump]['spanMrt']-ParamP[nump]['spanSen'] :
@@ -1407,7 +1442,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             
             if statut == 'exp':
                 pot = sh.expansion(age+STEPS, ParamP[nump]['aF'], ParamP[nump]['delaiF']) - sh.expansion(age, ParamP[nump]['aF'], ParamP[nump]['delaiF'])
-                dl = pot*ls_ftswStress['WaterTreshExpSurf'][nump]*ls_NNIStress['NTreshExpSurf'][nump]
+                dl = pot*stressW*stressN
                 newsurF = sh.calc_surF(ParamP[nump], rank, rankp, ordre, l+dl)
                 
                 if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee 
@@ -1434,6 +1469,14 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
 
 Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
     STEPS = invar['dTT'][nump]
+    
+    stressW = ls_ftswStress['WaterTreshExpSurf'][nump]
+    stressN = ls_NNIStress['NTreshExpSurf'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
+    
     
     if ParamP[nump]['gotStip']== 1. and age < ParamP[nump]['spanMrt']:#presence stipules
         #strate = max(0, int(ceil((Z0+0.00001)/dz))-1)
@@ -1462,7 +1505,7 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         
         if statut == 'exp':
             pot = sh.expansion(age2+STEPS, ParamP[nump]['aS'], ParamP[nump]['delaiS']) - sh.expansion(age2, ParamP[nump]['aS'], ParamP[nump]['delaiS'])
-            dl = pot*ls_ftswStress['WaterTreshExpSurf'][nump]*ls_NNIStress['NTreshExpSurf'][nump]
+            dl = pot*stressW*stressN
             newsurF = sh.calc_surS(ParamP[nump], rank, rankp, ordre, l+dl)
             m_lais_construct[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += newsurF
             
@@ -1510,6 +1553,14 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
     
     lsOrgans.append([TT,'Pet',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre,l,lpet,DOY,cutNB,'NA'])#decalage de un step pour l avec age en exp ou mort
     
+    stressW = ls_ftswStress['WaterTreshExpSurf'][nump]
+    stressN = ls_NNIStress['NTreshExpSurf'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
+    
+    
     if age> ParamP[nump]['spanMrt'] or nsh in invar['lsApexMort'][nump]:#mort du module
         voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
         mpetmort = lpet*100/ParamP[nump]['SPLmin'] #g
@@ -1520,7 +1571,7 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
     
     elif statut == 'exp':
         pot = sh.expansion(newage, ParamP[nump]['aP'], ParamP[nump]['delaiP']) - sh.expansion(age, ParamP[nump]['aP'], ParamP[nump]['delaiP'])
-        dl = pot * ls_ftswStress['WaterTreshExpSurf'][nump] *ls_NNIStress['NTreshExpSurf'][nump]* photomorph
+        dl = pot * stressW * stressN * photomorph
         
         if pot<0.005 and age>ParamP[nump]['delaiP']:#passe en 'mature'
             produce Pet(nump,nsh,newage, phyllotax, l+dl, 'mat')
@@ -1555,6 +1606,15 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     lsOrgans.append([TT,'In',nump,nsh,rank,rankp,'NA','NA','NA',statut,newage,ordre, l,lent,DOY,cutNB,'NA']) #decalage de un step pour l et age en exp!
     invar['NBphyto'][nump] += 1 #comptage du phytomere 
     
+    
+    stressW = ls_ftswStress['WaterTreshExpSurf'][nump]
+    stressN = ls_NNIStress['NTreshExpSurf'][nump]
+    if opt_stressW == 0:
+        stressW = 1.
+    if opt_stressN == 0:
+        stressN = 1.
+    
+    
     if nsh in invar['lsApexMort'][nump]: #Meurt si tige meurt meurt
         voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
         minmort = lent*100/ParamP[nump]['SNLmin'] #g
@@ -1564,7 +1624,7 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
         produce *
     elif statut == 'exp':
         pot = sh.expansion(age+STEPS, ParamP[nump]['aE'], ParamP[nump]['delaiE']) - sh.expansion(age, ParamP[nump]['aE'], ParamP[nump]['delaiE'])
-        dl = pot * ls_ftswStress['WaterTreshExpSurf'][nump] *ls_NNIStress['NTreshExpSurf'][nump]* photomorph
+        dl = pot * stressW * stressN * photomorph
         
         if pot<0.005 and age>ParamP[nump]['delaiE']:#passe en 'mature'
             produce GetPos(X0,Y0,Z0)In(nump,nsh,newage,rank,rankp, l+dl, 'mat',ordre)
@@ -1785,7 +1845,7 @@ In(nump,nsh,age,rank,rankp, l, statut,ordre):
         color=2
     else:
         color=3
-    if ordre==1 and nsh==0:
+    if ordre==1 and nsh==0:#tige seminale
         color=2
     
     if visu_shoot==1:
@@ -1845,7 +1905,7 @@ Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
             col=6
         
         #insere pour gradient de distrib: gradient selon valeur d'un parametre
-        if optsd==1:
+        if opt_sd==1:
             parname = 'Len' 
             parval = ParamP[nump][parname] #test_retard[nump]#
             vals = riri.get_lsparami(ParamP, parname) #test_retard#

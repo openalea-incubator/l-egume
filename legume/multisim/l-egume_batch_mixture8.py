@@ -22,7 +22,7 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 3#4#2#'autre'#3#'exemple'#0#1
+opttest = 4#2#'autre'#3#'exemple'#0#13#
 if opttest == 1 or opttest==2 or opttest==3 or opttest==4: #si multisim des test de non regression (1 or 2)
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
@@ -189,6 +189,12 @@ def runlsystem(n):
     testsim[names[n]].clear()
     print(''.join((names[n]," - done")))
 
+def animatelsystem(n):
+    testsim[names[n]].animate()
+    testsim[names[n]].clear()
+    print(''.join((names[n]," - done")))
+
+
 #run the L-systems
 
 ### Ancienne methode ###
@@ -222,5 +228,6 @@ if __name__ == '__main__':
     for i in range(int(nb_usms)):
         pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
         #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        #animatelsystem(i)  # pour debug hors multisim (messages d'ereur + sortie archi visible)
     pool.close()
     pool.join()

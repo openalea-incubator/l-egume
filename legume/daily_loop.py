@@ -19,7 +19,7 @@ except:
 #daily loop
 # decoupe daily_growth_loop initial en 4 fonctions pour donner acces au calcul du sol depuis l'exterieur
 
-def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll):
+def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW=1, opt_stressN=1):
     """ daily potential growth loop (computes epsi, DM production / allocation / Ndemand) """
 
     # calcul de ls_epsi
@@ -39,6 +39,11 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     # calcul de Biomasse tot
     stressHRUE = array(ls_ftswStress['WaterTreshRUE'])
     stressNRUE = array(ls_NNIStress['NTreshRUE'])
+    if opt_stressW==0:
+        stressHRUE = 1.
+    if opt_stressN==0:
+        stressNRUE = 1.
+
     stressFIX = 1 - array(invar['Ndfa']) * array(
         riri.get_lsparami(ParamP, 'NODcost'))  # coeff 0.15 = 15% reduction RUE a 100% fixation -> a passer en paarmetre
     invar['RUEactu'] = array(riri.get_lsparami(ParamP, 'RUE')) * stressHRUE * stressNRUE * stressFIX
