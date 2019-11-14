@@ -850,6 +850,10 @@ def EndEach(lstring,lscene):
     savelsOrgans.append(lsOrgans)
     
     
+    #mise a jour HR sol (fichier profil)
+    out_HR.append([DOY]+mean(S.HRp(), axis=1)[id_out,0].tolist())
+    
+    
     #print invar['germination'], invar['TT']
     #print invar_sc['sh']['Surf'], lsSurfSh
     #print invar['NBBexp'][nump], outvar['NBBexp'][-1][0][nump+2]
@@ -963,7 +967,7 @@ def End(lstring,lscene):
     if outf['outHRfile'] != 0.:
         outHRpath = os.path.join(path_out, outHRfile)#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
         f = file (outHRpath, 'w')
-        #IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
+        IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
         f.close()
     
     #pour gerer la vue de la sortie finale - lucas
