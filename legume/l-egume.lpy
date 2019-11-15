@@ -851,7 +851,8 @@ def EndEach(lstring,lscene):
     
     
     #mise a jour HR sol (fichier profil)
-    out_HR.append([DOY]+mean(S.HRp(), axis=1)[id_out,0].tolist())
+    if outf['outHRfile'] != 0.:
+        out_HR.append([DOY]+mean(S.HRp(), axis=1)[id_out,0].tolist())
     
     
     #print invar['germination'], invar['TT']
