@@ -1,9 +1,9 @@
-- Gaëtan LOUARN (gaetan.louarn@inra.fr) - scientific project management, model design, implementation of the model in python and lpy
+- Gaëtan LOUARN (gaetan.louarn@inrae.fr) - scientific project management, model design, implementation of the model in python and lpy
 - Lucas FAVERJON - model development and validation for aerial and root morphogenesis
 
 
 Contributors
 ------------
-- Didier COMBES (didier.combes@inra.fr) - model design, coupling with light transfer model.
+- Didier COMBES (didier.combes@inrae.fr) - model design, coupling with light transfer model.
 - Vincent MIGAULT - model design for root morphogeneseis and shoot-root allocation.
 - Quentin RAMBAUD - model evaluation for photo-morphogenesis, coupling with caribu
