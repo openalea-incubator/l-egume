@@ -51,7 +51,7 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 for (key in names(sp_dtoto))#
 {
   #analyse par usm
-  #key <- names(sp_dtoto)[14]#dileg luz
+  #key <- names(sp_dtoto)[20]#dileg luz
 
 
   ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -77,6 +77,7 @@ for (key in names(sp_dtoto))#
   }
   #trait <- if (esp == esp2 & damier=="homogeneous0" & meteo=="morpholegRGR15") "LD"
   onglet <- paste0(meteo, "_",trait,"_",esp)#"morpholeg14_ISO_timbale" #marche pour isole; a revoir pour autres
+  #onglet <- "F_E1D1_B_R1" #"force!!
   obs <- read_excel(paste(pathobs,namexl,sep="\\"), sheet = onglet, col_names = TRUE, na = "")
   
   #calcul de la moyenne des simuls

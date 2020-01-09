@@ -22,7 +22,7 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 4#2#'autre'#3#'exemple'#0#13#
+opttest = 2#4#1#2#'autre'#3#'exemple'#0#13#
 if opttest == 1 or opttest==2 or opttest==3 or opttest==4: #si multisim des test de non regression (1 or 2)
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
@@ -71,7 +71,6 @@ mn_sc = os.path.join(path_,'liste_scenarios.xls')#(path_,'liste_scenarios_these_
 #modif script pour pouvoir lancer en 1 ligne de commande python avec bon noms de fichiers...
 # pb exit... ecriture fichier ou pb e dossier sortie?
 #+deja dossier test a la racine
-
 
 #cree la liste de L-systems et liste des noms
 testsim={}

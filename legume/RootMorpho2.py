@@ -1,4 +1,4 @@
-from scipy import pi, array, sqrt, arange, cos, sin, amax, where
+from scipy import pi, array, sqrt, arange, cos, sin, amax, where, argmin
 
 ## gestion des enveloppe et des tropisme -> fonctions dans fichier R 'calc_root_tropism.r'
 
@@ -90,10 +90,10 @@ def nb_rac_ordre(ParamP, TT, satisfC=1., stressH=1.):
 
 #nb_rac_ordre(ParamP, 1000.)
 
-def calc_DemandC_root(ParamP, ageTT, dTT, satisf=1.):
+def calc_DemandC_root(ParamP, ageTT, dTT, satisf=1., nbnodale=1.):
     """ demande d'un systeme pivotant """
     ls_Nrac = nb_rac_ordre(ParamP, ageTT, satisf)
-    demande = sum(ParamP['lsDemanDRac'] * ls_Nrac) * dTT
+    demande = sum(ParamP['lsDemanDRac'] * ls_Nrac) * dTT * nbnodale
     return demande, ls_Nrac
     # en C ou DM?
 
@@ -101,7 +101,7 @@ def calc_DemandC_root(ParamP, ageTT, dTT, satisf=1.):
 #AgePiv = {'0_0_5': 164.80000000000001, '0_0_4': 288.39999999999998, '0_0_0': 988.80000000000041, '0_1_4': 123.60000000000001, '0_1_5': 41.200000000000003, '0_1_2': 329.59999999999997, '0_1_3': 164.80000000000001, '0_3_2': 164.80000000000001, '0_3_3': 123.60000000000001, '0_3_0': 370.79999999999995, '0_3_1': 247.19999999999999, '0_3_4': 41.200000000000003}
 
 
-def calc_DemandC_roots(ParamP, dAgePiv, dTT, dsatisfC):
+def calc_DemandC_roots(ParamP, dAgePiv, dTT, dsatisfC, nbnodale=1.):
     """ demande d'une serie de systeme pivotant d'age differents - dsatisf dico des staisf integree ds le temps"""
     demande = {}
     Nbrac = {}
@@ -112,7 +112,12 @@ def calc_DemandC_roots(ParamP, dAgePiv, dTT, dsatisfC):
         except:#cle n'existe pas encore
             satisf_k = 1.
 
-        demande[k], Nbrac[k] = calc_DemandC_root(ParamP[nump], dAgePiv[k], dTT[nump], satisf=satisf_k)
+        #?lecture directe d'un parametre de nb de nodales?
+        if int(ParamP[nump]['type']) == 3:  # fascilule: grass
+            nbnodale = 1#3  # force 3 nodales par talle pour C-> a passer en parametres?
+        else:
+            nbnodale = 1
+        demande[k], Nbrac[k] = calc_DemandC_root(ParamP[nump], dAgePiv[k], dTT[nump], satisf=satisf_k, nbnodale=nbnodale)
 
     return demande, Nbrac
     #calculer en meme temps somme des demandes plante?
@@ -178,12 +183,12 @@ def get_QDCmoy(dQDC, idax):
 
 
 
-def dLong_root(ParamP, ls_Nrac, dTT, QD, StressH):
+def dLong_root(ParamP, ls_Nrac, dTT, QD, StressH, nbnodale=1.):
     """ increment de longueur par ordre pendant dTT """
-    return ParamP['lsVrac']*ls_Nrac*dTT*QD*StressH
+    return ParamP['lsVrac']*ls_Nrac*dTT*QD*StressH*nbnodale
 
 
-def calc_dLong_roots(ParamP, dNrac, dTT, dsatisfC, dStressH, dPonder):
+def calc_dLong_roots(ParamP, dNrac, dTT, dsatisfC, dStressH, dPonder, nbnodale=1.):
     """ increment de longueur par ordre pendant dTT d'une serie de systeme pivotant d'age differents (cm) """
     ddl = {}
     for k in dNrac.keys():
@@ -197,9 +202,14 @@ def calc_dLong_roots(ParamP, dNrac, dTT, dsatisfC, dStressH, dPonder):
             stressH =  dStressH[k] / dPonder[k]
         except:#cle n'existe pas encore
             stressH =  1.
-        
-        
-        ddl[k] = dLong_root(ParamP[nump], dNrac[k], dTT[nump], satisf_k, stressH)#calc_DemandC_root(ParamP[nump], dAgePiv[k], dTT, satisf=satisf_k)
+
+        # ?lecture directe d'un parametre de nb de nodales?
+        if int(ParamP[nump]['type']) == 3:  # fascilule: grass
+            nbnodale = 1  # 3  # force 3 nodales par talle pour C-> a passer en parametres?
+        else:
+            nbnodale = 1
+
+        ddl[k] = dLong_root(ParamP[nump], dNrac[k], dTT[nump], satisf_k, stressH, nbnodale=nbnodale)#calc_DemandC_root(ParamP[nump], dAgePiv[k], dTT, satisf=satisf_k)
 
     return ddl
 
@@ -452,3 +462,31 @@ def idLong(Long, tabTropism):
     return id
     # idLong(Long=5.1, tabTropism=test)
 
+
+#def  TrajRtropisme_intersection(angini, groot,dz=0.25, dli=0.01):
+#    #version beta: pour simuler trajectoire non verticale de racine primaire: par segment selon horizons de sol
+#
+#    #angini = 70.
+#    #groot = 0.5#tropisme
+#    #dz = 0.25#root segments/horizon
+#    #dli = 0.01#short segment length
+#
+#    traj = rootTropism(angini,groot,segment=dli, Long=10.)
+#    lims = arange(0+dz,8+dz,dz) #liste des limites d'intersection
+#    ls_pts = [array([0.,0.,0.])]
+#    ls_d = []
+#    ls_inc = []
+#
+#    #i=0
+#    for i in range(len(lims)):
+#        idlim = argmin(abs(traj['x']-lims[i]))#trouve le id du point ou coupe limite i du sol
+#        ls_pts.append(array([0., traj['y'][idlim], traj['x'][idlim]]))#verif unite??
+#        d = distance(ls_pts[-1], ls_pts[-2])
+#        #p1, lvec, rrec, r_azi, inclivec = o3d.conv_cyl(ls_pts[-1], ls_pts[-2])
+#        ls_d.append(d)
+#        #ls_inc.append(inclivec)#inclinaison du vecteur
+#
+#
+#    return [ls_d, ls_inc]#ls_pts
+#    #tient bien compte de l'effet longueur de segment sur trajectoire??? -> non!? (g valable pour une longueur de segment racinaire par defaut=0.3!)
+#    #marche pas->corriger tropisme?

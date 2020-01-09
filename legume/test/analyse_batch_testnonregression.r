@@ -212,7 +212,7 @@ for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
       jMPiv2 <- 0
     }
     YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
-    YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
+    #YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
     PARi2 <- cbind(PARi2, sum(jPARi2))
     Surf2 <- cbind(Surf2, sum(jSurf2))
     LRac2 <- cbind(LRac2, max(jLRac2))

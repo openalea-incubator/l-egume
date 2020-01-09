@@ -216,36 +216,32 @@ def geomstip(Lmax, largmax, alpha=0., gamma=0.):
     # reprendre gammaFeuil pour le gamma (pas IncPet petiole)
 
 
-def leg_grass(Lmax, largmax, gamma=0., angfol=10., nfol=8, anginit=45., geom=True):  # angfol : pi/nombre de rangs n?ssaires pour boucler le demi-cercle // ecfol : longueur de rachis entre chaque paire de folioles (mm).
-
-    nr=nfol
-    angfol = 0. #force sans courbure
-    gamma = gamma * 3.14 / 180  # en radians
+def leg_grass(Lmax, largmax, gamma=0., angfol=10., nfol=8, anginit=45., geom=True):
     anginit = anginit * 3.14 / 180
     angfol = angfol * 3.14 / 180
-    ecfol = Lmax/nfol
+    ecfol = Lmax / nfol  # longueur de segment de feuille
 
     ls_pts = []
 
+    leaf = quadform(array([-0.5, 0., 0.]), array([-0.5, 1., 0.]), array([0.5, 1., 0.]), array([0.5, 0., 0.]),
+                    opt=2)  # prends pas alpha en compte
+    leaf = transformation(leaf, largmax, ecfol, 1., 0, 0, 0, 0, 0, 0)
+    bottom = transformation(leaf, 1, 1, 1, 0, 0, 3.14 / 2 - anginit, 0, 0, 0)
 
-    leaf = quadform(array([-0.5, 0., 0.]), array([-0.5, 1., 0.]), array([0.5, 1., 0.]), array([0.5, 0., 0.]),opt=2)  # prends pas alpha en compte
-    leaf = transformation(leaf, largmax, Lmax, 1., 0, 0, 0, 0, 0, 0)
-    angup = (angfol * -(nr - 1)) - 3.14 - anginit  # angle de placement du foliole central, au bout de la chaine
-    up = transformation(leaf, 1, 1, 1, 0, 0, 0, 0, ecfol * (cos(angup) + cos(anginit)), ecfol * (sin(angup) - sin(anginit)))
-    ls_pts.append(array([0,  ecfol * (cos(angup) + cos(anginit)), ecfol * (sin(angup) - sin(anginit))]))
+    # ajout points 2 premiers points debuts + 1er segments
+    ls_pts.append(array([0, 0, 0]))
+    ls_pts.append(array([0, sin(anginit) * ecfol, cos(anginit) * ecfol]))
+    listfol = [bottom]
 
-    listfol = [up]
-    for i in range(nfol-1):  # nombre de paires de folioles lateraux
-        ang = (angfol * -i) - 3.14 - anginit
-        ecfolopp = (sin(ang) - sin(anginit)) * ecfol
-        ecfoladj = (cos(ang) + cos(anginit)) * ecfol
-        listfol.append(transformation(leaf, 1, 1, 1, 0, 0, 0, 0, ecfoladj, ecfolopp))
-        ls_pts.append(array([0, ecfoladj, ecfolopp]))
-
+    for i in range(1, nfol):  # nombre de segment restants
+        ang = anginit - (angfol * -i)  # (angfol * -i) - 3.14 - anginit
+        z = ls_pts[-1][2] + cos(ang) * ecfol
+        y = ls_pts[-1][1] + sin(ang) * ecfol
+        listfol.append(transformation(leaf, 1, 1, 1, 0, 0, 3.14 / 2 - ang, 0, ls_pts[-1][1], ls_pts[-1][2]))
+        ls_pts.append(array([0, y, z]))
+        #print i, ecfol, angfol, ang, distance(ls_pts[-1], ls_pts[-2])
 
     if geom == True:
         return Group(listfol)  # groupe les differents geom
     else:
-        return ls_pts
-
-#fait rapidement mais marche pas: feuilles ttes horizontales pas jointives... tester ds vieux python/plantgl (pas de rotation applique a objet leaf
+        return ls_pts[1:]  # retire premier point -> surface attribuee aux extremite de segment

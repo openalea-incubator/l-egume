@@ -790,7 +790,7 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
     # calcul demande par pivot
     invar_sc['ax']['DemCRac'], invar_sc['ax']['NRac'] = rt.calc_DemandC_roots(ParamP, invar_sc['ax']['AgePiv'],
                                                                               invar['dTTsol'],
-                                                                              invar_sc['ax']['QDCmoyRac'])
+                                                                              invar_sc['ax']['QDCmoyRac'], nbnodale)
 
     # calcul biomasse, diametres pivots indivs, QDC des racines, increment de longueur et SRL
     daxPiv = rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], pivot, Frac_piv_sem=riri.get_lsparami(ParamP, 'Frac_piv_sem'),

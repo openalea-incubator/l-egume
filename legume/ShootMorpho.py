@@ -130,15 +130,22 @@ def FTSW_resp(FTSW, par):  # =[0.4, 0.]):
 
 
 #calcul des longueurs et surfaces d'organes
-def calc_surF(ParamP, rank, rankp, ordre, l):
+def calc_surF(ParamP, rank, rankp, ordre, l, type=1):
     """ calcul de surface d'une feuille (m2) """
     cor_ordre = ParamP['ratioII'] if ordre == 2 else 1.
-    rk = rank + rankp if ordre == 2 else rank
+    if int(type)==1 or int(type)==2: #legume leaves
+        rk = rank + rankp if ordre == 2 else rank
+    elif int(type)==3: #graminee
+        rk = rank + rankp #rankp utilise pour calcule un rgeq qui tient compte de tallage et coupe
+
     rk = min(rk, len(ParamP['profilLeafI_l']) - 1)  # au cas ou rank depasse le profil
     nf = ParamP['profilLeafI_nfol'][rk]
     Long = ParamP['profilLeafI_l'][rk] * l * cor_ordre
     larg = ParamP['profilLeafI_larg'][rk] * l * cor_ordre
-    surF = nf * 0.5 * Long * larg / 10000.  # nf*0.5*Long*larg/10000.  #m2
+    if int(type)==1 or int(type)==2: #feuille legumineuse -> losange
+        surF = nf * 0.5 * Long * larg / 10000.  # nf*0.5*Long*larg/10000.  #m2
+    elif int(type)==3: #graminee -> rectangle
+        surF =  Long * larg / 10000.  # nf*0.5*Long*larg/10000.  #m2
     return surF
     # ParamP en parametre
 
@@ -187,10 +194,14 @@ def calc_parapcoty(invar, m_lais, res_abs_i, Mcoty, age, DurGraine, carto, Param
 
         invar['PARiPlante'][nump].append(PARaF)
 
-def calc_Lpet(ParamP, rank, rankp, ordre, l):
+def calc_Lpet(ParamP, rank, rankp, ordre, l, type=1):
     """ calcule de longueur potentielle d'un petiole (m)"""
     cor_ordre = ParamP['ratioII'] if ordre==2 else 1.
-    rk = rank+rankp if ordre==2 else rank #fonction du rang comme pour feuille
+    if int(type)==1 or int(type)==2: #legume leaves
+        rk = rank + rankp if ordre == 2 else rank
+    elif int(type)==3: #graminee
+        rk = rank + rankp #rankp utilise pour calcule un rgeq qui tient compte de tallage et coupe
+
     rk = min(rk, len(ParamP['profilPetI_l'])-1) #au cas ou rank depasse le profil
     lpet = l*ParamP['profilPetI_l'][rk]*cor_ordre/100. #m
     return lpet
