@@ -22,7 +22,7 @@ import IOtable
 
 
 #to define if used for multisimulation or non-regression tests
-opttest = 2#4#1#2#'autre'#3#'exemple'#0#13#
+opttest = 1#2#4#2#'autre'#3#'exemple'#0#13#
 if opttest == 1 or opttest==2 or opttest==3 or opttest==4: #si multisim des test de non regression (1 or 2)
     global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'

@@ -83,8 +83,8 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'Fix2'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'nonFixSimTest'#'nonFix1'#'default'#'formica'#
+ongletScenar1 = 'default'#'Fix2'#'nonFixSimTest'#'default'#'formica'#
+ongletScenar2 = 'default'#'nonFixSimTest'#'nonFix1'#'default'#'formica'#
 
 #lecture fichiers et variables de sortie
 path_outf = os.path.join(path_leg,'mod_susm.xls')#
@@ -113,7 +113,7 @@ deltalevsd = 15
 
 nbcote = 8#1#10
 optdamier = 4
-typearrangement='damier8'#'homogeneous'#
+typearrangement='homogeneous'#'damier8'#
 idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 opt_sky = 'VXpXmYpYm'#'V'#
