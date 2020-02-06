@@ -199,6 +199,10 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     aer, rac_fine, pivot, graineN, fracNaer, fracNpiv, fracNrac_fine = temps# temps[0], temps[1],temps[2], temps[3],temps[4], temps[5],temps[6] #unpacks variables temporaires passes entre fonction -> a repasser dans invar!!!
 
+    # water
+    invar['transpi'] = ls_transp
+    invar['cumtranspi'] += array(ls_transp)
+
     # Uptake N et allocation
     invar['Nuptake_sol'] = array(map(sum, ls_Act_Nuptake_plt)) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
     try:
@@ -446,6 +450,8 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     outvar['NBphyto'].append(['NBphyto', DOY] + invar['NBphyto'])
     outvar['NBapexAct'].append(
         ['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
+    outvar['transpi'].append(['transpi', DOY] + invar['transpi'])
+    outvar['cumtranspi'].append(['cumtranspi', DOY] + invar['cumtranspi'].tolist())
 
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
     outvar['phmgPet'].append(['phmgPet', DOY] + map(max, invar['phmgPet']))
