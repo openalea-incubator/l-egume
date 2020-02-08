@@ -83,7 +83,7 @@ def WhichVoxel(p, origin_grid, na, dxyz):
 
 def get_tripletY(ydeb, x, ny, nz, sens='+'):
     """ pour un plan dans y, rayon allant dans le + ou le - """
-    zz = range(nz)
+    zz = list(range(nz))
     xx = [x]*nz
     res = []
     count = ydeb
@@ -116,7 +116,7 @@ def get_tripletY(ydeb, x, ny, nz, sens='+'):
 #utilise un count (initialiser avec y deb) et meme demarche
 def get_tripletX(xdeb, y, nx, nz, sens='+'):
     """ pour un plan dans y, rayon allant dans le + ou le - """
-    zz = range(nz)
+    zz = list(range(nz))
     yy = [y]*nz
     res = []
     count = xdeb
@@ -149,7 +149,7 @@ def get_tripletVert(x,y,nz):
     """ pour triplets verticaux """
     xx = [x]*nz
     yy = [y]*nz
-    zz = range(nz)
+    zz = list(range(nz))
     return [zz,yy,xx]
 
 

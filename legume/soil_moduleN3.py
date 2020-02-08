@@ -1,8 +1,8 @@
 from scipy import *
 #from rpy import r
 import sys
-path_ = r'H:\devel\grassland\grassland\luzerne'
-path2_ = r'H:\devel\grassland\grassland\L-gume'
+path_ = r'C:\devel\l-egume\legume'
+path2_ = r'C:\devel\l-egume\legume'
 sys.path.insert(0, path_)
 sys.path.insert(0, path2_)
 from soil_module5 import *
@@ -589,13 +589,13 @@ class SoilN(Soil):
         print ("")
         print ("Carbon Balance Input (kg C.ha-1)\t\t\t Carbon Balance Output (kg C.ha-1)")
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Active Humified Pool:\t {0:8.1f}\t\t\t Active Humified Pool:\t {1:8.1f}".format(bilanC['intialActiveC'], bilanC['FinalActiveC']))
-        print ("Inert Humified Pool:\t {0:8.1f}\t\t\t Inert Humified Pool:\t {1:8.1f}".format(bilanC['intialInertC'], bilanC['FinalInertC']))
-        print ("Zymogeneous Bio Pool:\t {0:8.1f}\t\t\t Zymogeneous Bio Pool:\t {1:8.1f}".format(bilanC['initialCZygo'], bilanC['finalCZygo']))
-        print ("Added organic matter:\t {0:8.1f}\t\t\t Added organic matter:\t {1:8.1f}".format(bilanC['initialCres'], bilanC['finalCres']))
-        print ("                            \t\t\t\t Mineralisation:\t\t {0:8.1f}".format(bilanC['MinCtot']))
+        print(("Active Humified Pool:\t {0:8.1f}\t\t\t Active Humified Pool:\t {1:8.1f}".format(bilanC['intialActiveC'], bilanC['FinalActiveC'])))
+        print(("Inert Humified Pool:\t {0:8.1f}\t\t\t Inert Humified Pool:\t {1:8.1f}".format(bilanC['intialInertC'], bilanC['FinalInertC'])))
+        print(("Zymogeneous Bio Pool:\t {0:8.1f}\t\t\t Zymogeneous Bio Pool:\t {1:8.1f}".format(bilanC['initialCZygo'], bilanC['finalCZygo'])))
+        print(("Added organic matter:\t {0:8.1f}\t\t\t Added organic matter:\t {1:8.1f}".format(bilanC['initialCres'], bilanC['finalCres'])))
+        print(("                            \t\t\t\t Mineralisation:\t\t {0:8.1f}".format(bilanC['MinCtot'])))
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t\t {1:8.1f}".format(bilanC['InputCtot'], bilanC['OutputCtot']))
+        print(("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t\t {1:8.1f}".format(bilanC['InputCtot'], bilanC['OutputCtot'])))
         print ("")
 
     def OpenNbalance(self):
@@ -661,7 +661,7 @@ class SoilN(Soil):
 
         self.bilanN['ResidueMinNtot'] = sum(self.bilanN['cumNRes1']) + sum(self.bilanN['cumNRes2']) + sum(self.bilanN['cumNRes3'])
         try:
-            self.bilanN['NminfromNresCum'] = map(sum, self.bilanN['NminfromNres'])
+            self.bilanN['NminfromNresCum'] = list(map(sum, self.bilanN['NminfromNres']))
         except:
             self.bilanN['NminfromNresCum'] = 0.
 
@@ -697,32 +697,32 @@ class SoilN(Soil):
         print ("")
         print ("Organic N Balance Input (kg N.ha-1)\t\t\t Organic N Balance Output (kg N.ha-1)")
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Active Humified Pool:\t {0:8.1f}\t\t\t Active Humified Pool:\t {1:8.1f}".format(bilanN['intialActiveN'], bilanN['FinalActiveN']))
-        print ("Inert Humified Pool:\t {0:8.1f}\t\t\t Inert Humified Pool:\t {1:8.1f}".format(bilanN['intialInertN'], bilanN['FinalInertN']))
-        print ("Zymogeneous Bio Pool:\t {0:8.1f}\t\t\t Zymogeneous Bio Pool:\t {1:8.1f}".format(bilanN['initialNZygo'], bilanN['finalNZygo']))
-        print ("Added organic matter:\t {0:8.1f}\t\t\t Added organic matter:\t {1:8.1f}".format(bilanN['initialNres'], bilanN['finalNres']))
-        print ("                            \t\t\t\t Mineralisation:\t\t {0:8.1f}".format(bilanN['MinNtot']))
+        print(("Active Humified Pool:\t {0:8.1f}\t\t\t Active Humified Pool:\t {1:8.1f}".format(bilanN['intialActiveN'], bilanN['FinalActiveN'])))
+        print(("Inert Humified Pool:\t {0:8.1f}\t\t\t Inert Humified Pool:\t {1:8.1f}".format(bilanN['intialInertN'], bilanN['FinalInertN'])))
+        print(("Zymogeneous Bio Pool:\t {0:8.1f}\t\t\t Zymogeneous Bio Pool:\t {1:8.1f}".format(bilanN['initialNZygo'], bilanN['finalNZygo'])))
+        print(("Added organic matter:\t {0:8.1f}\t\t\t Added organic matter:\t {1:8.1f}".format(bilanN['initialNres'], bilanN['finalNres'])))
+        print(("                            \t\t\t\t Mineralisation:\t\t {0:8.1f}".format(bilanN['MinNtot'])))
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t\t {1:8.1f}".format(bilanN['InputNtot'], bilanN['OutputNtot']))
+        print(("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t\t {1:8.1f}".format(bilanN['InputNtot'], bilanN['OutputNtot'])))
         print ("")
 
         #Nmin
         print ("")
         print ("Mineral N Balance Input (kg N.ha-1)\t\t\t Mineral N Balance Output (kg N.ha-1)")
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Initial soil NO3 :\t\t {0:8.1f}\t\t\t Final soil NO3:\t {1:8.1f}".format(bilanN['intialNO3'], bilanN['FinalNO3']))
-        print ("Initial soil NH4:\t\t {0:8.1f}\t\t\t Final soil NH4:\t {1:8.1f}".format(bilanN['intialNH4'], bilanN['FinalNH4']))
-        print ("Humus Mineralisation:\t {0:8.1f}\t\t\t Leaching:\t\t\t {1:8.1f}".format(bilanN['HumusMinNtot'], bilanN['Lixtot']))
-        print ("Resid. Mineralisation:\t {0:8.1f}\t\t\t N2O:\t\t\t\t {1:8.1f}".format(bilanN['ResidueMinNtot'], bilanN['N2Otot']))
-        print ("Rain:\t\t\t\t\t {0:8.1f}\t\t\t Uptake plant:\t\t {1:8.1f}".format(bilanN['TotNRain'], bilanN['TotUptPlt']))
-        print ("Irrigation:\t\t\t\t {0:8.1f}\t\t\t ".format(bilanN['TotNIrrig']))
-        print ("Fertilizers NO3:\t\t {0:8.1f}\t\t\t ".format(bilanN['TotFertNO3']))
-        print ("Fertilizers NH4:\t\t {0:8.1f}\t\t\t ".format(bilanN['TotFertNH4']))
+        print(("Initial soil NO3 :\t\t {0:8.1f}\t\t\t Final soil NO3:\t {1:8.1f}".format(bilanN['intialNO3'], bilanN['FinalNO3'])))
+        print(("Initial soil NH4:\t\t {0:8.1f}\t\t\t Final soil NH4:\t {1:8.1f}".format(bilanN['intialNH4'], bilanN['FinalNH4'])))
+        print(("Humus Mineralisation:\t {0:8.1f}\t\t\t Leaching:\t\t\t {1:8.1f}".format(bilanN['HumusMinNtot'], bilanN['Lixtot'])))
+        print(("Resid. Mineralisation:\t {0:8.1f}\t\t\t N2O:\t\t\t\t {1:8.1f}".format(bilanN['ResidueMinNtot'], bilanN['N2Otot'])))
+        print(("Rain:\t\t\t\t\t {0:8.1f}\t\t\t Uptake plant:\t\t {1:8.1f}".format(bilanN['TotNRain'], bilanN['TotUptPlt'])))
+        print(("Irrigation:\t\t\t\t {0:8.1f}\t\t\t ".format(bilanN['TotNIrrig'])))
+        print(("Fertilizers NO3:\t\t {0:8.1f}\t\t\t ".format(bilanN['TotFertNO3'])))
+        print(("Fertilizers NH4:\t\t {0:8.1f}\t\t\t ".format(bilanN['TotFertNH4'])))
 
 
         #print ("Rain:\t\t\t\t\t {0:8.1f}\t\t\t ".format(bilanN['TotNRain']))
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t {1:8.1f}".format(bilanN['InputNmintot'], bilanN['OutputNmintot']))
+        print(("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t {1:8.1f}".format(bilanN['InputNmintot'], bilanN['OutputNmintot'])))
         print ("")
 
     def ConcNO3(self):

@@ -165,12 +165,12 @@ def conv_list(tab):
     """ converti dictionnaireen liste de liste en ;  cle comme pemier element de la liste"""
     """ format compatible pour mes_csv"""
     dat = []
-    for i in tab.keys():
+    for i in list(tab.keys()):
         v = [i]
         dat.append(v)
 
     count = 0
-    for i in tab.keys():
+    for i in list(tab.keys()):
         for j in range(len(tab[i])):
             dat[count].append(tab[i][j])
 
@@ -236,7 +236,7 @@ def conv_list2(tab):
     """ converti dictionnaire avec 1 seule valeur par cle en liste de liste ;  cle comme pemier element de la liste"""
     """ format compatible pour mes_csv"""
     dat = []
-    for i in tab.keys():
+    for i in list(tab.keys()):
         v = [i, tab[i]]
         dat.append(v)
     
@@ -250,7 +250,7 @@ def write_dict(dict, directory, name):
     except:
         tab = conv_list2(dict)
 
-    out = file(join(directory, name), 'w')
+    out = open(join(directory, name), 'w')#file(join(directory, name), 'w')
     ecriture_csv (tab, out)  
     out.close()
     return join(directory, name)
@@ -258,12 +258,12 @@ def write_dict(dict, directory, name):
 
 def write_dicttables(path_file, dic, keys_):
     """ ecrit dans un meme fichiers, differentes tables (liste de liste) valeurs d'un dico pour la liste de cle keys_ """
-    f = file (path_file, 'w')
+    f = open(path_file, 'w')#file (path_file, 'w')
     ecriture_csv(dic[keys_[0]], f)
     f.close()
     if len(keys_)>1:
         for i in range (1,len(keys_)):
-            f = file (path_file, 'a')
+            f = open(path_file, 'a')#file (path_file, 'a')
             ecriture_csv(dic[keys_[i]], f)
             f.close()
 

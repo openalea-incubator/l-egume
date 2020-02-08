@@ -33,12 +33,12 @@ from setuptools import setup, find_packages
 
 import legume
 
-if sys.version_info < (2, 7):
-    print('ERROR: l-egume requires at least Python 2.7 to run.')
+if sys.version_info < (3, 0):
+    print('ERROR: l-egume requires at least Python 3.0 to run.')
     sys.exit(1)
 
-if sys.version_info >= (3, 0):
-    print('WARNING: l-egume has not been tested with Python 3.')
+if sys.version_info >= (3, 6):
+    print('WARNING: l-egume has not been tested with Python > 3.6')
 
 pkg_resources.require('numpy')#'scipy', 'xlrd', 'openalea.plantgl.all', 'openalea.lpy','multiprocessing'
 
@@ -53,7 +53,7 @@ setup(
     author = "G. Louarn, L. Faverjon",
     author_email = "gaetan.louarn@inra.fr",
     description = "A model of forage legume morphogenesis",
-    long_description = read('README.md'),
+    #long_description = read('README.md'),
     license = "CeCILL-C",
     keywords = "Individual-based model ,FSPM, legume, morphogenesis, shoot, roots ",
     url = "https://sourcesup.renater.fr/projects/l-egume/",

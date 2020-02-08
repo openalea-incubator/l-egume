@@ -1,3 +1,10 @@
+L-egume 1.2
+--------------------
+- Version compatible with python 3 (tested 3.7), win10 64bit
+- beta version compatible for vgl-grass
+- new features to visualize model outputs (soil profile, color gradients for plant features...)
+
+
 L-egume 1.1
 --------------------
 

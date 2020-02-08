@@ -109,9 +109,9 @@ def frac_voxelsBBox(pmin,pmax,lims):
                 else:
                     frac = (pmax[axe] - lims[axe][i]) / (lims[axe][i+1] - lims[axe][i])
                 in_=0
-            elif (lims[axe][i]<=pmin[axe]<lims[axe][i+1])<>True and (lims[axe][i]<=pmax[axe]<lims[axe][i+1])<>True and in_==0:#pas de point ds le voxel et segent pas commence
+            elif (lims[axe][i]<=pmin[axe]<lims[axe][i+1])!=True and (lims[axe][i]<=pmax[axe]<lims[axe][i+1])!=True and in_==0:#pas de point ds le voxel et segent pas commence
                 frac =0.
-            elif (lims[axe][i]<=pmin[axe]<lims[axe][i+1])<>True and (lims[axe][i]<=pmax[axe]<lims[axe][i+1])<>True and in_==1:#pas de point ds le voxel et segent commence
+            elif (lims[axe][i]<=pmin[axe]<lims[axe][i+1])!=True and (lims[axe][i]<=pmax[axe]<lims[axe][i+1])!=True and in_==1:#pas de point ds le voxel et segent commence
                 frac =1.
 
             v.append(frac)
@@ -204,7 +204,7 @@ def build_ls_roots_mult(RLTot, dic_systrac, lims):
 
 def convd(d):
     """ pour recupere sortie d'un dico profil en liste"""
-    ks = d.keys()
+    ks = list(d.keys())
     ks.sort()
     res=[]
     for k in ks: res.append(d[k])

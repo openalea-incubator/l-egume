@@ -23,8 +23,8 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     """ daily potential growth loop (computes epsi, DM production / allocation / Ndemand) """
 
     # calcul de ls_epsi
-    invar['parap'] = array(map(sum, invar['PARaPlante']))
-    invar['parip'] = array(map(sum, invar['PARiPlante']))
+    invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
+    invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
     # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
     # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
     # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif
@@ -74,12 +74,12 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     invar['Mpivot'].append(pivot.tolist())  # matrice des delta MSpivot par date
     invar['Maerien'].append(aer.tolist())  # matrice des delta MSaerien par date
     invar['Mfeuil'].append(feuil.tolist())  # matrice des delta MSfeuil par date
-    invar['MS_pivot'] = map(sum, IOtable.t_list(invar['Mpivot']))  # vecteur des MSpivot cumule au temps t
-    invar['MS_aerien'] = map(sum, IOtable.t_list(invar['Maerien']))  # vecteur des MSaerien cumule au temps t
-    invar['MS_feuil'] = map(sum, IOtable.t_list(invar['Mfeuil']))  # vecteur des MSfeuil cumule au temps t
+    invar['MS_pivot'] = list(map(sum, IOtable.t_list(invar['Mpivot'])))  # vecteur des MSpivot cumule au temps t
+    invar['MS_aerien'] = list(map(sum, IOtable.t_list(invar['Maerien'])))  # vecteur des MSaerien cumule au temps t
+    invar['MS_feuil'] = list(map(sum, IOtable.t_list(invar['Mfeuil'])))  # vecteur des MSfeuil cumule au temps t
     invar['MS_aer_cumul'] += aer
-    invar['MS_tot'] = map(sum, IOtable.t_list(invar['Mtot']))
-    invar['MS_rac_fine'] = map(sum, IOtable.t_list(invar['Mrac_fine']))  # vecteur des MSraines_fines cumule au temps t
+    invar['MS_tot'] = list(map(sum, IOtable.t_list(invar['Mtot'])))
+    invar['MS_rac_fine'] = list(map(sum, IOtable.t_list(invar['Mrac_fine'])))  # vecteur des MSraines_fines cumule au temps t
     invar['DiampivMax'] = sqrt(invar['MS_pivot'] * array(riri.get_lsparami(ParamP, 'DPivot2_coeff')))
     # invar['RLTot'] = array(map(sum, IOtable.t_list(invar['Mrac_fine']))) * array(riri.get_lsparami(ParamP, 'SRL')) #somme de toutes les racinesfines produites par plante
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
@@ -204,7 +204,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['cumtranspi'] += array(ls_transp)
 
     # Uptake N et allocation
-    invar['Nuptake_sol'] = array(map(sum, ls_Act_Nuptake_plt)) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
+    invar['Nuptake_sol'] = array(list(map(sum, ls_Act_Nuptake_plt))) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
     try:
         NremobC = invar['remob'] * invar['Npc_piv'] / 100.  # remobilise N pivot qui part avec le C
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC  # uptake N va dans partie aeriennes au prorata des demandes
@@ -213,7 +213,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
         NremobC = 0.
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC
         invar['Npivot'] += invar['Nuptake_sol'] * fracNpiv
-        print 'rem'
+        print('rem')
 
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
@@ -266,18 +266,18 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
         p9.append(ParamP[nump]['NTreshDevII'])
 
     ls_ftswStress = {}
-    ls_ftswStress['WaterTreshExpSurf'] = map(sh.FTSW_resp, ls_ftsw, p1)
-    ls_ftswStress['WaterTreshDevII'] = map(sh.FTSW_resp, ls_ftsw, p2)
-    ls_ftswStress['WaterTreshDevI'] = map(sh.FTSW_resp, ls_ftsw, p3)
-    ls_ftswStress['WaterTreshFix'] = map(sh.FTSW_resp, ls_ftsw, p4)
-    ls_ftswStress['WaterTreshRUE'] = map(sh.FTSW_resp, ls_ftsw, p5)
+    ls_ftswStress['WaterTreshExpSurf'] = list(map(sh.FTSW_resp, ls_ftsw, p1))
+    ls_ftswStress['WaterTreshDevII'] = list(map(sh.FTSW_resp, ls_ftsw, p2))
+    ls_ftswStress['WaterTreshDevI'] = list(map(sh.FTSW_resp, ls_ftsw, p3))
+    ls_ftswStress['WaterTreshFix'] = list(map(sh.FTSW_resp, ls_ftsw, p4))
+    ls_ftswStress['WaterTreshRUE'] = list(map(sh.FTSW_resp, ls_ftsw, p5))
 
     # update des indices de stress N par plante pour step suivant
     ls_NNIStress = {}
-    ls_NNIStress['NTreshRUE'] = map(sh.NNI_resp, invar['NNI'], p6)
-    ls_NNIStress['NTreshExpSurf'] = map(sh.NNI_resp, invar['NNI'], p7)
-    ls_NNIStress['NTreshDev'] = map(sh.NNI_resp, invar['NNI'], p8)
-    ls_NNIStress['NTreshDevII'] = map(sh.NNI_resp, invar['NNI'], p9)
+    ls_NNIStress['NTreshRUE'] = list(map(sh.NNI_resp, invar['NNI'], p6))
+    ls_NNIStress['NTreshExpSurf'] = list(map(sh.NNI_resp, invar['NNI'], p7))
+    ls_NNIStress['NTreshDev'] = list(map(sh.NNI_resp, invar['NNI'], p8))
+    ls_NNIStress['NTreshDevII'] = list(map(sh.NNI_resp, invar['NNI'], p9))
 
     # print invar['TT'], Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')), maxFix, stressHFix
     # print invar['TT'], ls_demandeN_bis, invar['Nuptake_sol'], stressHFix
@@ -394,7 +394,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     outvar['TT'].append(['TT', DOY] + invar['TT'])
     outvar['time'].append(['time', DOY] + [past_time] * nbplantes)
     outvar['cutNB'].append(['cutNB', DOY] + [cutNB] * nbplantes)
-    outvar['SurfPlante'].append(['SurfPlante', DOY] + map(sum, invar['SurfPlante']))
+    outvar['SurfPlante'].append(['SurfPlante', DOY] + list(map(sum, invar['SurfPlante'])))
     outvar['PARaPlante'].append(
         ['PARaPlante', DOY] + invar['PARaPlanteU'].tolist())  # append(['PARaPlante',DOY]+invar['parap'].tolist())
     outvar['PARiPlante'].append(['PARiPlante', DOY] + invar['parip'].tolist())
@@ -454,10 +454,10 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     outvar['cumtranspi'].append(['cumtranspi', DOY] + invar['cumtranspi'].tolist())
 
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
-    outvar['phmgPet'].append(['phmgPet', DOY] + map(max, invar['phmgPet']))
-    outvar['phmgEntr'].append(['phmgEntr', DOY] + map(max, invar['phmgEntr']))
-    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + map(min, invar['phmgPet_m']))
-    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + map(min, invar['phmgEntr_m']))
+    outvar['phmgPet'].append(['phmgPet', DOY] + list(map(max, invar['phmgPet'])))
+    outvar['phmgEntr'].append(['phmgEntr', DOY] + list(map(max, invar['phmgEntr'])))
+    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + list(map(min, invar['phmgPet_m'])))
+    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + list(map(min, invar['phmgEntr_m'])))
 
 
     return invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress
@@ -478,7 +478,7 @@ def update_residue_mat(ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_r
 
     # ajout des pivots a faire avant mse a jour des cres
     if opt_residu == 1:  # option residu activee: mise a jour des cres
-        if sum(map(sum, ls_mat_res)) > 0.:  # si de nouveaux residus (ou supeieur a un seuil
+        if sum(list(map(sum, ls_mat_res))) > 0.:  # si de nouveaux residus (ou supeieur a un seuil
             for i in range(len(ls_mat_res)):
                 mat_res = ls_mat_res[i]
                 if sum(mat_res) > 0.:
@@ -545,8 +545,8 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
     #beaucoup de ces vaiables globales a passer comme argument de fonction?
 
     # calcul de ls_epsi
-    invar['parap'] = array(map(sum, invar['PARaPlante']))
-    invar['parip'] = array(map(sum, invar['PARiPlante']))
+    invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
+    invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
     # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
     # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
     # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif
@@ -591,12 +591,12 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
     invar['Mpivot'].append(pivot.tolist())  # matrice des delta MSpivot par date
     invar['Maerien'].append(aer.tolist())  # matrice des delta MSaerien par date
     invar['Mfeuil'].append(feuil.tolist())  # matrice des delta MSfeuil par date
-    invar['MS_pivot'] = map(sum, IOtable.t_list(invar['Mpivot']))  # vecteur des MSpivot cumule au temps t
-    invar['MS_aerien'] = map(sum, IOtable.t_list(invar['Maerien']))  # vecteur des MSaerien cumule au temps t
-    invar['MS_feuil'] = map(sum, IOtable.t_list(invar['Mfeuil']))  # vecteur des MSfeuil cumule au temps t
+    invar['MS_pivot'] = list(map(sum, IOtable.t_list(invar['Mpivot'])))  # vecteur des MSpivot cumule au temps t
+    invar['MS_aerien'] = list(map(sum, IOtable.t_list(invar['Maerien'])))  # vecteur des MSaerien cumule au temps t
+    invar['MS_feuil'] = list(map(sum, IOtable.t_list(invar['Mfeuil'])))  # vecteur des MSfeuil cumule au temps t
     invar['MS_aer_cumul'] += aer
-    invar['MS_tot'] = map(sum, IOtable.t_list(invar['Mtot']))
-    invar['MS_rac_fine'] = map(sum, IOtable.t_list(invar['Mrac_fine']))  # vecteur des MSraines_fines cumule au temps t
+    invar['MS_tot'] = list(map(sum, IOtable.t_list(invar['Mtot'])))
+    invar['MS_rac_fine'] = list(map(sum, IOtable.t_list(invar['Mrac_fine'])))  # vecteur des MSraines_fines cumule au temps t
     invar['DiampivMax'] = sqrt(invar['MS_pivot'] * array(riri.get_lsparami(ParamP, 'DPivot2_coeff')))
     # invar['RLTot'] = array(map(sum, IOtable.t_list(invar['Mrac_fine']))) * array(riri.get_lsparami(ParamP, 'SRL')) #somme de toutes les racinesfines produites par plante
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
@@ -708,14 +708,14 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
         p9.append(ParamP[nump]['NTreshDevII'])
 
     ls_ftswStress = {}
-    ls_ftswStress['WaterTreshExpSurf'] = map(sh.FTSW_resp, ls_ftsw, p1)
-    ls_ftswStress['WaterTreshDevII'] = map(sh.FTSW_resp, ls_ftsw, p2)
-    ls_ftswStress['WaterTreshDevI'] = map(sh.FTSW_resp, ls_ftsw, p3)
-    ls_ftswStress['WaterTreshFix'] = map(sh.FTSW_resp, ls_ftsw, p4)
-    ls_ftswStress['WaterTreshRUE'] = map(sh.FTSW_resp, ls_ftsw, p5)
+    ls_ftswStress['WaterTreshExpSurf'] = list(map(sh.FTSW_resp, ls_ftsw, p1))
+    ls_ftswStress['WaterTreshDevII'] = list(map(sh.FTSW_resp, ls_ftsw, p2))
+    ls_ftswStress['WaterTreshDevI'] = list(map(sh.FTSW_resp, ls_ftsw, p3))
+    ls_ftswStress['WaterTreshFix'] = list(map(sh.FTSW_resp, ls_ftsw, p4))
+    ls_ftswStress['WaterTreshRUE'] = list(map(sh.FTSW_resp, ls_ftsw, p5))
 
     # Uptake N et allocation
-    invar['Nuptake_sol'] = array(map(sum, ls_Act_Nuptake_plt)) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
+    invar['Nuptake_sol'] = array(list(map(sum, ls_Act_Nuptake_plt))) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
     try:
         NremobC = invar['remob'] * invar['Npc_piv'] / 100.  # remobilise N pivot qui part avec le C
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC  # uptake N va dans partie aeriennes au prorata des demandes
@@ -724,7 +724,7 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
         NremobC = 0.
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC
         invar['Npivot'] += invar['Nuptake_sol'] * fracNpiv
-        print 'rem'
+        print('rem')
 
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
@@ -764,10 +764,10 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
 
     # update des indices de stress N par plante
     ls_NNIStress = {}
-    ls_NNIStress['NTreshRUE'] = map(sh.NNI_resp, invar['NNI'], p6)
-    ls_NNIStress['NTreshExpSurf'] = map(sh.NNI_resp, invar['NNI'], p7)
-    ls_NNIStress['NTreshDev'] = map(sh.NNI_resp, invar['NNI'], p8)
-    ls_NNIStress['NTreshDevII'] = map(sh.NNI_resp, invar['NNI'], p9)
+    ls_NNIStress['NTreshRUE'] = list(map(sh.NNI_resp, invar['NNI'], p6))
+    ls_NNIStress['NTreshExpSurf'] = list(map(sh.NNI_resp, invar['NNI'], p7))
+    ls_NNIStress['NTreshDev'] = list(map(sh.NNI_resp, invar['NNI'], p8))
+    ls_NNIStress['NTreshDevII'] = list(map(sh.NNI_resp, invar['NNI'], p9))
 
     # print invar['TT'], Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')), maxFix, stressHFix
     # print invar['TT'], ls_demandeN_bis, invar['Nuptake_sol'], stressHFix
@@ -900,7 +900,7 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
     outvar['TT'].append(['TT', DOY] + invar['TT'])
     outvar['time'].append(['time', DOY] + [past_time] * nbplantes)
     outvar['cutNB'].append(['cutNB', DOY] + [cutNB] * nbplantes)
-    outvar['SurfPlante'].append(['SurfPlante', DOY] + map(sum, invar['SurfPlante']))
+    outvar['SurfPlante'].append(['SurfPlante', DOY] + list(map(sum, invar['SurfPlante'])))
     outvar['PARaPlante'].append(
         ['PARaPlante', DOY] + invar['PARaPlanteU'].tolist())  # append(['PARaPlante',DOY]+invar['parap'].tolist())
     outvar['PARiPlante'].append(['PARiPlante', DOY] + invar['parip'].tolist())
@@ -958,10 +958,10 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
         ['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
 
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
-    outvar['phmgPet'].append(['phmgPet', DOY] + map(max, invar['phmgPet']))
-    outvar['phmgEntr'].append(['phmgEntr', DOY] + map(max, invar['phmgEntr']))
-    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + map(min, invar['phmgPet_m']))
-    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + map(min, invar['phmgEntr_m']))
+    outvar['phmgPet'].append(['phmgPet', DOY] + list(map(max, invar['phmgPet'])))
+    outvar['phmgEntr'].append(['phmgEntr', DOY] + list(map(max, invar['phmgEntr'])))
+    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + list(map(min, invar['phmgPet_m'])))
+    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + list(map(min, invar['phmgEntr_m'])))
 
     # res_root.append(rtd.convd(RLProfil[0])) #pour exporter profil de racine (le faire pour tous les systemes?
 
@@ -982,8 +982,8 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
     #beaucoup de ces vaiables globales a passer comme argument de fonction?
 
     # calcul de ls_epsi
-    invar['parap'] = array(map(sum, invar['PARaPlante']))
-    invar['parip'] = array(map(sum, invar['PARiPlante']))
+    invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
+    invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
     # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
     # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
     # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif
@@ -1028,12 +1028,12 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
     invar['Mpivot'].append(pivot.tolist())  # matrice des delta MSpivot par date
     invar['Maerien'].append(aer.tolist())  # matrice des delta MSaerien par date
     invar['Mfeuil'].append(feuil.tolist())  # matrice des delta MSfeuil par date
-    invar['MS_pivot'] = map(sum, IOtable.t_list(invar['Mpivot']))  # vecteur des MSpivot cumule au temps t
-    invar['MS_aerien'] = map(sum, IOtable.t_list(invar['Maerien']))  # vecteur des MSaerien cumule au temps t
-    invar['MS_feuil'] = map(sum, IOtable.t_list(invar['Mfeuil']))  # vecteur des MSfeuil cumule au temps t
+    invar['MS_pivot'] = list(map(sum, IOtable.t_list(invar['Mpivot'])))  # vecteur des MSpivot cumule au temps t
+    invar['MS_aerien'] = list(map(sum, IOtable.t_list(invar['Maerien'])))  # vecteur des MSaerien cumule au temps t
+    invar['MS_feuil'] = list(map(sum, IOtable.t_list(invar['Mfeuil'])))  # vecteur des MSfeuil cumule au temps t
     invar['MS_aer_cumul'] += aer
-    invar['MS_tot'] = map(sum, IOtable.t_list(invar['Mtot']))
-    invar['MS_rac_fine'] = map(sum, IOtable.t_list(invar['Mrac_fine']))  # vecteur des MSraines_fines cumule au temps t
+    invar['MS_tot'] = list(map(sum, IOtable.t_list(invar['Mtot'])))
+    invar['MS_rac_fine'] = list(map(sum, IOtable.t_list(invar['Mrac_fine'])))  # vecteur des MSraines_fines cumule au temps t
     invar['DiampivMax'] = sqrt(invar['MS_pivot'] * array(riri.get_lsparami(ParamP, 'DPivot2_coeff')))
     # invar['RLTot'] = array(map(sum, IOtable.t_list(invar['Mrac_fine']))) * array(riri.get_lsparami(ParamP, 'SRL')) #somme de toutes les racinesfines produites par plante
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
@@ -1141,7 +1141,7 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
 
 
     # Uptake N et allocation
-    invar['Nuptake_sol'] = array(map(sum, ls_Act_Nuptake_plt)) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
+    invar['Nuptake_sol'] = array(list(map(sum, ls_Act_Nuptake_plt))) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
     try:
         NremobC = invar['remob'] * invar['Npc_piv'] / 100.  # remobilise N pivot qui part avec le C
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC  # uptake N va dans partie aeriennes au prorata des demandes
@@ -1150,7 +1150,7 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
         NremobC = 0.
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC
         invar['Npivot'] += invar['Nuptake_sol'] * fracNpiv
-        print 'rem'
+        print('rem')
 
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
@@ -1203,18 +1203,18 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
         p9.append(ParamP[nump]['NTreshDevII'])
 
     ls_ftswStress = {}
-    ls_ftswStress['WaterTreshExpSurf'] = map(sh.FTSW_resp, ls_ftsw, p1)
-    ls_ftswStress['WaterTreshDevII'] = map(sh.FTSW_resp, ls_ftsw, p2)
-    ls_ftswStress['WaterTreshDevI'] = map(sh.FTSW_resp, ls_ftsw, p3)
-    ls_ftswStress['WaterTreshFix'] = map(sh.FTSW_resp, ls_ftsw, p4)
-    ls_ftswStress['WaterTreshRUE'] = map(sh.FTSW_resp, ls_ftsw, p5)
+    ls_ftswStress['WaterTreshExpSurf'] = list(map(sh.FTSW_resp, ls_ftsw, p1))
+    ls_ftswStress['WaterTreshDevII'] = list(map(sh.FTSW_resp, ls_ftsw, p2))
+    ls_ftswStress['WaterTreshDevI'] = list(map(sh.FTSW_resp, ls_ftsw, p3))
+    ls_ftswStress['WaterTreshFix'] = list(map(sh.FTSW_resp, ls_ftsw, p4))
+    ls_ftswStress['WaterTreshRUE'] = list(map(sh.FTSW_resp, ls_ftsw, p5))
 
     # update des indices de stress N par plante
     ls_NNIStress = {}
-    ls_NNIStress['NTreshRUE'] = map(sh.NNI_resp, invar['NNI'], p6)
-    ls_NNIStress['NTreshExpSurf'] = map(sh.NNI_resp, invar['NNI'], p7)
-    ls_NNIStress['NTreshDev'] = map(sh.NNI_resp, invar['NNI'], p8)
-    ls_NNIStress['NTreshDevII'] = map(sh.NNI_resp, invar['NNI'], p9)
+    ls_NNIStress['NTreshRUE'] = list(map(sh.NNI_resp, invar['NNI'], p6))
+    ls_NNIStress['NTreshExpSurf'] = list(map(sh.NNI_resp, invar['NNI'], p7))
+    ls_NNIStress['NTreshDev'] = list(map(sh.NNI_resp, invar['NNI'], p8))
+    ls_NNIStress['NTreshDevII'] = list(map(sh.NNI_resp, invar['NNI'], p9))
 
     # print invar['TT'], Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')), maxFix, stressHFix
     # print invar['TT'], ls_demandeN_bis, invar['Nuptake_sol'], stressHFix
@@ -1334,7 +1334,7 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
     outvar['TT'].append(['TT', DOY] + invar['TT'])
     outvar['time'].append(['time', DOY] + [past_time] * nbplantes)
     outvar['cutNB'].append(['cutNB', DOY] + [cutNB] * nbplantes)
-    outvar['SurfPlante'].append(['SurfPlante', DOY] + map(sum, invar['SurfPlante']))
+    outvar['SurfPlante'].append(['SurfPlante', DOY] + list(map(sum, invar['SurfPlante'])))
     outvar['PARaPlante'].append(
         ['PARaPlante', DOY] + invar['PARaPlanteU'].tolist())  # append(['PARaPlante',DOY]+invar['parap'].tolist())
     outvar['PARiPlante'].append(['PARiPlante', DOY] + invar['parip'].tolist())
@@ -1392,10 +1392,10 @@ def daily_growth_loop_modif(ParamP, par_SN, invar, invar_sc, outvar, res_trans, 
         ['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
 
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
-    outvar['phmgPet'].append(['phmgPet', DOY] + map(max, invar['phmgPet']))
-    outvar['phmgEntr'].append(['phmgEntr', DOY] + map(max, invar['phmgEntr']))
-    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + map(min, invar['phmgPet_m']))
-    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + map(min, invar['phmgEntr_m']))
+    outvar['phmgPet'].append(['phmgPet', DOY] + list(map(max, invar['phmgPet'])))
+    outvar['phmgEntr'].append(['phmgEntr', DOY] + list(map(max, invar['phmgEntr'])))
+    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + list(map(min, invar['phmgPet_m'])))
+    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + list(map(min, invar['phmgEntr_m'])))
 
     # res_root.append(rtd.convd(RLProfil[0])) #pour exporter profil de racine (le faire pour tous les systemes?
 

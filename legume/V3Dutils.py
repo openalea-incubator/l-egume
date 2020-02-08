@@ -43,7 +43,7 @@ def Translate (coordxy, t):
     if len(coordxy)==len(t):
         return coordxy + t
     else:
-        print 'vector lengths do not match'
+        print('vector lengths do not match')
 
 
 #scipy.dot -> produit scalaire
@@ -92,7 +92,7 @@ def intersec_D_plane(plane_par, v, p0):
     n = scipy.array([a, b, c])
     ps = produit_scalaire (n, v)
     if ps == 0:
-        print "plane and line colinear"
+        print("plane and line colinear")
         return -1
     else:
         t = -(a*p0[0]+b*p0[1]+c*p0[2]+d)/ps#-(produit_scalaire (n, p0)+d)/ps

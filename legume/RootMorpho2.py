@@ -105,7 +105,7 @@ def calc_DemandC_roots(ParamP, dAgePiv, dTT, dsatisfC, nbnodale=1.):
     """ demande d'une serie de systeme pivotant d'age differents - dsatisf dico des staisf integree ds le temps"""
     demande = {}
     Nbrac = {}
-    for k in dAgePiv.keys():
+    for k in list(dAgePiv.keys()):
         nump = int(str.split(k, '_')[0])
         try:
             satisf_k = dsatisfC[k]
@@ -127,7 +127,7 @@ def calc_DemandC_roots(ParamP, dAgePiv, dTT, dsatisfC, nbnodale=1.):
 def calc_QDC_roots(dOffre,dDemand):
     """ calcul offre sur demande instantane """
     QD = {}
-    for k in dOffre.keys():
+    for k in list(dOffre.keys()):
         if dDemand[k]==0:
             ratio=1.
         else:
@@ -142,7 +142,7 @@ def calc_QDC_roots(dOffre,dDemand):
 def calc_QDCmoy_roots(dQD, dQDmoy, dAgePiv, dTT):
     """ calcul offre sur demande integre dans le temps """
     newQDmoy = {}
-    for k in dQD.keys():
+    for k in list(dQD.keys()):
         nump = int(str.split(k, '_')[0])
         try:
             ratio = (dQDmoy[k]*dAgePiv[k] + dQD[k]*dTT[nump]) / (dAgePiv[k]+dTT[nump])
@@ -158,7 +158,7 @@ def calc_QDCmoy_roots(dQD, dQDmoy, dAgePiv, dTT):
 def calc_StressHmoy_roots(dStressH, dPonder, dStressHmoy, dAgePiv, dTT):
     """ calcul offre sur demande integre dans le temps """
     newSressmoy = {}
-    for k in dStressH.keys():
+    for k in list(dStressH.keys()):
         nump = int(str.split(k, '_')[0])
         try:
             ratio = (dStressHmoy[k]*dAgePiv[k] + dStressH[k]/dPonder[k]*dTT[nump]) / (dAgePiv[k]+dTT[nump])
@@ -191,7 +191,7 @@ def dLong_root(ParamP, ls_Nrac, dTT, QD, StressH, nbnodale=1.):
 def calc_dLong_roots(ParamP, dNrac, dTT, dsatisfC, dStressH, dPonder, nbnodale=1.):
     """ increment de longueur par ordre pendant dTT d'une serie de systeme pivotant d'age differents (cm) """
     ddl = {}
-    for k in dNrac.keys():
+    for k in list(dNrac.keys()):
         nump = int(str.split(k, '_')[0])
         try:
             satisf_k = dsatisfC[k]
@@ -221,7 +221,7 @@ def cumul_plante_Lrac(nbplt, dCumlRac):
         cum2.append(0.)
         cum3.append(0.)
     
-    for k in dCumlRac.keys():
+    for k in list(dCumlRac.keys()):
         nump = int(str.split(k, '_')[0])
         cum1[nump] += dCumlRac[k][0]/100.
         cum2[nump] += dCumlRac[k][1]/100.
@@ -240,7 +240,7 @@ def cumul_fine_Lrac(nbplt, dCumlRac):
         cum2.append(0.)
         cum3.append(0.)
     
-    for k in dCumlRac.keys():
+    for k in list(dCumlRac.keys()):
         nump = int(str.split(k, '_')[0])
         cum1[nump] += dCumlRac[k][0]/100.
         cum2[nump] += dCumlRac[k][1]/100.
@@ -257,7 +257,7 @@ def calc_QDplante(nbplt, dQD, dCumlRac, cumplantRac):
     for i in range(nbplt): 
         res.append(0.)
 
-    for k in dQD.keys():
+    for k in list(dQD.keys()):
         nump = int(str.split(k, '_')[0])
         res[nump] += dQD[k]*sum(dCumlRac[k])/(100.*cumplantRac[nump]+10e-15)
 
@@ -273,7 +273,7 @@ def calc_daxfPARaPiv(nbplantes, daxAgePiv, dpPARaF, daxPARaF):
     #daxPARaF = {'0_0_5': 0.0, '0_0_4': 0.0, '0_0_1': 0.0037106341514931427, '0_0_0': 0.031409083485574994, '0_0_3': 0.0, '0_0_2': 0.0, '0_1_4': 0.036519908098096465, '0_1_5': 0.046278225262069081, '0_1_6': 0.048053121501617661, '0_1_7': 0.00022389039194605387, '0_1_0': 0.027375781095510057, '0_1_1': 0.00050937561119222775, '0_1_2': 0.0, '0_1_3': 0.0, '0_3_2': 0.0, '0_3_3': 0.025585829814491427, '0_3_0': 0.001656678711150144, '0_3_1': 0.0, '0_3_6': 0.00017924845987041534, '0_3_4': 0.036519908098096465, '0_3_5': 0.046253375750383179}
     #lsAxPiv = ['0_0_0', '0_3_0', '0_3_1', '0_3_2', '0_3_3', '0_3_4', '0_1_2', '0_1_3', '0_1_4', '0_1_5', '0_0_4', '0_0_5']
     epsilon = 1e-12
-    lsAxPiv = daxAgePiv.keys()
+    lsAxPiv = list(daxAgePiv.keys())
     
     reste_piv, nb_piv = [], []
     for i in range(nbplantes): reste_piv.append(0.);nb_piv.append(0)
@@ -304,7 +304,7 @@ def ponder_daxfPARaPiv_ax(daxPARaPiv, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7, 
     #ponder=[frac_locale, frac_reste_axe, frac_seminal]
     # ! ces fractions peuvent changer selon les geno/especes! -> changer ponder par plante
     epsilon = 1e-12
-    lsAxPiv = daxPARaPiv.keys()
+    lsAxPiv = list(daxPARaPiv.keys())
     daxPARaPiv_ponder = {}
     for k in lsAxPiv:#initialise a zero
         daxPARaPiv_ponder[k] = 0.
@@ -346,7 +346,7 @@ def distrib_dM_ax(daxfPARaPiv, pivots, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7,
     daxPARaPiv_ponder = ponder_daxfPARaPiv_ax(daxfPARaPiv, Frac_piv_sem, Frac_piv_loc)#ponder)
 
     daxPiv = {}
-    for k in daxfPARaPiv.keys():
+    for k in list(daxfPARaPiv.keys()):
         nump = int(str.split(k, '_')[0])
         dpiv = pivots[nump]
         #daxPiv[k] = daxfPARaPiv[k]*dpiv
@@ -357,7 +357,7 @@ def distrib_dM_ax(daxfPARaPiv, pivots, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7,
 def calc_DiamPiv(ParamP, MaxPiv):
     """ calcule les diametres MAx de pivots a partir de dico axe des biomasses cumulee """
     DiampivMax = {}
-    for k in MaxPiv.keys():
+    for k in list(MaxPiv.keys()):
         nump = int(str.split(k, '_')[0])
         DPivot2_coeff = ParamP[nump]['DPivot2_coeff']
         DiampivMax[k] = sqrt(DPivot2_coeff * MaxPiv[k])

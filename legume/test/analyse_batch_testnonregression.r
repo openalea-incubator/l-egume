@@ -2,14 +2,11 @@
 
 
 
-#determiner le path du fichier
-args <- commandArgs(trailingOnly = F)  
-scriptPath <- normalizePath(dirname(sub("^--file=", "", args[grep("^--file=", args)])))
-#... marche pas?
+#determiner le path du fichier actuel et le recuper 
+dir <- dirname(rstudioapi::getSourceEditorContext()$path)
+#marche pas hors de rstudio/ligne de commande? (https://stackoverflow.com/questions/47044068/get-the-path-of-current-script)
 
-
-
-dir <- choose.dir()
+#dir <- choose.dir()
 #"C:\\devel\\l-egume\\legume\\test"
 
 

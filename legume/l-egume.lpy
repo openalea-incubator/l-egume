@@ -34,19 +34,19 @@ from openalea.plantgl.all import *
 import Obj3Dutils as o3d
 
 try:
-    from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
 try:
-    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
+    from .riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
 except:
     import RIRI5 as riri
 
 import RootDistrib as rtd
 import RootMorpho2 as rt
 import ShootMorpho as sh
-import daily_loop as loop 
+import daily_loop as loop
 import IOtable
 import IOxls
 import random
@@ -145,8 +145,8 @@ obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transp
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres
-opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calculé, mais pas applique)
-opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calculé, mais pas applique)
+opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
+opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
@@ -166,8 +166,8 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     DOY=DOYdeb
     meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','I0','Et0','Precip','Tsol'], 'DOY', val=DOY)
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
-    for k in meteo_j.keys(): meteo_j[k]=meteo_j[k][0]
-    for k in mng_j.keys(): mng_j[k]=mng_j[k][0]
+    for k in list(meteo_j.keys()): meteo_j[k]=meteo_j[k][0]
+    for k in list(mng_j.keys()): mng_j[k]=mng_j[k][0]
     
     
     TT = 0
@@ -363,13 +363,13 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv, type='damier8'):
     ncouches_sol = int(inis['ncouches_sol'])#4#10#30
     prof_sol_max = ncouches_sol*dz_sol#80.
     
-    discret_solXY = map(int, inis['discret_solXY'])#[10,10]# nb de discretisation du sol en X et en Y
+    discret_solXY = list(map(int, inis['discret_solXY']))#[10,10]# nb de discretisation du sol en X et en Y
     lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol/discret_solXY[0]]*discret_solXY[0], [largsol/discret_solXY[1]]*discret_solXY[1], [dz_sol/100.]*ncouches_sol])
     
     
     #3) discretisation au niveau aerien
     #creation des grid3D pour calcul de rayonnement
-    ls_gammagroup = map(int, riri.get_lsparami(ParamP, 'gammagroup'))
+    ls_gammagroup = list(map(int, riri.get_lsparami(ParamP, 'gammagroup')))
     setp = list(set(ls_gammagroup)) #set equivalent fonction r.unique!
     n_gamagroup = len(setp)
     
@@ -404,7 +404,7 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol, patter
     """ soil initialisation from L-py"""
     #vecteurs d'initialisation du sol
     Tsol = meteo_j['Tsol']#15. #degresC
-    num_nb = map(int, inis['num_nb'])#[6,6,18] #nbr de couche de chaque num de sol 
+    num_nb = list(map(int, inis['num_nb']))#[6,6,18] #nbr de couche de chaque num de sol 
     vsoilnumbers = [1]*num_nb[0]+[2]*num_nb[1]+[3]*num_nb[2] #convention autorise 3 types d'horizon max
     #vDA = [par_SN['DA'][0]]*num_nb[0] + [par_SN['DA'][1]]*num_nb[1] + [par_SN['DA'][2]]*num_nb[2] #densite apparente de sol
     vCN = [par_SN['CN0_30']]*num_nb[0] + [par_SN['CN30_60']]*num_nb[1] + [par_SN['CN60_90']]*num_nb[2] #maxi 3 horizons
@@ -466,7 +466,7 @@ def init_plant_residues(S, opt_residu, ParamP):
     if opt_residu==1:#initialisatio de residus
         
         #number of groupes?
-        ls_groupres = map(int, riri.get_lsparami(ParamP, 'groupe_resid'))
+        ls_groupres = list(map(int, riri.get_lsparami(ParamP, 'groupe_resid')))
         setg = list(set(ls_groupres)) #set equivalent fonction r.unique!
         n_groupres = len(setg)
         #recup 1 jeu de param pour chaque groupe
@@ -683,7 +683,7 @@ def init_outputs(ParamP, nbplantes,ncouches_sol):
     
     # 2) Variables dynamique localisee du sol
     #id couches sorties sol (grand rhizotron)
-    id_out = range(0,ncouches_sol)# tous les horizons verticaux#[0,1,4,11,17,25]# 5,10,25,60,90,130 cm, id de voxel dans le sol
+    id_out = list(range(0,ncouches_sol))# tous les horizons verticaux#[0,1,4,11,17,25]# 5,10,25,60,90,130 cm, id de voxel dans le sol
     nomprof = ['5', '10', '15', '20', '25', '30','35', '40', '45', '50', '55', '60','65', '70', '75', '80', '85', '90','95', '100', '105', '110', '115', '120','125', '130','135', '140', '145', '150', '155', '160','165', '170', '175', '180', '185', '190','195', '200'] #a adapter selon dz_sol..
     out_HR = [['var','DOY']+nomprof[0:ncouches_sol]]#[['DOY','HP5', 'HP10', 'HP25', 'HP60', 'HP90', 'HP130']]
     
@@ -732,7 +732,7 @@ def Start():
     S, Tsol, Uval, stateEV, b_ = init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,  pattern8, opt_residu, obstarac_)
     vCC = init_plant_residues(S, opt_residu, ParamP)
     #mat_res = 0.*S.m_1 #en faire 
-    ls_groupe_resid = map(int, riri.get_lsparami(ParamP, 'groupe_resid'))
+    ls_groupe_resid = list(map(int, riri.get_lsparami(ParamP, 'groupe_resid')))
     setr = list(set(ls_groupe_resid)) #set equivalent fonction r.unique!
     ls_mat_res = []
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des esidu de l'esp 1 seulement
@@ -812,7 +812,7 @@ def StartEach():
     m_lais_construct = zeros([n_gamagroup, na[2], na[1], na[0]])
     
     LAIp  = {}
-    for i in range(0, len(SurfprofilPlant[0].keys())): LAIp[i]=0.
+    for i in range(0, len(list(SurfprofilPlant[0].keys()))): LAIp[i]=0.
     SurfprofilPlant = [] #liste de LAIprofil par plante
     for i in range(nbplantes): SurfprofilPlant.append(deepcopy(LAIp))
     I_I0profilLfPlant = []
@@ -823,7 +823,7 @@ def StartEach():
     #if TT%TTcutFreq <STEPS:
     if mng_j['Coupe']==1:
         Hcut = mng_j['Hcut']
-        print ('cut ', Hcut)
+        print(('cut ', Hcut))
         isTTcut = True
         isRegrowth = True
         cutNB += 1
@@ -909,8 +909,8 @@ def EndEach(lstring,lscene):
     meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','I0','Et0','Precip','Tsol'], 'DOY', val=DOY)
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
     print (DOY)
-    for k in meteo_j.keys(): meteo_j[k]=meteo_j[k][0]
-    for k in mng_j.keys(): mng_j[k]=mng_j[k][0]
+    for k in list(meteo_j.keys()): meteo_j[k]=meteo_j[k][0]
+    for k in list(mng_j.keys()): mng_j[k]=mng_j[k][0]
     
     #print invar['rgeq']
     
@@ -1001,7 +1001,7 @@ def End(lstring,lscene):
     
     dicout['Lix'] = S.bilanN['cumLix']
     #dicout['N2O'] = S.bilanN['cumN2O']
-    dicout['UptPlt'] = map(sum, S.bilanN['cumUptakePlt']) 
+    dicout['UptPlt'] = list(map(sum, S.bilanN['cumUptakePlt'])) 
     dicout['azomes'] = S.bilanN['azomes']
     #serait a formater dans module sol
     
@@ -1022,13 +1022,13 @@ def End(lstring,lscene):
     #ecriture en sortie du profil racinaire
     if outf['resrootfile'] != 0.:
         resrootpath = os.path.join(path_out, resrootfile)#r'H:\devel\grassland\newres.csv'
-        f = file (resrootpath, 'w')#r'H:\devel\grassland\newres.csv'
+        f = open(resrootpath, 'w')#file (resrootpath, 'w')#r'H:\devel\grassland\newres.csv'
         IOtable.ecriture_csv(res_root, f)
         f.close()
     
     if outf['lsorgfile'] != 0.:
         lsorgpath = os.path.join(path_out, lsorgfile)#r'H:\devel\grassland\grassland\L-gume\lsAxes.csv'
-        f = file (lsorgpath, 'w')
+        f = open(lsorgpath, 'w')#file (lsorgpath, 'w')
         IOtable.ecriture_csv_fromlist(savelsOrgans,  f)#savelsOrgans=liste des lsOrgans pour chaque iteration #lsOrgans #lsAxes #lsApex #lsApexStop #ls_systrac[0] 
         f.close()
     
@@ -1047,7 +1047,7 @@ def End(lstring,lscene):
     
     if outf['outHRfile'] != 0. or outf['outFTSWfile'] != 0. or outf['outNO3file'] != 0. or outf['outNH4file'] != 0.:
         outHRpath = os.path.join(path_out, outHRfile)#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
-        f = file (outHRpath, 'w')
+        f = open(outHRpath, 'w')#file (outHRpath, 'w')
         IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
         f.close()
     
@@ -2100,7 +2100,7 @@ RS(nump, nsh, rankp, moduloH):
     idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
     if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #pivot: legume or non fixing-legume
         diampiv = max(0.1 ,invar_sc['ax']['DiampivMax'][idax]*(1-moduloH/ParamP[nump]['ZPivot_min']))
-    elif int(ParamP[nump]['type'])==3 : #fascilulé: grass
+    elif int(ParamP[nump]['type'])==3 : #fascilule: grass
         id = rt.idLong(moduloH+0.01, ParamP[nump]['profilRoot'])#rpy.r.idLong(l, ParamP[nump]['profilRoot'])
         larg = ParamP[nump]['profilRoot']['y'][id]#['y'][id[0]]#['y'][id]
         diampiv = max(0.1, larg)

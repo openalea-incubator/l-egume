@@ -14,17 +14,18 @@ try:
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'
 
-print ('path', path_)
+print(('path', path_))
 
 sys.path.insert(0, path_)
 import IOxls
 import IOtable
 
 
+global foldin, fxls, ongletBatch, fscenar
 #to define if used for multisimulation or non-regression tests
 opttest = 1#2#4#2#'autre'#3#'exemple'#0#13#
 if opttest == 1 or opttest==2 or opttest==3 or opttest==4: #si multisim des test de non regression (1 or 2)
-    global foldin, fxls, ongletBatch, fscenar
+    #global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
     fxls = 'liste_usms_nonregression.xls'
     fscenar = 'liste_scenarios.xls'
@@ -37,13 +38,13 @@ if opttest == 1 or opttest==2 or opttest==3 or opttest==4: #si multisim des test
     elif opttest == 4:#champ
         ongletBatch = 'test_champ'#
 elif opttest == 'exemple':
-    global foldin, fxls, ongletBatch, fscenar
+    #global foldin, fxls, ongletBatch, fscenar
     foldin = 'multisim'
     fxls = 'liste_usms_exemple.xls'
     ongletBatch = 'exemple'
     fscenar = 'liste_scenarios_exemple.xls'
 else: #other multisimulation to be defined (0)
-    global foldin, fxls, ongletBatch, fscenar
+    #global foldin, fxls, ongletBatch, fscenar
     #to be manually updated
     foldin = 'input'#'multisim'
     fxls = 'liste_usms_essais.xls'#'liste_usms_mix.xls'
@@ -186,12 +187,12 @@ nb_usms =len(names)#len(ls_usms['ID_usm'])#len(names)#
 def runlsystem(n):
     testsim[names[n]].derive()
     testsim[names[n]].clear()
-    print(''.join((names[n]," - done")))
+    print((''.join((names[n]," - done"))))
 
 def animatelsystem(n):
     testsim[names[n]].animate()
     testsim[names[n]].clear()
-    print(''.join((names[n]," - done")))
+    print((''.join((names[n]," - done"))))
 
 
 #run the L-systems
@@ -222,11 +223,11 @@ def animatelsystem(n):
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     CPUnb=multiprocessing.cpu_count()-1 #nombre de processeurs, moins un par prudence. (et pour pouvoir faire d'autres choses en meme temps)
-    print 'nb CPU: '+str(CPUnb)
+    print('nb CPU: '+str(CPUnb))
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(int(nb_usms)):
-        #pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
-        runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        pool.apply_async(runlsystem, args=(i,)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
         #animatelsystem(i)  # pour debug hors multisim (messages d'ereur + sortie archi visible)
     pool.close()
     pool.join()

@@ -66,12 +66,12 @@ def conv_list(tab):
     """ converti dictionnaireen liste de liste en ;  cle comme pemier element de la liste"""
     """ format compatible pour mes_csv"""
     dat = []
-    for i in tab.keys():
+    for i in list(tab.keys()):
         v = [i]
         dat.append(v)
 
     count = 0
-    for i in tab.keys():
+    for i in list(tab.keys()):
         for j in range(len(tab[i])):
             dat[count].append(tab[i][j])
 
@@ -166,7 +166,7 @@ def read_met_file(meteo_path, ongletM):
     #ongletM = 'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
     met = xlrd.open_workbook(meteo_path)
     meteo = conv_dataframe(get_xls_col(met.sheet_by_name(ongletM)))
-    for k in ['month', 'day', 'DOY']: meteo[k] = map(int, meteo[k])
+    for k in ['month', 'day', 'DOY']: meteo[k] = list(map(int, meteo[k]))
 
     return meteo
 
@@ -177,12 +177,12 @@ def modif_param(gx, ongletP, ongletScenar, idscenar, idlist=1, mn_sc=None):
     if ongletP == ongletScenar and idscenar > 0 and mn_sc != None:  # si onglet correspond a ongletscenat a modifier
         usc = xlrd.open_workbook(mn_sc)
         ls_sc = conv_dataframe(get_xls_col(usc.sheet_by_name(ongletScenar)))
-        nb_modif = len(ls_sc.keys()) - 1  # nb de param a modifier
-        ls_sc['id_scenario'] = map(int, ls_sc['id_scenario'])
+        nb_modif = len(list(ls_sc.keys())) - 1  # nb de param a modifier
+        ls_sc['id_scenario'] = list(map(int, ls_sc['id_scenario']))
 
         if nb_modif > 0:  # s'il y a des parametre a modifier
             idok = ls_sc['id_scenario'].index(idscenar)
-            keys_modif = ls_sc.keys()
+            keys_modif = list(ls_sc.keys())
             keys_modif.remove('id_scenario')
             for k in keys_modif:
                 if str(ls_sc[k][idok]) != '' or str(ls_sc[k][idok]) != 'NA':  # y a un valeur specifiee
@@ -212,9 +212,9 @@ def dic_sum(ls_dict):
     "somme par cle les element de dico d'un meme format ; e.g [{0: 0, 1: 1, 2: 2}, {0: 3, 1: 4, 2: 5}] "
     # prepa d'un dico nul avec meme cles
     res = {}
-    for k in ls_dict[0].keys(): res[k] = 0.
+    for k in list(ls_dict[0].keys()): res[k] = 0.
     # somme des dico
-    for k in ls_dict[0].keys():
+    for k in list(ls_dict[0].keys()):
         for i in range(len(ls_dict)):
             res[k] += ls_dict[i][k]
 
@@ -231,7 +231,7 @@ def append_dic(dic, key, element):
 
 def add_dic(dadd, dini):
     """ add the values of the k keys of a dictionary dadd to an existing dictionnary dini with the same keys - creates keys in dini if not already existing"""
-    for k in dadd.keys():
+    for k in list(dadd.keys()):
         try:
             dini[k] += dadd[k]
         except:
@@ -241,6 +241,6 @@ def add_dic(dadd, dini):
 
 def sum_ls_dic(dic):
     """ sum of the element by keys in a dictionnary of lists """
-    for k in dic.keys():
+    for k in list(dic.keys()):
         dic[k] = sum(dic[k])
 

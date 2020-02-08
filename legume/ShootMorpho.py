@@ -246,7 +246,7 @@ def calcSurfScale(ParamP, tab, scale):
         except:
             dp[idp] = [surf]
 
-    for k in dp.keys():
+    for k in list(dp.keys()):
         dp[k] = sum(dp[k])
 
     return dp
@@ -310,7 +310,7 @@ def calcSurfLightScales(ParamP, tab):
     IOxls.sum_ls_dic(dpPARaF)  # PARaF par plante
     IOxls.sum_ls_dic(dshPARaF)  # PARaF par shoot
     IOxls.sum_ls_dic(daxPARaF)  # PARaF par axe
-    for k in daxPARaFsurf.keys():
+    for k in list(daxPARaFsurf.keys()):
         daxPARaFsurf[k] = max(daxPARaFsurf[k])
 
     return dpS, dpSV, dshS, dshSV, daxS, daxSV, dpPARaF, dshPARaF, daxPARaF, daxAgePiv, daxPARaFsurf
@@ -389,7 +389,7 @@ def calcOffreC(ParamP, tab, scale):
             except:
                 dp[idp] = [float(tab['PARaF'][i]) * ParamP[nump]['RUE']]
 
-    for k in dp.keys():
+    for k in list(dp.keys()):
         dp[k] = sum(dp[k])
 
     return dp
@@ -549,8 +549,8 @@ def cumul_lenIN(tab, tabL, I_I0profilInPlant_, deltaI_I0, nbI_I0):
                 resL[id] = tabL['Long'][i] / 100.  # pass
 
     # mise a jour des longueur de tige par classe d'eclairement
-    for id in res.keys():
-        nump = map(int, string.split(id, '_'))[0]
+    for id in list(res.keys()):
+        nump = list(map(int, id.split('_')))[0]#list(map(int, string.split(id, '_')))[0]
         I_I0 = res[id]
         classI_I0 = min(int(I_I0 / deltaI_I0), nbI_I0 - 1)  # pour gerer cas du I_I0=1.
         try:
@@ -670,7 +670,7 @@ def calcLeafStemRatio(ParamP, tab, lsapexI):
             IOxls.append_dic(dp2, idp, MIn)
 
     # fait somme par plante de Lf et In, puis ratio
-    for k in dp.keys():
+    for k in list(dp.keys()):
         leafM = sum(dp[k])
         try:
             inM = sum(dp2[k]) + 0.00000000001

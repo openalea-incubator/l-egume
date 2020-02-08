@@ -231,7 +231,7 @@ if (not args.detail and id != -1) or args.detail: #tout sauf mode usm avec pb d'
 def runlsystem(testsim):
     testsim.derive()
     testsim.clear()
-    print(''.join((name," - done")))
+    print((''.join((name," - done"))))
 
 
 

@@ -145,7 +145,7 @@ class Soil(object):
         """
 
         self.dxyz = dxyz
-        size = map(len, dxyz)
+        size = list(map(len, dxyz))
         self.size = size[2:]+size[0:2] #z,x,y
         self.pattern = pattern8 #cm
         self.origin = array(pattern8[0]+[0.])/100. #m
@@ -306,16 +306,16 @@ class Soil(object):
                 calc.append(0.)
 
         calc = array(calc)/sum(calc)
-        array(range(nbcm))
+        array(list(range(nbcm)))
 
         #repartition dans les n strates du sol selon dxyz
         dics = {}
         for i in range(nbstratesZ):
-            dics[i] = array(range(nbcm))/100./v[i] >= 1.
+            dics[i] = array(list(range(nbcm)))/100./v[i] >= 1.
             dics[i] = dics[i]*1
 
         strate = array([0]*len(calc))
-        for k in dics.keys():
+        for k in list(dics.keys()):
             strate += dics[k]
 
         vsum = [0.]*nbstratesZ
@@ -385,15 +385,15 @@ class Soil(object):
 
         ## transpi 
         ls_roots_eff = effective_root_lengths(ls_roots, tresh = treshEffRoots)
-        ls_mask = map(mask, ls_roots_eff)#liste de masques racine
+        ls_mask = list(map(mask, ls_roots_eff))#liste de masques racine
         masked_aswt = multiply(mask(self.asw_t), self.asw_t) #pour sol, met a zero si teta sous wp
-        ls_masked_asw = map(multiply, ls_mask, [masked_aswt]*len(ls_mask))#pour chaque root system, asw(mm) si racine et teta> wp; zero sinon
-        ls_masked_tswt = map(multiply, ls_mask, [self.m_QH20max]*len(ls_mask))
-        ls_ftsw = map(divide, map(float, map(sum3, ls_masked_asw)), map(float, map(sum3, ls_masked_tswt)))
+        ls_masked_asw = list(map(multiply, ls_mask, [masked_aswt]*len(ls_mask)))#pour chaque root system, asw(mm) si racine et teta> wp; zero sinon
+        ls_masked_tswt = list(map(multiply, ls_mask, [self.m_QH20max]*len(ls_mask)))
+        ls_ftsw = list(map(divide, list(map(float, list(map(sum3, ls_masked_asw)))), list(map(float, list(map(sum3, ls_masked_tswt))))))
         ls_transp = Transpi_NC(Et0, ls_epsi, ls_ftsw, leafAlbedo, FTSWThreshold)
         #m_transpi = distrib_water_uptakeNC(self.asw_t, ls_masked_asw, ls_roots_eff, ls_transp)
         m_transpi, ls_m_transpi = distrib_water_uptakeNC(self, ls_masked_asw, ls_roots_eff, ls_transp)
-        ls_transp = map(sum, ls_m_transpi) #correct ls_trans with actual transpiration
+        ls_transp = list(map(sum, ls_m_transpi)) #correct ls_trans with actual transpiration
 
         ## evaporation
         #evapo_tot, state = soil_EV_1C(Et0, Precip, sum(ls_epsi), previous_state , leafAlbedo, U, b)
@@ -486,12 +486,12 @@ class Soil(object):
         print ("")
         print ("Water Balance Input (mm)\t\t\t\t\t Water Balance Output (mm)")
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Initial Soil Water:\t {0:8.1f}\t\t\t\t Final Soil Water:\t {1:8.1f}".format(bilanW['intialWC'], bilanW['FinalWC']))
-        print ("Precipitation:\t\t {0:8.1f}\t\t\t\t Transpiration:\t\t {1:8.1f}".format(bilanW['PPtot'], bilanW['Tranptot']))
-        print ("Irrigation:\t\t\t {0:8.1f}\t\t\t\t Evaporation:\t\t {1:8.1f}".format(bilanW['Irrigtot'],bilanW['EVtot']))
-        print ("                            \t\t\t\t Deep infiltration:\t {0:8.1f}".format(bilanW['Drainagetot']))
+        print(("Initial Soil Water:\t {0:8.1f}\t\t\t\t Final Soil Water:\t {1:8.1f}".format(bilanW['intialWC'], bilanW['FinalWC'])))
+        print(("Precipitation:\t\t {0:8.1f}\t\t\t\t Transpiration:\t\t {1:8.1f}".format(bilanW['PPtot'], bilanW['Tranptot'])))
+        print(("Irrigation:\t\t\t {0:8.1f}\t\t\t\t Evaporation:\t\t {1:8.1f}".format(bilanW['Irrigtot'],bilanW['EVtot'])))
+        print(("                            \t\t\t\t Deep infiltration:\t {0:8.1f}".format(bilanW['Drainagetot'])))
         print ("----------------------------\t\t\t\t ----------------------------")
-        print ("Total:\t\t\t\t {0:8.1f}\t\t\t\t Total:\t\t\t\t {1:8.1f}".format(bilanW['InputWtot'], bilanW['OutputWtot']))
+        print(("Total:\t\t\t\t {0:8.1f}\t\t\t\t Total:\t\t\t\t {1:8.1f}".format(bilanW['InputWtot'], bilanW['OutputWtot'])))
         print ("")
 
 
@@ -983,7 +983,7 @@ def effective_root_lengths(ls_roots, tresh = 0.5):
 #RLprofil = {0: 0.12450386886407872, 1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0}#sortie l-system
 def build_ls_roots(RLprofil, S):
     """ version 1 root system :a modifier pour prendre en compte une liste de RLprofil"""
-    idz = RLprofil.keys()
+    idz = list(RLprofil.keys())
     idz.sort()
     RLprofil_ls = []
     for i in idz: RLprofil_ls.append(RLprofil[i])
@@ -998,7 +998,7 @@ def build_ls_roots(RLprofil, S):
 def build_ls_roots_mult(RLprofil, S):
     """ version 2: prends en compte une liste de RLprofil"""
     nbp = len(RLprofil)
-    idz = RLprofil[0].keys()
+    idz = list(RLprofil[0].keys())
     idz.sort()
     ls_roots = []
     for p in range(nbp):
@@ -1078,7 +1078,7 @@ def test_uni1():
 
         ls_transp, evapo_tot, D, state,  m_frac_transpi, m_frac_evap, ls_ftsw =  S.stepWBmc(Et0, ls_roots, ls_epsi, Precip, Irrig, state, ZESX=ZESX, leafAlbedo=0.15, U=Uval, b=0.63, FTSWThreshold=0.4, treshEffRoots=0.5, opt=1)
 
-        print i, ls_ftsw, sum3(S.asw_t),  sum3(m_frac_evap), sum3(m_frac_transpi), state
+        print(i, ls_ftsw, sum3(S.asw_t),  sum3(m_frac_evap), sum3(m_frac_transpi), state)
 
     #    ##visu
     #    #bx = Box(Vector3(1.,1.,1.))
@@ -1147,6 +1147,6 @@ def test_uni2():
     #    MaScene = S2.plot_soil_properties (vals=S2.ftsw_t, MaScene=Scene(), col_scale=5)
     #    Monviewer.display(MaScene)
 
-    print (S2.ftsw_t)
+    print((S2.ftsw_t))
 
 #test_uni2()

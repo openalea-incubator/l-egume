@@ -127,7 +127,7 @@ def compute_normal_list(ind_ls, pt_ls, epsilon = 0.001):
 def mesh_points(geometry):
     """ get the mesh points of a geometry """
     g = mesh(geometry)
-    return map(array, g.pointList)
+    return list(map(array, g.pointList))
 
 def triangle_area(p1, p2, p3):
     """ compute surface area of a triangle """
@@ -184,7 +184,7 @@ def leg_leaf_lucas(Lmax, largmax, alpha=0., gamma=0., nfol=3, angfol=10., ecfol=
     # right = transformation(leaf, 1,1,1,-3.14/180*80,0,gamma, br/2.*Lmax, crois*Lmax,0)
     # left = transformation(leaf, 1,1,1,3.14/180*80,0,gamma, -br/2.*Lmax, crois*Lmax,0)
     listfol = [up] if nfol % 2 == 1 else []
-    for i in range(nr):  # nombre de paires de folioles lateraux
+    for i in range(int(nr)):  # nombre de paires de folioles lateraux
         ang = (angfol * -i) - 3.14 - anginit
         ecfolopp = (sin(ang) - sin(anginit)) * ecfol
         ecfoladj = (cos(ang) + cos(anginit)) * ecfol

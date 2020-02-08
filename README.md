@@ -5,8 +5,8 @@ README for L-egume
 This is L-egume model, a generic model of forage legume morphogenesis.
 
 See 
-Louarn, G., & Faverjon, L. (2018). A generic individual-based model to simulate morphogenesis, C–N acquisition and population dynamics in contrasting forage legumes. Annals of botany, 121(5), 875-896.
-Faverjon, L. (2018). Calibration et évaluation d’un modèle individu-centré générique de morphogenèse des légumineuses fourragères – Application à la prédiction des équilibres inter-spécifiques dans des communautés prairiales  expérimentales. PhD Thesis. Univ. Poitiers.
+Louarn, G., Faverjon, L. (2018). A generic individual-based model to simulate morphogenesis, C–N acquisition and population dynamics in contrasting forage legumes. Annals of botany, 121(5), 875-896.
+Faverjon, L. (2018). Calibration et evaluation d’un modele individu-centre generique de morphogenese des legumineuses fourrageres – Application a la prediction des equilibres inter-specifiques dans des communautes prairiales  experimentales. PhD Thesis. Univ. Poitiers.
 
 
 
@@ -23,7 +23,7 @@ To install and use *L-egume*, you need first to install the dependencies.
  
 #### 1.1.1 Install the dependencies on Windows 10 64 bit
 
-1. Install Python  2.7 using Anaconda 
+1. Install Python  3.6 using Anaconda 
 
     * go to https://www.anaconda.com/download/ 
     * click on "64-Bit Graphical Installer", 
@@ -35,11 +35,11 @@ To install and use *L-egume*, you need first to install the dependencies.
 		
 2. Create and Activate a conda environment using  'Anaconda Prompt':
 	* Open an 'Anaconda Prompt' console
-	* Create a new environment (e.g. py27_64) using the following command lines:
-		set CONDA_FORCE_32BIT=
-		conda create -n py27_64 python=2.7
+	* Create a new environment (e.g. py37_64) using the following command lines:
+		conda create -n py37_64 -c fredboudon -c conda-forge openalea.lpy openalea.mtg openalea.plantscan3D 
+		conda install openalea.lpy -c fredboudon -c conda-forge
 	* Activate the new environment using the following command line:
-		activate py27_64
+		activate py37_64
 
 
 3. Install scipy package (v1.1.0):  
@@ -54,10 +54,10 @@ To install and use *L-egume*, you need first to install the dependencies.
 5. Install OpenAlea L-py:  
 
     * go to https://github.com/openalea/lpy to check latest install recommendations for PlantGL
-    * in your acivated conda environment, install successively : 
-		conda install -c openalea openalea.lpy
+
 		
 	* To correct lpy console display bug:
+		(not required anymore after python 3)
 		- go to envs\nom_environnement\library\bin
 		- create a new file 'mylpy.bat'
 		- write inside the following command line:
@@ -165,14 +165,14 @@ For any question, send an email to <lgrass-request@groupes.renater.fr>.
 ## Versioning
 
 We use a Git repository on [SourceSup](https://sourcesup.renater.fr) for 
-versioning: https://sourcesup.renater.fr/projects/l-egume/.  
+versioning: https://sourcesup.renater.fr/projects/l-egume  
 If you need an access to the current development version of the model, please send 
 an email to <lgrass-request@groupes.renater.fr>.
-For versionning, use a git client and get git clone git+ssh://git@git.renater.fr:2222/l-egume.git SSH will is required
+For versionning, use a git client and get git clone git+ssh://glouarn@git.renater.fr:2222/scmrepos/git/l-egume/l-egume.git SSH will is required
 
 ## Authors
 
-**Gaëtan LOUARN**, **Lucas FAVERJON** - see file [AUTHORS](AUTHORS) for details
+**Gaetan LOUARN**, **Lucas FAVERJON** - see file [AUTHORS](AUTHORS) for details
 
 ## License
 
