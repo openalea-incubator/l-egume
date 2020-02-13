@@ -226,7 +226,7 @@ def calc_extinc_ray_multi(ls_vlai, I0, ls_k):
 def calc_extinc_allray_multi(ls_mlai, ls_triplets_dir ,ls_distf , I0, optsky=None):
     """ calcul extinction (profil de Iout) et absorption par espece pour des liste de voxel, regroupe par direction """
     """ presupose que ls_triplets tout ou partie d'un turtle 6 => dx=dy=dz / tan(0.4637) = 2*dz !"""
-    res = deepcopy(ls_triplets_dir) #liste des triplets de voxel par direction, associe a res_trans et res_abs_i
+    #res = deepcopy(ls_triplets_dir) #liste des triplets de voxel par direction, associe a res_trans et res_abs_i
 
     alfa_turtle6 = 0.4637 #radians / 26.57 degre
     # distribution de I0 entre sources

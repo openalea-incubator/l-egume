@@ -152,7 +152,7 @@ visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
-movDisplay = 0 # #sauvegarde toutes les vues pour faire un film
+movDisplay =0 # #sauvegarde toutes les vues pour faire un film
 
 
 #1 seul axe en developpemnt? -> arret
@@ -951,13 +951,12 @@ def EndEach(lstring,lscene):
     ls_mat_res = []
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des residus de l'esp 1 seulement
         ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
-    
-    
-    
-    
+		
+	  #def PostDraw():#lstring,lscene):
     #################
     # pour gerer les vues pour 1 film - lucas (movDisplay == 1)
     #################
+    #global DOY, path_out
     
     outimagepathtemp = os.path.join(path_out, 'scene_'+str(DOY)+'.bmp')#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
     if movDisplay == 1:
