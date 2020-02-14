@@ -940,25 +940,19 @@ def vert_roots(dxyz, lvopt):
 #effective_root_length(R2, 0.5)
 
 
-def effective_root_lengths(ls_roots, tresh = 0.5):
+def effective_root_lengths(ls_roots, tresh=0.5):
     """ for multiple root systems in competition
     H0 : perfect symetry locally (in a voxel) for ressource aquisition
     treshold of effective density similar to single species
     fraction of effective density to each species/plant = proportion of total root length density"""
     m = deepcopy(ls_roots)
     nb_r = len(ls_roots)
-    tot_root_dens = sum_mat(ls_roots) #sum bug
+    tot_root_dens = sum_mat(ls_roots)  # sum bug
     for rt in range(nb_r):
-        frac_root = divide(ls_roots[rt], tot_root_dens)## rq: gere bien les voxels vides
-        for z in range (len(ls_roots[rt])):
-            for x in range (len(ls_roots[rt][z])):
-                for y in range (len(ls_roots[rt][z][x])):
-                    if tot_root_dens[z][x][y]>tresh:
-                        m[rt][z][x][y] = tresh*ls_roots[rt][z][x][y]/tot_root_dens[z][x][y] #proportion de densite effective coreespondant a proportion locale de racines
-                    else:
-                        m[rt][z][x][y] = ls_roots[rt][z][x][y]
-    return m
+        # frac_root = divide(ls_roots[rt], tot_root_dens)## rq: gere bien les voxels vides
+        m[rt] = where(tot_root_dens > tresh, tresh * ls_roots[rt] / tot_root_dens, ls_roots[rt])
 
+    return m
 
 
 #RLprofil = {0: 0.12450386886407872, 1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0}#sortie l-system
