@@ -46,31 +46,12 @@ def sum_mat(ls_m):
 
     return s
 
-
 def mask(mat, tresh=0.):
-    """ retourne matrice masque de 0  et 1  
+    """ retourne matrice masque de 0  et 1
     utile pour root/no roots; asw/no asw """
-    m = deepcopy(mat)
-    if len(mat.shape)==3:
-        for z in range (len(mat)):
-            for x in range (len(mat[z])):
-                for y in range (len(mat[z][x])):
-                    if mat[z][x][y]>tresh:
-                        m[z][x][y]=1
-                    else:
-                        m[z][x][y]=0
-    elif len(mat.shape)==2:
-        for x in range (len(mat)):
-            for y in range (len(mat[x])):
-                if mat[x][y]>tresh:
-                    m[x][y]=1
-                else:
-                    m[x][y]=0
-    return m
-    #plus simplement:
-    #m = mat > tresh #marche pour tous les comparrateur = matrice de bool
+    #m = deepcopy(mat) #pas utile->mat cree nouvelle matrice
+    return where(mat > tresh, 1, 0)
     #m = m*1. #pour convertir en float
-    #return m
 
 #mask(R2)
 #mask(asw_t)
