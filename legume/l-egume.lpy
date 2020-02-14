@@ -1425,7 +1425,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
     rk = min(rk, len(ParamP[nump]['profilLeafI_l'])-1) #au cas ou profil pas assez long
     nf = ParamP[nump]['profilLeafI_nfol'][rk]
     ls_pts = []
-    if nf > 3 or surF >= 0.001:#10cm2
+    if nf > 3 or surF >= 0.0015:#15cm2
         cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
         Long  = ParamP[nump]['profilLeafI_l'][rk]*l*cor_ordre
         Larg = ParamP[nump]['profilLeafI_larg'][rk]*l*cor_ordre
@@ -1443,7 +1443,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             ls_pts[0][i] = pt + array([X0,Y0,Z0]) #translation point ini feuille
     
     #mise a jour Hmax
-    if nf > 3 or surF >= 0.001:#10cm2
+    if nf > 3 or surF >= 0.0015:#15cm2
         for i in range(len(ls_pts[0])):
             if ls_pts[0][i][2]>invar['Hplante'][nump]:
                 invar['Hplante'][nump] = ls_pts[0][i][2]
@@ -1477,7 +1477,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         newage = age+STEPS
         
         #calcul des PARif, PARaf et complete
-        if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee
+        if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee
             ls_vox, ls_strate, ls_PARif, ls_PARaF = [], [], [], []
             surf_elementaire = surF / float(len(ls_pts[0]))
             for i in range(len(ls_pts[0])):
@@ -1531,7 +1531,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         
         
         #profil vertical de surface
-        if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee
+        if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee
             surf_elementaire = surF / float(len(ls_pts[0]))
             for i in range(len(ls_pts[0])):
                 strate = ls_strate[i]
@@ -1541,7 +1541,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         
         
         if age> ParamP[nump]['spanSen'] : 
-            if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee 
+            if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
                 surf_elementaire = surF / float(len(ls_pts[0]))
                 for i in range(len(ls_pts[0])):
                     vox = ls_vox[i]
@@ -1553,7 +1553,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l,tt_omb,'sen',ordre)
         elif tt_omb> ParamP[nump]['ombF_Ttresh']:
             #print "ombre!"
-            if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee 
+            if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
                 surf_elementaire = surF / float(len(ls_pts[0]))
                 for i in range(len(ls_pts[0])):
                     vox = ls_vox[i]
@@ -1573,7 +1573,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 dl = pot*stressW*stressN
                 newsurF = sh.calc_surF(ParamP[nump], rank, rankp, ordre, l+dl)
                 
-                if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee 
+                if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
                     surf_elementaire = newsurF / float(len(ls_pts[0]))
                     for i in range(len(ls_pts[0])):
                         vox = ls_vox[i]
@@ -1584,7 +1584,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 stat = 'mat'if pot<0.005 and age>ParamP[nump]['delaiF'] else 'exp'
                 produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l+dl,tt_omb+adTTomb,stat,ordre)
             elif statut == 'mat':
-                if nf > 3 or surF >= 0.001:#10cm2#  #feuilles multifoliee 
+                if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
                     surf_elementaire = surF / float(len(ls_pts[0]))
                     for i in range(len(ls_pts[0])):
                         vox = ls_vox[i]
