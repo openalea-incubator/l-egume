@@ -8,9 +8,10 @@
 
 
 from numpy import linspace
-from scipy import array, exp, zeros, set_printoptions, pi, radians, cos, sin, tan, arccos, histogram
+from scipy import array, exp, zeros, ones, set_printoptions, pi, radians, cos, sin, tan, arccos, histogram
 from copy import deepcopy
 from numpy.random import seed, normal
+import numpy as np
 
 def get_lsparami(ParamP, param):
     """ recupere une liste des parametre param de chaque plante de L-egume """
@@ -275,6 +276,43 @@ def calc_extinc_allray_multi(ls_mlai, ls_triplets_dir ,ls_distf , I0, optsky=Non
     return res_trans_form, res_abs_i_form
 
 #sortir distribution de I0/ls_poids et ls_k (a passer en argument) pour une fonction fortan uniquement calcul
+
+
+def calc_extinc_allray_multi_reduced(ls_mlai, ls_triplets_dir, ls_distf, I0, optsky=None, opt='VXpXmYpYm'):
+    """ """
+
+    # combien/quelles lignes a zeros de LAI au dessus
+    laicum = np.sum(ls_mlai, axis=0)
+    laicumvert = np.sum(laicum, axis=(1, 2))
+    nb0 = 0  # nb de couches sans feuilles/LAI
+    for i in range(len(laicumvert)):
+        if laicumvert[i] == 0.:
+            nb0 += 1
+        else:
+            break
+
+    # ajouter un if sur nb0 ou le faire a chaque fois?
+    # redim des m_lai et triplets
+    shp = np.shape(ls_mlai)
+    reduced_mlai = []
+    for plt in range(shp[0]):
+        reduced_mlai.append(ls_mlai[plt, (nb0 - 1):shp[1], :, :])
+
+    reduced_triplets = get_ls_triplets(reduced_mlai[0], opt)
+    reduced_mlai = array(reduced_mlai)
+
+    # ls_distf = [riri.disttetaf(abs(45.), 0.), riri.disttetaf(abs(45.), 0.)]
+    res_trans_form_red, res_abs_i_form_red = calc_extinc_allray_multi(reduced_mlai, reduced_triplets, ls_distf, I0, optsky)
+
+    # expand matrices de sortie de nb0-1 couches sans faire les calculs
+    shpnew = np.shape(res_abs_i_form_red)
+    # zz = zeros((shpnew[0], (nb0-1), shpnew[2], shpnew[3]))
+    # oo = ones(((nb0-1), shpnew[2], shpnew[3]))*res_trans_form_red[0,0,0]
+    res_trans_form = np.concatenate((ones(((nb0 - 1), shpnew[2], shpnew[3])) * res_trans_form_red[0, 0, 0], res_trans_form_red), axis=0)
+    res_abs_i_form = np.concatenate((zeros((shpnew[0], (nb0 - 1), shpnew[2], shpnew[3])), res_abs_i_form_red), axis=1)
+
+    return res_trans_form, res_abs_i_form
+
 
 
 def k_teta_DC(mean_incl, elevations=[9.23,10.81,26.57,31.08,47.41,52.62,69.16,90]):

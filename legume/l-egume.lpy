@@ -147,10 +147,10 @@ opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
-visu_root=1#1# pour visualisation/interpretation root
-visu_shoot=1#1# pour visualisation/interpretation shoot
+visu_root=0#1# pour visualisation/interpretation root
+visu_shoot=0#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
-visu_solsurf=1#0 pour visualisation du pattern
+visu_solsurf=0#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
 movDisplay =0 # #sauvegarde toutes les vues pour faire un film
 
@@ -768,7 +768,7 @@ def Start():
 def StartEach():
     global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
     
-    global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr    
+    global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr, opt_sky    
     
     #calcul TT
     STEPS_ = sh.dTT(meteo_j['TmoyDay'], [ParamP[0]['Tdev'], ParamP[0]['Tmin'], ParamP[0]['Tmax'], ParamP[0]['q']]) #prend valeur de nump=0 -> reference pour la simulation!
@@ -797,7 +797,8 @@ def StartEach():
     
     #PAR / Blue voxel
     tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
-    local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi(*tag_light_inputs, optsky='soc')#(m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX, optsky='soc')
+    #local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi(*tag_light_inputs, optsky='soc')#(m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX, optsky='soc')
+    local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi_reduced(*tag_light_inputs, optsky='soc', opt=opt_sky)
     res_trans, res_abs_i = local_res_trans, local_res_abs_i #mise a jour variables globales
     
     #R_FR voxel (calcul de zeta)
