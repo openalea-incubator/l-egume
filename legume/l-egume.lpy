@@ -95,7 +95,7 @@ outfvar = IOxls.read_plant_param(path_outf, 'daily_outputs')
 
 
 #chemin des fichiers de sortie (doivent etre declares avant de lancer le L-system, pour pouvoir l'appeller en dehors de L-py)
-outvarfile = 'toto.csv'#'vglg-toto.csv'#r'H:\devel\grassland\grassland\L-gume\toto.csv'
+outvarfile = 'toto_.csv'#'vglg-toto.csv'#r'H:\devel\grassland\grassland\L-gume\toto.csv'
 lsorgfile = 'lsAxes.csv'#r'H:\devel\grassland\grassland\L-gume\lsAxes.csv'
 outimagefile = 'scene.bmp'#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
 outHRfile = 'outHR.csv'#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
