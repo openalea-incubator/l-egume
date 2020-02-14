@@ -33,7 +33,7 @@ from copy import deepcopy
 
 # fonctions diverses
 def sum3(mat):
-    return sum(sum(sum(mat)))
+    return mat.sum()#sum(sum(sum(mat)))
     ## pour gerer corectement les sommes totale un peu plus compliquee en muldim...
 
 
