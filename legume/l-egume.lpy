@@ -122,6 +122,7 @@ cote = 40.#100.#100#25.#25.#cm
 dz_aerien = 2.#2.#2.5#5.#7.5#10.#7.#cm dz vise
 Hmaxcouv = 150.#150.# 200. #cm
 latitude = 46.43 #Lusignan (degre) -> a passer dans le fichier inis
+tresh_LA = 0.0015 #0.0010 #=10cm2 #seuil de surface des feuilles pour separer les folioles dans la grille 3D
 
 obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transpose() #matice 2D de valeurs de profondeur d'obstacle en m #None #
 
@@ -147,10 +148,10 @@ opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
-visu_root=0#1# pour visualisation/interpretation root
-visu_shoot=0#1# pour visualisation/interpretation shoot
+visu_root=1#1# pour visualisation/interpretation root
+visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
-visu_solsurf=0#0 pour visualisation du pattern
+visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
 movDisplay =0 # #sauvegarde toutes les vues pour faire un film
 
@@ -224,25 +225,13 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     
     #2) ajout variabilite sd si opt_sd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
     #test pour esp 1, Len avec sd=0.5
-    sdpar = 0.5 #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
+    ls_sdpar = [0.5] #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
     ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
     if ongletScenar1 == 'default' and opt_sd == 1:
-        name1 = g4['name']
-        for nump in range(len(ParamP)):
-            if ParamP[nump]['name'] == name1:#issu du bon onglet
-                g = deepcopy(g4)
-                for parname in ls_parname:
-                    g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname] ,sdpar)) #seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
-                    ParamP[nump] = g #remplace par deepcopy
+        ParamP = IOxls.modif_ParamP_sd(ParamP, g4, ls_parname= ['Len'], ls_sdpar= [0.5])
     
     if ongletScenar2 == 'default' and opt_sd == 1:
-        name1 = g5['name']
-        for nump in range(len(ParamP)):
-            if ParamP[nump]['name'] == name1:#issu du bon onglet
-                g = deepcopy(g5)
-                for parname in ls_parname:
-                    g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname] ,sdpar)) #seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
-                    ParamP[nump] = g #remplace par deepcopy
+        ParamP = IOxls.modif_ParamP_sd(ParamP, g5, ls_parname= ['Len'], ls_sdpar= [0.5])
     #pour le moment parametres traites independemment
     #introduire correlation (genetique) via distribution multi-variee?
     
@@ -1426,7 +1415,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
     rk = min(rk, len(ParamP[nump]['profilLeafI_l'])-1) #au cas ou profil pas assez long
     nf = ParamP[nump]['profilLeafI_nfol'][rk]
     ls_pts = []
-    if nf > 3 or surF >= 0.0015:#15cm2
+    if nf > 3 or surF >= tresh_LA:#15cm2
         cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
         Long  = ParamP[nump]['profilLeafI_l'][rk]*l*cor_ordre
         Larg = ParamP[nump]['profilLeafI_larg'][rk]*l*cor_ordre
@@ -1444,7 +1433,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             ls_pts[0][i] = pt + array([X0,Y0,Z0]) #translation point ini feuille
     
     #mise a jour Hmax
-    if nf > 3 or surF >= 0.0015:#15cm2
+    if nf > 3 or surF >= tresh_LA:#15cm2
         for i in range(len(ls_pts[0])):
             if ls_pts[0][i][2]>invar['Hplante'][nump]:
                 invar['Hplante'][nump] = ls_pts[0][i][2]
@@ -1478,7 +1467,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         newage = age+STEPS
         
         #calcul des PARif, PARaf et complete
-        if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee
+        if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee
             ls_vox, ls_strate, ls_PARif, ls_PARaF = [], [], [], []
             surf_elementaire = surF / float(len(ls_pts[0]))
             for i in range(len(ls_pts[0])):
@@ -1532,7 +1521,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         
         
         #profil vertical de surface
-        if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee
+        if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee
             surf_elementaire = surF / float(len(ls_pts[0]))
             for i in range(len(ls_pts[0])):
                 strate = ls_strate[i]
@@ -1542,7 +1531,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         
         
         if age> ParamP[nump]['spanSen'] : 
-            if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
+            if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee 
                 surf_elementaire = surF / float(len(ls_pts[0]))
                 for i in range(len(ls_pts[0])):
                     vox = ls_vox[i]
@@ -1554,7 +1543,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
             produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l,tt_omb,'sen',ordre)
         elif tt_omb> ParamP[nump]['ombF_Ttresh']:
             #print "ombre!"
-            if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
+            if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee 
                 surf_elementaire = surF / float(len(ls_pts[0]))
                 for i in range(len(ls_pts[0])):
                     vox = ls_vox[i]
@@ -1574,7 +1563,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 dl = pot*stressW*stressN
                 newsurF = sh.calc_surF(ParamP[nump], rank, rankp, ordre, l+dl)
                 
-                if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
+                if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee 
                     surf_elementaire = newsurF / float(len(ls_pts[0]))
                     for i in range(len(ls_pts[0])):
                         vox = ls_vox[i]
@@ -1585,7 +1574,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 stat = 'mat'if pot<0.005 and age>ParamP[nump]['delaiF'] else 'exp'
                 produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l+dl,tt_omb+adTTomb,stat,ordre)
             elif statut == 'mat':
-                if nf > 3 or surF >= 0.0015:#15cm2#  #feuilles multifoliee 
+                if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee 
                     surf_elementaire = surF / float(len(ls_pts[0]))
                     for i in range(len(ls_pts[0])):
                         vox = ls_vox[i]
