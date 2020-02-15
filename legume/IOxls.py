@@ -1,4 +1,6 @@
 import xlrd
+from copy import deepcopy
+import random
 #from rpy_options import set_options
 #set_options(RHOME='c:/progra~1/R/R-2.12.1')
 #from rpy import r
@@ -192,6 +194,23 @@ def modif_param(gx, ongletP, ongletScenar, idscenar, idlist=1, mn_sc=None):
                         gx[k][idlist] == ls_sc[k][idok]
     return gx
 
+
+
+def modif_ParamP_sd(ParamP, g4, ls_parname, ls_sdpar):
+    #ls_sdpar = [0.5]  # ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
+    #ls_parname = ['Len']  # liste a recuperer via un fichier d'entree
+    name1 = g4['name']
+    for nump in range(len(ParamP)):
+        if ParamP[nump]['name'] == name1:  # issu du bon onglet
+            g = deepcopy(g4)
+            for j in range(len(ls_parname)):
+                parname = ls_parname[j]
+                g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname], ls_sdpar[j]))  # seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
+                #!! ici a revoir car certain parametre pruvent etre negatifs + peut vouloir rirer dans differentes lois de distrib!
+                ParamP[nump] = g
+
+    return ParamP
+    # modif_ParamP_sd(ParamP, g4, ls_parname= ['Len'], ls_sdpar= [0.5])
 
 
 def dic2vec(nbplantes, dic):
