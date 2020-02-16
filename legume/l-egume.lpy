@@ -101,7 +101,7 @@ outimagefile = 'scene.bmp'#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
 outHRfile = 'outHR.csv'#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
 outBilanNfile = 'BilanN.csv'#r'H:\devel\grassland\grassland\L-gume\BilanN.csv'
 resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
-
+outsdfile = 'paramsd.csv'#file for distrubtion of parameters sd
 
 
 #initialisation des variables globale de simulation
@@ -1020,6 +1020,14 @@ def End(lstring,lscene):
         f = open(lsorgpath, 'w')#file (lsorgpath, 'w')
         IOtable.ecriture_csv_fromlist(savelsOrgans,  f)#savelsOrgans=liste des lsOrgans pour chaque iteration #lsOrgans #lsAxes #lsApex #lsApexStop #ls_systrac[0] 
         f.close()
+    
+    if outf['outsdfile'] != 0. and opt_sd==1:# valeur de parametres par plante 
+        ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
+        res_sd = {'nump':range(0,len(riri.get_lsparami(ParamP, 'name')))}
+        for p in ls_parname:
+            res_sd[p] = riri.get_lsparami(ParamP, p)
+        
+        IOtable.write_dict(res_sd, path_out, outsdfile)
     
     if outf['outvarfile'] != 0.:
         outvarpath = os.path.join(path_out, outvarfile)#r'H:\devel\grassland\grassland\L-gume\toto.csv'
