@@ -190,7 +190,8 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
   modelesp1 <- smooth.spline(xx, tabmoy$YEsp1)
   intesp1 = sum(predict(modelesp1, seq(0,1,0.001))$y*0.001) - (tabmoy$YEsp1[1]+tabmoy$YEsp1[7])/2
   
-  modelesp2 <- smooth.spline(xx, tabmoy$YEsp2)
+  #modelesp2 <- smooth.spline(xx, tabmoy$YEsp2)
+  modelesp2 <- tryCatch(smooth.spline(xx, tabmoy$YEsp2), error=function(e) smooth.spline(xx, tabmoy$YEsp2, nknots =5))
   intesp2 = sum(predict(modelesp2, seq(0,1,0.001))$y*0.001) - (tabmoy$YEsp2[1]+tabmoy$YEsp2[7])/2
   
   #cacul des autres indices
