@@ -19,15 +19,15 @@ machine.
 
 To install and use *L-egume*, you need first to install the dependencies.
 
-*L-egume* has been tested on Windows 7/10 64bit.
+*L-egume* has been tested on Windows 10 64bit.
  
 #### 1.1.1 Install the dependencies on Windows 10 64 bit
 
-1. Install Python  3.6 using Anaconda 
+1. Install Python  3.7 using Anaconda 
 
     * go to https://www.anaconda.com/download/ 
     * click on "64-Bit Graphical Installer", 
-    * download "Anaconda2-2018.12-Windows-x86_64.exe" and install it selecting the following options:
+    * download "Anaconda3-2020.02-Windows-x86_64.exe" and install it selecting the following options:
         * install for all users,
         * default destination directory,
         * install all subfeatures, including subfeature "Add python.exe to Path".
@@ -57,7 +57,6 @@ To install and use *L-egume*, you need first to install the dependencies.
 
 		
 	* To correct lpy console display bug:
-		(not required anymore after python 3)
 		- go to envs\nom_environnement\library\bin
 		- create a new file 'mylpy.bat'
 		- write inside the following command line:
@@ -80,7 +79,7 @@ it, i.e. you just want to used it as third party package.
 To install *L-egume* in "end-user" mode:
 
 * open and activate a conda environment with installed dependencies,
-* go to your local copy of project *L-egume* (you can get the latest version from https://sourcesup.renater.fr/projects/l-egume/),
+* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/openalea-incubator/l-egume/),
 * run command: `python setup.py install --user`.
 
 #### 1.2.2 Install *L-egume* in "develop" mode (recommended: will handle shortcuts)
@@ -92,7 +91,7 @@ changes to take effect immediately.
 To install *L-egume* in "develop" mode:
 
 * open and activate a conda environment with installed dependencies,
-* go to your local copy of project *L-egume* (you can get the latest version from https://sourcesup.renater.fr/projects/l-egume/),
+* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/openalea-incubator/l-egume/),
 * run command: `python setup.py develop --user`.
 
 ### 1.3 Running
@@ -119,7 +118,7 @@ To build the user and reference guides:
 * install the model (see [Installation of the model](installing "Installing")), 
 * open a command line interpreter,
 * go to the top directory of your local copy of the project,
-* run this command: `python setup.py build_sphinx`,
+* (To be done: run this command: `python setup.py build_sphinx`),
 * and direct your browser to file `doc/_build/html/index.html`.
 
 ## 3. Testing
@@ -140,7 +139,7 @@ To run the test :
 * install the model (see [Installation of the model](installing "Installing")), 
 * open a command line interpreter,
 * go to the directory `test` of your local copy of the project,
-* and run this command: `python test_lgrass.py`.
+* (To be done: and run this command: `python test_legume.py`).
 
 ## Built With
 
@@ -149,14 +148,14 @@ To run the test :
 
 ## Contributing
 
-First, send an email to <lgrass-request@groupes.renater.fr> to be added to the project.  
+First, send an email to <gaetan.louarn @ inrae.fr> to be added to the project.  
 
 Then,
  
 * check for open issues or open a fresh issue to start a discussion around a
   feature idea or a bug: https://sourcesup.renater.fr/tracker/?group_id=3957.
 * If you feel uncomfortable or uncertain about an issue or your changes, feel
-  free to email <lgrass@groupes.renater.fr>.
+  free to email <gaetan.louarn @ inrae.fr>.
 
 ## Contact
 
@@ -164,11 +163,11 @@ For any question, send an email to <lgrass-request@groupes.renater.fr>.
 
 ## Versioning
 
-We use a Git repository on [SourceSup](https://sourcesup.renater.fr) for 
-versioning: https://sourcesup.renater.fr/projects/l-egume  
+We use a Git repository of OpenAlea on [GitHub](https://github.com/openalea-incubator/) for 
+versioning: https://github.com/openalea-incubator/l-egume  
 If you need an access to the current development version of the model, please send 
-an email to <lgrass-request@groupes.renater.fr>.
-For versionning, use a git client and get git clone git+ssh://glouarn@git.renater.fr:2222/scmrepos/git/l-egume/l-egume.git SSH will is required
+an email to <gaetan.louarn @ inrae.fr>.
+For versionning, use a git client and get git clone git+git@github.com:openalea-incubator/l-egume.git SSH will is required
 
 ## Authors
 
