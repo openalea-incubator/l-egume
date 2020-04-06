@@ -12,7 +12,6 @@ path_out = os.path.join(path_, 'output')#r'C:\devel\grassland'#r'H:\devel\grassl
 sys.path.insert(0, path_)
 sys.path.insert(0, path_leg)
 
-
 #from rpy_options import set_options
 #set_options(RHOME='c:/progra~1/R/R-2.12.1')
 #from rpy import r
@@ -50,8 +49,7 @@ import daily_loop as loop
 import IOtable
 import IOxls
 import random
-
-
+import pandas as pd
 
 ## lecture fichier meteo
 #faire une fonction??
@@ -81,10 +79,17 @@ ongletS = 'lusignan99'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'
 par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
 par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg en irrigue!
 
-#lecture scenario (si changement de parametres)
+#lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
 ongletScenar1 = 'default'#'Fix2'#'nonFixSimTest'#'default'#'formica'#
 ongletScenar2 = 'default'#'nonFixSimTest'#'nonFix1'#'default'#'formica'#
+
+# lecture scenario variabilite intra et variables associees
+path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
+variance_geno = pd.read_excel(path_variance_geno)
+ls_parname = list(variance_geno.columns[1:])
+#ls_sdpar = list(pd.read_excel(path_variance_geno).iloc[(0)][ls_parname])
+#moy_modif=3.4875000000000003
 
 #lecture fichiers et variables de sortie
 path_outf = os.path.join(path_leg,'mod_susm.xls')#
@@ -113,9 +118,11 @@ deltalevsd = 15
 
 nbcote = 8#1#10
 optdamier = 4
-typearrangement='homogeneous'#'damier8'#
+typearrangement='damier8'#'homogeneous'#
 idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
+idscenar1_sd = 2
+idscenar2_sd = 2
 opt_sky = 'VXpXmYpYm'#'V'#
 
 cote = 40.#100.#100#25.#25.#cm
@@ -225,13 +232,29 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     
     #2) ajout variabilite sd si opt_sd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
     #test pour esp 1, Len avec sd=0.5
-    ls_sdpar = [0.5] #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
-    ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
-    if ongletScenar1 == 'default' and opt_sd == 1:
-        ParamP = IOxls.modif_ParamP_sd(ParamP, g4, ls_parname= ['Len'], ls_sdpar= [0.5])
+    #ls_sdpar = [0.5] #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
+    #ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
     
-    if ongletScenar2 == 'default' and opt_sd == 1:
-        ParamP = IOxls.modif_ParamP_sd(ParamP, g5, ls_parname= ['Len'], ls_sdpar= [0.5])
+    if opt_sd == 1:
+        #test modif bea
+        sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
+        ls_parname_g4 = list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
+        ls_sdpar_g4 = sd_fichier_g4.loc[sd_fichier_g4["id_scenario"] == idscenar1_sd][ls_parname_g4][0:]
+        ls_sdpar_g4 = ls_sdpar_g4.iloc[0]
+        
+        sd_fichier_g5 = pd.read_excel(path_variance_geno, sheet_name=ongletPvois)
+        ls_parname_g5 = list(sd_fichier_g5.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
+        ls_sdpar_g5 = sd_fichier_g5.loc[sd_fichier_g5["id_scenario"] == idscenar2_sd][ls_parname_g5][0:]
+        ls_sdpar_g5 = ls_sdpar_g5.iloc[0]
+        
+        #print(ls_sdpar_g5, ls_sdpar_g4)
+        #print(ls_parname_g5, ls_parname_g4)
+        
+        #ParamP = IOxls.modif_ParamP_sd(ParamP, g4, ls_parname= ['Len'], ls_sdpar= [0.5])
+        #ParamP = IOxls.modif_ParamP_sd(ParamP, g5, ls_parname= ['Len'], ls_sdpar= [0.5])
+        ParamP = IOxls.modif_ParamP_sd(ParamP, g4, ls_parname=  ls_parname_g4, ls_sdpar=ls_sdpar_g4)
+        ParamP = IOxls.modif_ParamP_sd(ParamP, g5, ls_parname=  ls_parname_g5, ls_sdpar=ls_sdpar_g5)
+    
     #pour le moment parametres traites independemment
     #introduire correlation (genetique) via distribution multi-variee?
     
@@ -463,6 +486,7 @@ def init_plant_residues(S, opt_residu, ParamP):
         for i in range(len(setg)):
             for nump in range(nbplantes):
                 if ParamP[nump]['groupe_resid']==setg[i]:
+                    ParamP[nump]['CNRES'] = [ParamP[nump]['CNRESlf'], ParamP[nump]['CNRESst'], ParamP[nump]['CNRESr'], ParamP[nump]['CNRESpiv']]
                     CNRES = CNRES + ParamP[nump]['CNRES']
                     CC = CC + ParamP[nump]['CC']
                     WC = WC + ParamP[nump]['WC']
@@ -473,6 +497,7 @@ def init_plant_residues(S, opt_residu, ParamP):
         if len(setg)==1: #si 1 seul grope, met qd meme un deuxieme residu de meme type pour pas planter
             for nump in range(nbplantes):
                 if ParamP[nump]['groupe_resid']==setg[0]:
+                    ParamP[nump]['CNRES'] = [ParamP[nump]['CNRESlf'], ParamP[nump]['CNRESst'], ParamP[nump]['CNRESr'], ParamP[nump]['CNRESpiv']]
                     CNRES = CNRES + ParamP[nump]['CNRES']
                     CC = CC + ParamP[nump]['CC']
                     WC = WC + ParamP[nump]['WC']
@@ -1023,7 +1048,9 @@ def End(lstring,lscene):
     
     if outf['outsdfile'] != 0. and opt_sd==1:# valeur de parametres par plante 
         ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
-        res_sd = {'nump':range(0,len(riri.get_lsparami(ParamP, 'name')))}
+        nbp = len(riri.get_lsparami(ParamP, 'name'))
+        res_sd = {'nump':range(0,nbp)}
+        res_sd['retard'] = test_retard[0:nbp]
         for p in ls_parname:
             res_sd[p] = riri.get_lsparami(ParamP, p)
         

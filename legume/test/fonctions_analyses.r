@@ -82,12 +82,13 @@ Build_AverageScTable <- function(dtoto, keysc)
   sc <- strsplit(keysc," ")[[1]][1]
   mix <- strsplit(keysc," ")[[1]][2]
   mng <- strsplit(keysc," ")[[1]][3]
+  sd_ <- strsplit(keysc," ")[[1]][4]
   #recup d'un scenario
   #sc <- '1-1'
   #mix <- 'Fix2-nonFixSimTest'
   #mng <- 'Lusignan30IrrN2'
   
-  res <- dtoto[dtoto$scenario==sc & dtoto$mix==mix & dtoto$Mng==mng, ]
+  res <- dtoto[dtoto$scenario==sc & dtoto$mix==mix & dtoto$Mng==mng & dtoto$sd==sd_, ]
   
   #calcul des valeurs moyennes
   x <- by(res$YEsp1, as.factor(res$densite1), mean)
@@ -183,16 +184,22 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
     {labx <- 'Actual proportion (Sp. 1)'}
   }
   
-  #calcul des fits des valeurs moyennes
-  modeltot <- smooth.spline(xx, tabmoy$Ytot)
-  inttot = sum(predict(modeltot, seq(0,1,0.001))$y*0.001) - (tabmoy$Ytot[1]+tabmoy$Ytot[7])/2
+  #esp pures
+  moyesp1_pur <- mean(tabmoy[tabmoy$Semprop1==1., c("Ytot")])
+  moyesp2_pur <- mean(tabmoy[tabmoy$Semprop1==0., c("Ytot")])
   
-  modelesp1 <- smooth.spline(xx, tabmoy$YEsp1)
-  intesp1 = sum(predict(modelesp1, seq(0,1,0.001))$y*0.001) - (tabmoy$YEsp1[1]+tabmoy$YEsp1[7])/2
+  #calcul des fits des valeurs moyennes
+  #modeltot <- smooth.spline(xx, tabmoy$Ytot)
+  modeltot <- tryCatch(smooth.spline(xx, tabmoy$Ytot), error=function(e) smooth.spline(xx, tabmoy$Ytot, nknots =5))
+  inttot = sum(predict(modeltot, seq(0,1,0.001))$y*0.001) - (moyesp1_pur + moyesp2_pur)/2
+  
+  #modelesp1 <- smooth.spline(xx, tabmoy$YEsp1)
+  modelesp1 <- tryCatch(smooth.spline(xx, tabmoy$YEsp1), error=function(e) smooth.spline(xx, tabmoy$YEsp1, nknots =5))
+  intesp1 = sum(predict(modelesp1, seq(0,1,0.001))$y*0.001) - (moyesp1_pur + 0)/2
   
   #modelesp2 <- smooth.spline(xx, tabmoy$YEsp2)
   modelesp2 <- tryCatch(smooth.spline(xx, tabmoy$YEsp2), error=function(e) smooth.spline(xx, tabmoy$YEsp2, nknots =5))
-  intesp2 = sum(predict(modelesp2, seq(0,1,0.001))$y*0.001) - (tabmoy$YEsp2[1]+tabmoy$YEsp2[7])/2
+  intesp2 = sum(predict(modelesp2, seq(0,1,0.001))$y*0.001) - (0 + moyesp2_pur)/2
   
   #cacul des autres indices
   ids <- CalcOpt(modeltot , xx, tabmoy$Ytot)
@@ -210,15 +217,18 @@ YtotvsProp <- function(tabmoy, Ymax=2200, nom="", optProp="sowing",visuplot=T, v
     plot(xx, tabmoy$Ytot, ylim=c(0,Ymax), xlab=labx, ylab='Shoot biomass (g.m-2)', main=nom, ...)
     #segments(tabmoy$Semprop1, tabmoy$Ytot, tabmoy$Semprop1, tabmoy$Ytot+tabmoy$Ytotsd)
     #segments(tabmoy$Semprop1, tabmoy$Ytot, tabmoy$Semprop1, tabmoy$Ytot-tabmoy$Ytotsd)
-    segments(xx[1], tabmoy$Ytot[1], xx[7], tabmoy$Ytot[7], lty=2)
+    #segments(xx[1], tabmoy$Ytot[1], xx[7], tabmoy$Ytot[7], lty=2)
+    segments(xx[1], moyesp2_pur, xx[7], moyesp1_pur, lty=2)
     lines(modeltot)
     
     points(xx, tabmoy$YEsp1,col=col2)
-    segments(xx[1], tabmoy$YEsp1[1], xx[7], tabmoy$YEsp1[7], lty=2, col=col2)
+    #segments(xx[1], tabmoy$YEsp1[1], xx[7], tabmoy$YEsp1[7], lty=2, col=col2)
+    segments(xx[1], 0, xx[7], moyesp1_pur, lty=2, col=col2)
     lines(modelesp1, col=col2)
     
     points(xx, tabmoy$YEsp2,col=4)
-    segments(xx[1], tabmoy$YEsp2[1], xx[7], tabmoy$YEsp2[7], lty=2, col=4)
+    #segments(xx[1], tabmoy$YEsp2[1], xx[7], tabmoy$YEsp2[7], lty=2, col=4)
+    segments(xx[1], moyesp2_pur, xx[7], 0, lty=2, col=4)
     lines(modelesp2, col=4)
     
   }
@@ -373,4 +383,87 @@ OverYvsAll <- function(ls_tabmoys, key, Ymax=300, nom="", optProp="sowing", visu
   resy <- cbind(resy,saveyy)
   data.frame(x=as.numeric(resx), y=as.numeric(resy))
 }
+
+
+
+
+Which_decile <- function(valparams)
+{
+  #to find in which decile is a value in a distribution
+  qt <- quantile(valparams, probs=seq(0, 1, 0.1))
+  qt1 <- as.numeric(valparams<=qt[[2]])*1
+  qt2 <- as.numeric(valparams>qt[[2]] & valparams<=qt[[3]])*2
+  qt3 <- as.numeric(valparams>qt[[3]] & valparams<=qt[[4]])*3
+  qt4 <- as.numeric(valparams>qt[[4]] & valparams<=qt[[5]])*4
+  qt5 <- as.numeric(valparams>qt[[5]] & valparams<=qt[[6]])*5
+  qt6 <- as.numeric(valparams>qt[[6]] & valparams<=qt[[7]])*6
+  qt7 <- as.numeric(valparams>qt[[7]] & valparams<=qt[[8]])*7
+  qt8 <- as.numeric(valparams>qt[[8]] & valparams<=qt[[9]])*8
+  qt9 <- as.numeric(valparams>qt[[9]] & valparams<=qt[[10]])*9
+  qt10 <- as.numeric(valparams>qt[[10]])*10
+  qtn <- qt1+qt2+qt3+qt4+qt5+qt6+qt7+qt8+qt9+qt10
+  qtn
+}
+
+
+My_AreaPlot <- function(don, titre="", xlab="x", ylab="y", lscol="")
+{
+  #area plot
+  #prends un dataframe don avec x en colonne 1 et les n colonnes de y a mettre en ordre decroissnt (+couleur)
+  
+  xmin <- min(don[,1])
+  xmax <- max(don[,1])
+  cumtot <- as.numeric(rowSums(as.matrix(don[,2:dim(don)[2]])))
+  ymax <- max(cumtot)
+  
+  plot(-100,-100, ylim=c(0,ymax), xlim=c(xmin,xmax), xlab=xlab, ylab=ylab, main=titre)
+  
+  for (i in 2:dim(don)[2])
+  {
+    #i <- 2
+    cumi <- as.numeric(rowSums(as.matrix(don[,i:dim(don)[2]])))
+    x <- c(xmin, don[,1], xmax)
+    y <- c(0, cumi,0)
+    col <- if(lscol != "") lscol[i] else i #genere warnings
+    polygon(x,y,col=col)
+  }
+  
+}
+
+
+PlotDynMStot <- function(MStot, sp_tabSD, sp, lscol="", titre="", ymax=28)
+{
+  # plot dynamique de MStot au cours du temps par plante avec couleur selon decile
+  plot(-10, -10, xlim=c(1,dim(MStot)[1]), ylim=c(0,ymax), main=titre, xlab="t", ylab="MStot")
+  for (i in 1:length(sp_tabSD[[sp]]$nump))
+  {
+    nump <- sp_tabSD[[sp]]$nump[i]
+    col <- if(lscol != "") lscol[sp_tabSD[[sp]]$decile[i]] else i #genere warnings
+    points(1:dim(MStot)[1], MStot[,nump+1], col=col, type='l')
+  }
+}
+
+
+Build_EvolProportions <- function(MStot, sp_tabSD, sp)
+{
+  #consrtuction d'un tableau res des proportion par decile d'une espece
+  
+  # 1 MStot esp au cour du temps
+  dynMtotsp <- as.numeric(rowSums(as.matrix(MStot[,sp_tabSD[[sp]]$nump+1])))
+  res <- data.frame(dynMtotsp, t=1:dim(MStot)[1])
+  # 2 ajout des proportion pour chaque decile
+  for (dec in 10:1)
+  {
+    #dec <-9 #numero de decile
+    lsp <- sp_tabSD[[sp]][sp_tabSD[[sp]]$decile==dec, c("nump")]
+    #lsp+1
+    
+    frac <- as.numeric(rowSums(as.matrix(MStot[,lsp+1])))*100 / dynMtotsp
+    res <- cbind(res, frac)
+  }
+  names(res) <- c("MStot_esp","t", "dec10", "dec9", "dec8", "dec7", "dec6", "dec5", "dec4", "dec3", "dec2", "dec1")
+  
+  res
+}
+
 

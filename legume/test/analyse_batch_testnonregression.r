@@ -18,7 +18,7 @@ source(paste(dir, "fonctions_mef.r",sep="\\"))
 #dir0 <- paste(dir, "control_v1.0",sep="\\")
 dir0 <- paste(dir, "previouscheck",sep="\\")
 dirlast <-  paste(dir, "lastcheck",sep="\\")
-
+#dirlast <- paste(dir, "test2",sep="\\")
 
 
 #recupere dico de reference (a refaire si ajoute vaiables...)
@@ -31,17 +31,31 @@ ls_files <- list.files(dirlast)#(dir0)#
 
 #recupere la liste des toto file names du dossier de travail
 ls_toto <- ls_files[grepl('toto', ls_files)]
+ls_paramSD <- ls_files[grepl('paramSD', ls_files)]
+
+
 
 #creation du dataFrame dtoto et recup des info fichier
-dtoto <- as.data.frame(t(as.data.frame(strsplit(ls_toto, '_'))))#[,c(2,3,6,7,8,9,10)]
+
+
+#11 col (avec sd)
+cols_ <- strsplit(ls_toto, '_')
+test_long <- as.numeric(lapply(cols_, length)) #pour separer selon nb de champs (avec sd)
+
+dtoto <- as.data.frame(t(as.data.frame(cols_[test_long==11])))#as.data.frame(t(as.data.frame(strsplit(ls_toto, '_'))))#
 row.names(dtoto) <- 1: length(dtoto[,1])
-dtoto <- dtoto[,c(2,3,4,5,6,7,8)]
-names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed')
-dtoto$name <- ls_toto
+dtoto <- dtoto[,c(2,3,4,5,6,7,8,10)]
+names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed','sd')
+dtoto$name <- ls_toto[test_long==11]
 dtoto$seed <- substr(as.character(dtoto$seed), 1, 1)
 dtoto$scenario <- substr(as.character(dtoto$scenario), 9, nchar(as.character(dtoto$scenario)))
-dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng)# ajout d'une cle unique par scenario
+
+#dtoto <- rbind(temp, dtoto) #merge des 2
+dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng, dtoto$sd)# ajout d'une cle unique par scenario
 #dtoto$damier <- as.numeric(substr(as.character(dtoto$damier), 7, 7))
+
+
+
 
 #split de dtoto et stockage dans une liste de scenatios
 sp_dtoto <- split(dtoto, dtoto$keysc)
@@ -279,7 +293,7 @@ sp_dtotoref <- split(dtotoref, dtotoref$keysc)
 
 #
 #nomvar <- "QNtot" #"Ytot"# 
-#keysc <- names(sp_dtoto)[1]
+#keysc <- names(sp_dtoto)[4]
 
 plot_nonregression <- function(dtoto, dtotoref, nomvar)
 {
@@ -336,26 +350,74 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 
 #Constant Final Yield Law (Fig 6.1a Louarn & Faverjon 2018)
 cexval <- 1.5
-x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30IrrN"]]
+x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30IrrN -"]]
 plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield - Fix2")
-x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30"]]
+x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30 -"]]
 points(x$densite2, x$Ytot, pch=16,cex=cexval)
-x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30Irr"]]
+x <- sp_dtoto[["-1--1 Fix2-Fix2 Lusignan30Irr -"]]
 points(x$densite, x$Ytot, col='grey', pch=16,cex=cexval)
 
 #avec mineralisation des residu active
-x <- sp_dtoto[["1-1 Fix2-Fix2 Lusignan30IrrN"]]
+x <- sp_dtoto[["1-1 Fix2-Fix2 Lusignan30IrrN -"]]
 plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield - Fix2 - Resid+")
 
 #pour TB
-x <- sp_dtoto[["-1--1 giga-giga Lusignan30IrrN"]]
+x <- sp_dtoto[["-1--1 giga-giga Lusignan30IrrN -"]]
 plot(x$densite2, x$Ytot, xlab='Seeding density (plant.m-2)', ylab='Aboveground production (g.m-2)', ylim=c(0,2200),cex=cexval,cex.lab=cexval, main="Constant Final Yield - giga")
 
 
 
-#Neutral binary mixture
-tabmoy <- Build_AverageScTable(dtoto, keysc="55-1 Fix2-nonFixSimTest Lusignan30IrrN2")
-YtotvsProp(tabmoy, nom="55-1 Fix2-nonFixSimTest Lusignan30IrrN2")
+#Neutral binary mixture avec fixation
+tabmoy <- Build_AverageScTable(dtoto, keysc="55-1 Fix2-nonFixSimTest Lusignan30IrrN2 -")
+YtotvsProp(tabmoy, nom="55-1 Fix2-nonFixSimTest Lusignan30IrrN2 -")
+
+
+#Neutral mixture sans fixation with intraspecific variability
+tabmoy <- Build_AverageScTable(dtoto, keysc="55-3 Fix2-nonFixSimTest Lusignan30IrrN2 SD2-2")
+YtotvsProp(tabmoy, nom="55-3 Fix2-nonFixSimTest Lusignan30IrrN2 SD2-2")
+
+#lecture fichier toto 50/50 (dat) 
+key <- "55-3 Fix2-nonFixSimTest Lusignan30IrrN2 SD2-2"
+damier <- "damier4" #50/50
+ls_toto_paquet <- sp_dtoto[[key]]$name
+ls_toto_paquetOK <- ls_toto_paquet[grepl(damier, ls_toto_paquet)]
+ltoto <- read_ltoto(ls_toto_paquetOK)
+IDfichier <- 1
+nomfichier <- names(ltoto)[IDfichier]
+dat <- ltoto[[nomfichier]]
+num_usm <- strsplit(nomfichier, '_')[[1]][2]
+scenar <- strsplit(nomfichier, '_')[[1]][6]
+graine <- strsplit(nomfichier, '_')[[1]][8]
+secenarSD <- strsplit(nomfichier, '_')[[1]][10]
+esps <- strsplit(nomfichier, '_')[[1]][4]
+
+#lecture du fichier paramSD de l'USM dans tabSD
+nomSD <- ls_paramSD[grepl(num_usm, ls_paramSD)]
+param_name <- "Len"
+tabSD <- read.table(nomSD, header=T, sep=';')
+MStot <- dat[dat$V1=='MStot',3:(3+nb-1)] #ajout de MStot
+tabSD$MStotfin <- as.numeric(MStot[275,])
+
+#split de tabSD par espece et ajout des deciles
+sp_tabSD <- split(tabSD, tabSD$name)
+lscol10 <- colorRampPalette(c("blue", "red"))( 11 ) #palette de couleur des deciles
+sp <- unique(as.character(tabSD$name))[1]#"Fix2"#"nonFixSimTest"#
+valparams <- sp_tabSD[[sp]][,c(param_name)]
+sp_tabSD[[sp]]$decile <- Which_decile(valparams)
+sp <- unique(as.character(tabSD$name))[2]#"nonFixSimTest"#
+valparams <- sp_tabSD[[sp]][,c(param_name)]
+sp_tabSD[[sp]]$decile <- Which_decile(valparams)
+
+
+#plot Area par espece
+for (sp in names(sp_tabSD))
+{
+  res <- Build_EvolProportions(MStot, sp_tabSD, sp)
+  don <- res[,2:12] #t et les deciles
+  titre <- paste(sp, num_usm, scenar, secenarSD, damier, graine)#esps,
+  My_AreaPlot(don, titre=titre, xlab="t", ylab=paste("decile ", param_name), lscol=rev(lscol10))
+}
+
 
 
 #non egression par variable
