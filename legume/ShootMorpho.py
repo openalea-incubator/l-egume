@@ -596,6 +596,10 @@ def damier8(p, vois, opt=4):
         motif = [p, vois, vois, vois, vois, vois, vois, vois]
     elif opt == 7:  # 7/8
         motif = [vois, p, p, p, p, p, p, p]
+    elif opt == 3:  # 5/8
+        motif = [vois, p, p, vois, p, vois, p, p]
+    elif opt == 5:  # 3/8
+        motif = [p, vois, vois, p, vois, p, vois,vois]
 
     res = []
     for i in range(8):
