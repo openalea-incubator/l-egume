@@ -712,6 +712,29 @@ Calc_RCI_coeff <- function(YEsp1, densite1, iso_ind)
 #Calc_RCI_coeff(x$YEsp2, x$densite2, iso2$YEsp2/iso2$densite2)
 
 
+Calc_CEi <- function(Nb,M,deltaRY)
+{
+  #complementarity effect (Hector et Loreau, 2001)
+  #Nb: nb sp du melange
+  #M: vecteur des rendement en pur par sp du melange
+  # deltaRY: vecteur delta de RY par sp du melange
+  CEi <- Nb*mean(M)*mean(deltaRY)
+  CEi
+}
+
+Calc_SEi <- function(Nb,M,deltaRY)
+{
+  #selection effect (Hector et Loreau, 2001)
+  #Nb: nb sp du melange
+  #M: vecteur des rendement en pur par sp du melange
+  # deltaRY: vecteur delta de RY par sp du melange
+  SEi <- Nb*cov(deltaRY, M)
+  SEi
+}
+
+
+
+
 #### fonctions de plot
 
 Plt_Yresp_densite1 <- function(x, res, titre="")
@@ -807,4 +830,31 @@ Plot_OneOne_prop <- function(x, parameters1, parameters2, dmax=400., titre="")
 
 
 
+
+Plot_resCE_SE <- function(resCE_SE, titre="")
+{
+  #faire le plot - CE-SE (indices Loreau) pour une diag
+  #resCE_SE <- data.frame(Semprop1=x$Semprop1, OYa=x$OYa, CE, SE)
+  
+  plot(resCE_SE$Semprop1, resCE_SE$OYa, ylim=c(-400,400), type='b', ylab="OYa", xlab="Prop1", main=titre)
+  #ajouter les surfaces! (un peu transparentes?)
+  
+  x <- c(0., resCE_SE$Semprop1, 1.)
+  y <- c(0, resCE_SE$CE+resCE_SE$SE,0)
+  col <- rgb(0,0,1,1/4)#4
+  polygon(x,y,col=col)
+  x <- c(0., resCE_SE$Semprop1, 1.)
+  y <- c(0, resCE_SE$CE,0)
+  col <- rgb(1,0,0,1/4)#2
+  polygon(x,y,col=col)
+  points(resCE_SE$Semprop1, resCE_SE$OYa)
+  segments(0,0, 1,0, lty=2)
+  
+  text(0.5,-200,paste("mean CE: ", round(mean(resCE_SE$CE),1)), col=2)
+  text(0.5,-250,paste("mean SE: ", round(mean(resCE_SE$SE),1)), col=4)
+  text(0.5,-300,paste("mean aOY: ", round(mean(resCE_SE$OYa),1)))
+  #pourrait calculer les max!
+  
+}
+#Plot_resCE_SE(resCE_SE, titre="")
 
