@@ -481,11 +481,19 @@ Build_EvolProportions <- function(MStot, sp_tabSD, sp)
 ########### functions competition coefficient indices
 # Sackeville Hamilton 2001
 
+Yresp_densite1 <- function(a ,b, densite)
+{
+  # eq 2.3 - sackeville hamilton exprimee en reponse au Ytot
+  Ytot = densite/(a+b*densite)
+  Ytot
+}
+
+
 Calc_Beta_coeff_Jul <- function(x)
 {
   #x = tableau dtoto des culture pure avec Ytot, densite, nbplt et surfsolref
   # eq 2.3 - sackeville hamilton
-  #par fir lineaire
+  #par fit lineaire sur l'inverse plant
   MY_plant1 <- x$Ytot/x$nbplt*x$surfsolref
   mod1 <- lm(1/MY_plant1 ~ x$densite)
   a1 <- as.data.frame(summary(mod1)[["coefficients"]])$Estimate[1] #intercept
@@ -497,20 +505,15 @@ Calc_Beta_coeff_Jul <- function(x)
 } 
 #inconvenient: sensible aux point pHD, parfois valeur negative de beta
 #avantage: plan simple en 2 points de densite utilisable (isole/dense pur)
+#Calc_Beta_coeff_Jul(pur1)
+#Calc_Beta_coeff_Jul(pur2)
 
-
-
-Yresp_densite1 <- function(a ,b, densite)
-{
-  # eq 2.3 - sackeville hamilton exprimee en reponse au Ytot
-  Ytot = densite/(a+b*densite)
-  Ytot
-}
 
 Calc_Beta_coeff <- function(x)
 {
   #x = tableau dtoto des culture pure avec Ytot, densite, nbplt et surfsolref
   # eq 2.3 - sackeville hamilton sous forme non lineaire
+  #par fit non lineaire
   
   startlist <- list(a=0.01, b=0.0004)
   model1 <- nls(Ytot~Yresp_densite1(a ,b, densite), data=x, start=startlist )
@@ -524,16 +527,15 @@ Calc_Beta_coeff <- function(x)
   res
 }
 
-Calc_Beta_coeff_Jul(pur1)
-Calc_Beta_coeff_Jul(pur2)
 
-Calc_Beta_coeff(pur1)
-Calc_Beta_coeff(pur2)
+#Calc_Beta_coeff(pur1)
+#Calc_Beta_coeff(pur2)
 
 
 Yresp_densite2 <- function(a ,beta, gamma, densite1, densite2)
 {
   # eq 2.4 - sackeville hamilton exprimee en reponse au Yespi a densite de deux espece
+  #par modele lineaire sur inverse rendement
   inv_Yi = a + a*beta*densite1 + a*gamma*densite2
   inv_Yi
 }
@@ -547,16 +549,25 @@ Yresp_densite2 <- function(a ,beta, gamma, densite1, densite2)
 #}
 #marche pas plus... seule sur diag
 
+Yresp_densite2bis <- function(a ,beta, gamma, densite1, densite2)
+{
+  # eq 2.4 - sackeville hamilton exprimee en reponse au Yespi a densite de deux espece
+  #par modele non lineaire
+  Yesp1 = densite1 / (a + a*beta*densite1 + a*gamma*densite2)
+  Yesp1
+}
+#Yresp_densite2bis(a ,beta, gamma, densite1, densite2)
 
 
-
-Calc_Gamma_coeffesp12 <- function(x, iso1, iso2, res1, res2)
+Calc_Gamma_coeffesp12 <- function(x, iso1, iso2, res1, res2, free=F)
 {
   # x = tableau dtoto des culture pure et associee avec Ytot, densite1, densite2, Yesp1, Yesp2, nbplt et surfsolref
   # iso1 et iso2: ligne equivalente avec valeur des plantes isolee
   #res1 et res2: resultats des fits des reponses en pur des especes 
   # !!: actuellement: force a et beta values lors du fit de Yi~Yresp_densite2
   # fit eq 2.4 
+  #free = T -> laisse fitter les 3 params
+  #avec reponse non lineaire
   
   #Esp1
   df <- x[,c("YEsp1", "densite1", "densite2")]
@@ -570,13 +581,22 @@ Calc_Gamma_coeffesp12 <- function(x, iso1, iso2, res1, res2)
   
   #avec nls en forcant beta et a!
   startlist <- list(a=res1[["a"]], beta=res1[["beta"]], gamma=0.002)
-  minis <- c(res1[["a"]],res1[["beta"]],-1.)
-  maxis <- c(res1[["a"]],res1[["beta"]],1.)
-  #minis <- c(0.,res1[["beta"]],0.)
-  #maxis <- c(1.,res1[["beta"]],1.)
-  #minis <- c(0.,0.,0.)
-  #maxis <- c(1.,1.,1.)
-  model1 <- nls(inv_Yi~Yresp_densite2(a ,beta, gamma, densite1, densite2), data=df, start=startlist ,trace=TRUE,algorithm="port",lower=minis,upper=maxis)
+  if (free==F)
+  {
+    #force a et beta
+    minis <- c(res1[["a"]],res1[["beta"]],-1.)
+    maxis <- c(res1[["a"]],res1[["beta"]],1.)
+  } else
+  {
+    #fit libre borne
+    #minis <- c(0.,res1[["beta"]],0.)
+    #maxis <- c(1.,res1[["beta"]],1.)
+    minis <- c(0.,0.,-1.)
+    maxis <- c(10.,1.,1.)
+  }
+  
+  #model1 <- nls(inv_Yi~Yresp_densite2(a ,beta, gamma, densite1, densite2), data=df, start=startlist ,trace=TRUE,algorithm="port",lower=minis,upper=maxis)
+  model1 <- nls(YEsp1~Yresp_densite2bis(a ,beta, gamma, densite1, densite2), data=df, start=startlist ,trace=TRUE,algorithm="port",lower=minis,upper=maxis)
   parameters1 <- summary(model1)[["parameters"]]
   #yes! rq: forcage de a change pas grand chose
   
@@ -594,13 +614,20 @@ Calc_Gamma_coeffesp12 <- function(x, iso1, iso2, res1, res2)
   names(df) <- c("YEsp1", "densite2", "densite1", "inv_Yi")
   
   startlist <- list(a=res2[["a"]], beta=res2[["beta"]], gamma=0.002)
-  minis <- c(res2[["a"]],res2[["beta"]],-1.)
-  maxis <- c(res2[["a"]],res2[["beta"]],1.)
-  #minis <- c(0.,res2[["beta"]],0.)
-  #maxis <- c(1.,res2[["beta"]],1.)
-  #minis <- c(0.,0.,0.)
-  #maxis <- c(1.,1.,1.)
-  model2 <- nls(inv_Yi~Yresp_densite2(a ,beta, gamma, densite1, densite2), data=df, start=startlist ,trace=TRUE,algorithm="port",lower=minis,upper=maxis)
+  if (free==F)
+  {
+    minis <- c(res2[["a"]],res2[["beta"]],-1.)
+    maxis <- c(res2[["a"]],res2[["beta"]],1.)
+  } else
+  {
+    #minis <- c(0.,res2[["beta"]],0.)
+    #maxis <- c(1.,res2[["beta"]],1.)
+    minis <- c(0.,0.,-1.)
+    maxis <- c(10.,1.,1.)
+  }
+  
+  #model2 <- nls(inv_Yi~Yresp_densite2(a ,beta, gamma, densite1, densite2), data=df, start=startlist ,trace=TRUE,algorithm="port",lower=minis,upper=maxis)
+  model2 <- nls(YEsp1~Yresp_densite2bis(a ,beta, gamma, densite1, densite2), data=df, start=startlist ,trace=TRUE,algorithm="port",lower=minis,upper=maxis)
   parameters2 <- summary(model2)[["parameters"]]
   
   res <- list(model1, model2, parameters1, parameters2)
@@ -613,6 +640,7 @@ Calc_Gamma_coeffesp12 <- function(x, iso1, iso2, res1, res2)
 #resg <- Calc_Gamma_coeffesp12(x, iso1, iso2, res1, res2)
 #Calc_Gamma_coeffesp12(all, iso1, iso2, res1, res2)
 #Calc_Gamma_coeffesp12(tribas, iso1, iso2, res1, res2)
+
 
 
 Calc_Sij_coefficients <- function(res1, res2, parameters1, parameters2)
@@ -704,12 +732,12 @@ Plt_Yresp_densite1 <- function(x, res, titre="")
 
 
 
-Plot_diag_respFitsd1d2 <- function(x, parameters1, parameters2, dmax=400.)
+Plot_diag_respFitsd1d2 <- function(x, parameters1, parameters2, dmax=400., titre="")
 {
   # Plot des ajustement de gamma sur une diagonale de dispositif de deWit (substitution)
   # x=data.frame de donnee, parameters1 et 2: fits des 2 especes
   
-  plot(x$densite1, x$Ytot, ylim=c(0,2300), main=dmax)
+  plot(x$densite1, x$Ytot, ylim=c(0,2300), main=titre)
   points(x$densite1, x$YEsp1, col=2)
   points(x$densite1, x$YEsp2, col=4)
   
@@ -730,12 +758,12 @@ Plot_diag_respFitsd1d2 <- function(x, parameters1, parameters2, dmax=400.)
 #Plot_diag_respFitsd1d2(x, parameters1, parameters2, dmax=400.)
 
 
-Plot_OneOne_Resp_dtot <- function(x, parameters1, parameters2, dmax=400.)
+Plot_OneOne_Resp_dtot <- function(x, parameters1, parameters2, dmax=400.,titre="")
 {
   # Plot des ajustement de gamma sur la diagonale 1:1 (50/50 semis) (additif) - pour Ytot
   # x=data.frame de donnee, parameters1 et 2: fits des 2 especes
   
-  plot(x$densite1+x$densite2, x$Ytot, ylim=c(0,2300), main=paste("50/50 sowing"), xlim=c(0, max(x$densite1+x$densite2)))
+  plot(x$densite1+x$densite2, x$Ytot, ylim=c(0,2300), main=titre, xlim=c(0, max(x$densite1+x$densite2)))
   
   vals <- Yresp_densite2(a = parameters1[1], beta=parameters1[2], gamma=parameters1[3], densite1=seq(0,dmax,1.), densite2=seq(0,dmax,1.))
   Yesp1 <- (1/vals)*seq(0,dmax,1.)
@@ -753,12 +781,12 @@ Plot_OneOne_Resp_dtot <- function(x, parameters1, parameters2, dmax=400.)
 #graph pas bon?? -> si 
 
 
-Plot_OneOne_prop <- function(x, parameters1, parameters2, dmax=400.)
+Plot_OneOne_prop <- function(x, parameters1, parameters2, dmax=400., titre="")
 {
   # Plot des ajustement de gamma sur la diagonale 1:1 (50/50 semis) (additif) - pour proportions d'especes
   # x=data.frame de donnee, parameters1 et 2: fits des 2 especes
   
-  plot(x$densite1+x$densite2, x$YEsp1/x$Ytot, ylim=c(0,1), main="", xlim=c(0, max(x$densite1+x$densite2)), xlab="",ylab="sp prop", col=2, cex.axis=0.8)
+  plot(x$densite1+x$densite2, x$YEsp1/x$Ytot, ylim=c(0,1), main=titre, xlim=c(0, max(x$densite1+x$densite2)), xlab="",ylab="sp prop", col=2, cex.axis=0.8)
   points(x$densite1+x$densite2, x$YEsp2/x$Ytot, col=4)
   
   vals <- Yresp_densite2(a = parameters1[1], beta=parameters1[2], gamma=parameters1[3], densite1=seq(0,dmax,1.), densite2=seq(0,dmax,1.))
