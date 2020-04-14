@@ -733,6 +733,64 @@ Calc_SEi <- function(Nb,M,deltaRY)
 }
 
 
+Calc_CESE_diag <- function(diag)
+{
+  #calculate CE and SE coeffcicient (Hector et Loreau 2001) 
+  # for a tabmoy or diag of a scenario (1 seed), with minimum pure controls ans 1 mixture
+  
+  x <- diag
+  
+  x$M1 <- x[x$Semprop1==1.,c("YEsp1")] #yield esp pur1 (meme densite) 
+  x$M2 <- x[x$Semprop1==0.,c("YEsp2")] #yield esp pur2 (meme densite) 
+  
+  #x$deltaRY1 <- x$Yprop1 - x$Semprop1
+  #x$deltaRY2 <- x$Yprop2 - (1-x$Semprop1)
+  x$deltaRY1 <- x$YEsp1/x$M1-x$Semprop1
+  x$deltaRY2 <- x$YEsp2/x$M2 - (1-x$Semprop1)
+  
+  x$Ytheo1 <- x$M1*x$Semprop1
+  x$Ytheo2 <- x$M2*(1-x$Semprop1)
+  x$Yteo <- x$Ytheo1  + x$Ytheo2
+  x$Ytot - x$Yteo
+  x$OYa <- x$Ytot - x$Yteo#x$YEsp1 - x$Semprop1*x$M1 + x$YEsp2 - (1-x$Semprop1)*x$M2
+  
+  #somme des RYi*Mi obs - somme des RYi/Mi theo
+  #(x$M1 * x$YEsp1/x$M1 + x$M2 * x$YEsp2/x$M2) - (x$M1 * x$Semprop1 + x$M2 *(1-x$Semprop1))
+  # bon!
+  #somme avec les deltaRY
+  #x$M1 * (x$YEsp1/x$M1-x$Semprop1) + x$M2*(x$YEsp2/x$M2 - (1-x$Semprop1))
+  #x$M1 * x$deltaRY1 + x$M2*x$deltaRY2
+  # bon!
+  
+  #selection des liste de vecteur des asso (retire purs)
+  ls_vdeltaRY <- x[, c("deltaRY1", "deltaRY2")]
+  ls_vM <- x[, c("M1", "M2")]
+  
+  #calcul par couvert
+  CE <- NULL
+  SE <- NULL
+  for (i in 1:length(ls_vdeltaRY[,1]))
+  {
+    #i <-2 #numero ligne
+    Nb <- length(ls_vdeltaRY[i,])
+    M <- as.numeric(ls_vM[i,])
+    deltaRY <- as.numeric(ls_vdeltaRY[i,])
+    
+    CEi <- Calc_CEi(Nb,M,deltaRY) # Nb*mean(M)*mean(deltaRY)
+    SEi <- Calc_SEi(Nb,M,deltaRY)# Nb*cov(deltaRY, M)
+    CE <- rbind(CE, CEi)#rbind(CE, CEi/Nb)
+    SE <- rbind(SE, SEi)#rbind(SE, SEi/Nb)
+    #facteur 2 (Nb qui traine) -> #c'est reference qu'est somme pas moy des cultures pures ! 
+    #?OY = CE+0.5*SE
+    
+  }
+  
+  x$CE <- CE
+  x$SE <- SE
+  x
+}
+
+
 
 
 #### fonctions de plot
@@ -840,7 +898,7 @@ Plot_resCE_SE <- function(resCE_SE, titre="")
   #ajouter les surfaces! (un peu transparentes?)
   
   x <- c(0., resCE_SE$Semprop1, 1.)
-  y <- c(0, resCE_SE$CE+resCE_SE$SE,0)
+  y <- c(0, resCE_SE$SE*0.5,0)#+resCE_SE$SE
   col <- rgb(0,0,1,1/4)#4
   polygon(x,y,col=col)
   x <- c(0., resCE_SE$Semprop1, 1.)
@@ -851,7 +909,7 @@ Plot_resCE_SE <- function(resCE_SE, titre="")
   segments(0,0, 1,0, lty=2)
   
   text(0.5,-200,paste("mean CE: ", round(mean(resCE_SE$CE),1)), col=2)
-  text(0.5,-250,paste("mean SE: ", round(mean(resCE_SE$SE),1)), col=4)
+  text(0.5,-250,paste("mean SE: ", round(0.5*mean(resCE_SE$SE),1)), col=4)
   text(0.5,-300,paste("mean aOY: ", round(mean(resCE_SE$OYa),1)))
   #pourrait calculer les max!
   
