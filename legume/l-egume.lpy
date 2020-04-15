@@ -2085,7 +2085,7 @@ Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
             parname = 'Len' 
             parval = ParamP[nump][parname] #test_retard[nump]#
             vals = riri.get_lsparami(ParamP, parname) #test_retard#
-            col = 30 + int(7* (parval - min(vals)) / (max(vals) -  min(vals)))
+            col = 30 + int(7* (parval - min(vals)) / (max(vals)+10E-12 -  min(vals)))
 
 
         #choix du geom
