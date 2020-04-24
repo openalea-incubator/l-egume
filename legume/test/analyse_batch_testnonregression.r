@@ -47,7 +47,7 @@ row.names(dtoto) <- 1: length(dtoto[,1])
 dtoto <- dtoto[,c(2,3,4,5,6,7,8,10)]
 names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed','sd')
 dtoto$name <- ls_toto[test_long==11]
-dtoto$seed <- substr(as.character(dtoto$seed), 1, 1)
+dtoto$seed <- as.numeric(as.character(dtoto$seed))#substr(as.character(dtoto$seed), 1, 1)
 dtoto$scenario <- substr(as.character(dtoto$scenario), 9, nchar(as.character(dtoto$scenario)))
 
 #dtoto <- rbind(temp, dtoto) #merge des 2

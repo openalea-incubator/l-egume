@@ -18,6 +18,61 @@ read_ltoto <- function(ls_toto)
 }
 
 
+read_lsSD_MStot <- function(ltoto, ls_paramSD)
+{
+  #lit la liste des fichier Sd et les MStot pour une liste de ltoto
+  
+  ls_MStot <- vector("list",length(ltoto))
+  names(ls_MStot) <- names(ltoto)
+  
+  
+  ls_tabSD <- vector("list",length(ltoto))
+  names(ls_tabSD) <- names(ltoto)
+  
+  for (nomfichier in names(ltoto))
+  {
+    dat <- ltoto[[nomfichier]]
+    
+    num_usm <- strsplit(nomfichier, '_')[[1]][2]
+    scenar <- strsplit(nomfichier, '_')[[1]][6]
+    graine <- strsplit(nomfichier, '_')[[1]][8]
+    secenarSD <- strsplit(nomfichier, '_')[[1]][10]
+    esps <- strsplit(nomfichier, '_')[[1]][4]
+    titre <- paste(num_usm, scenar, secenarSD,  damier, graine)#esps, 
+    
+    #lecture fichier paramSD de l'USM dans tabSD
+    nomSD <- ls_paramSD[grepl(num_usm, ls_paramSD)]
+    param_name <- "Len"
+    tabSD <- read.table(nomSD, header=T, sep=';')
+    
+    nb <- dim(dat)[2]-2
+    MStot <- dat[dat$V1=='MStot',3:(3+nb-1)] #ajout de MStot
+    tabSD$MStotfin <- as.numeric(MStot[dim(MStot)[1],])#derniere ligne
+    tabSD$id <- titre
+    tabSD$graine <- graine
+    
+    #split de tabSD par espece et ajout des decile
+    sp_tabSD <- split(tabSD, tabSD$name)
+    
+    sp <- unique(as.character(tabSD$name))[1]#"Fix2"#"nonFixSimTest"#
+    valparams <- sp_tabSD[[sp]][,c(param_name)]
+    sp_tabSD[[sp]]$decile <- Which_decile(valparams)
+    sp <- unique(as.character(tabSD$name))[2]#"nonFixSimTest"#
+    valparams <- sp_tabSD[[sp]][,c(param_name)]
+    sp_tabSD[[sp]]$decile <- Which_decile(valparams)
+    
+    tabSD <- do.call("rbind", sp_tabSD)
+    
+    #stocke dans ls_tabSD et ls_MStot
+    ls_tabSD[[nomfichier]] <- tabSD
+    ls_MStot[[nomfichier]] <- MStot
+  }
+  res <- list(ls_tabSD, ls_MStot)
+  names(res) <- c("ls_tabSD","ls_MStot")
+  res
+}
+
+
 
 ## fonction de mise en formse des simule
 
