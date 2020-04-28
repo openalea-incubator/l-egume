@@ -1300,6 +1300,7 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
     #print nump, age #malgre retard, tous les A ont le meme age
     if age >= phylloPot/(0.00001+stressW*stressN): # introduit arret developpement des apex en fonction gradient vertical PAR
         if PARsense>=meteo_j['I0']*ParamP[nump]['par_tresh']:
+            #inititalisation plante (TT de la firstleaf et stage germination)
             if nsh==0:
                 invar['firstleaf'][nump]=min(TT,invar['firstleaf'][nump])
                 if rank>=1: #tige seminale, production de la premiere feuille
@@ -1338,7 +1339,8 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
             
             produce GetPos(X0,Y0,Z0)In(nump,nsh,newage,rank,0,liniE,'exp',1)[GetPos(X0,Y0,Z0)RB(nump, nsh,0,rank,0)][D2(nump,nsh,newage,rank,phyllotax,shoottype)][Stp(nump, phyllotax, liniS, 'exp')Pet(nump,nsh,newage, phyllotax,liniP,'exp')GetPos(X0,Y0,Z0)GetUp(0,0,0)Lf(nump,nsh,newage,rank,rankp,liniF,0.,'exp',1)]GetPos(X0,Y0,Z0)A(nump,nsh,1,newage, 0, rank+1, rgeq,phyllotax+ParamP[nump]['phyllotaxy'])
         else:#ombre
-            if rank>3:#si tige n'est plus bourgeon
+            #mort legume: si tige est ombre, n'est plus bourgeon et n'a plus de feuille (test 1), sinon en arret
+            if rank>3 :# and int(ParamP[nump]['type'])!=3:
                 try:
                     if invar_sc['sh']['SurfVerte'][idsh]==0.:#si ombre et tige sans surface
                         test=1
@@ -1358,6 +1360,14 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
                     lsApexStop.append([nump,nsh,rank, 1, I_I0, duromb+STEPS,''])
                     lsApexAll.append([nump,nsh,rank, 1, I_I0, duromb+STEPS,''])
                     produce GetPos(X0,Y0,Z0)A(nump,nsh,0,age, duromb+STEPS, rank, rgeq,phyllotax)
+            elif rank<=3 and int(ParamP[nump]['type'])==3 :#regression talles grass: si tige est ombre, regression de jeunes talles arretee (meme si elle a des feuilles)
+                invar['lsApexMort'][nump].append(nsh)
+                print("passe mort",nump,nsh,rank,rgeq)
+                try:
+                    invar['lsA'][nump].remove(nsh)
+                except:
+                    print (str(nsh), 'pas trouve dans lsA')
+                produce *
             else:#sinon pause/arret 
                 lsApexStop.append([nump,nsh,rank, 1, I_I0, duromb+STEPS,''])
                 lsApexAll.append([nump,nsh,rank, 1, I_I0, duromb+STEPS,''])
