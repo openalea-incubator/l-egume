@@ -1155,6 +1155,13 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX # A ameliorer :pris sur carto et position reelle des bourgeosn-> pb pour stolons?
     nbExp_Prev = outvar['NBBexp'][-1][0][nump+2]+1
     
+    # phyllo pot change selon rgeq pour les graminees
+    if int(ParamP[nump]['type'])==3 : #graminee
+        phylloPot = sh.PhylloPot_Grass(1, phylloI=ParamP[nump]['phyllochron'], k=0.3)#ParamP[nump]['phyllochron']#
+    else: 
+        phylloPot = ParamP[nump]['phyllochron']
+    
+    
     #control de la vitesse de tallage
     if nsh==0:#tige seminale -> pas d'attente
         deldeb = 0
@@ -1162,11 +1169,11 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     else:
         retard = 0
         if nsh==1:#pousse initiale -> debut tallage
-            deldeb= ParamP[nump]['debTallage'] * ParamP[nump]['phyllochron']
+            deldeb= ParamP[nump]['debTallage'] * phylloPot
         #else:
         #    deldeb =  ParamP[nump]['phyllochron'] / ParamP[nump]['RvitTallage']
         elif statut=='exp':#bourgeon actifs produits sans dormance (tallage)
-            deldeb =  ParamP[nump]['phyllochron'] * ParamP[nump]['RvitTallage']
+            deldeb =  phylloPot * ParamP[nump]['RvitTallage']
         else: #bourgeons 'regular'
             deldeb = 0.
     
@@ -1180,20 +1187,20 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     if opt_stressN == 0:
         stressN = 1.
     
-    if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
+    if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh_til'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
         ##azi = random.uniform(0,360)
         elv0 = random.uniform(ParamP[nump]['elv0'][0],ParamP[nump]['elv0'][1])#(0,90)
-        ageref = min(ParamP[nump]['phyllochron'], ParamP[nump]['phyllochron']*ParamP[nump]['RvitTallage'])
+        ageref = min(phylloPot, phylloPot*ParamP[nump]['RvitTallage'])
         newageB = age%ageref - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron'] - test_retard[nump] 
         newageA = age%ageref +STEPS - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron']+STEPS - test_retard[nump] 
-        deltaBud = int(age/ParamP[nump]['phyllochron'])
+        deltaBud = int(age/phylloPot)
         #position ini
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
             #boureons sur le collet -> epend de rpiv
-            rpiv = invar['DiampivMax'][nump]/2.+ 0.5
+            rpiv = invar['DiampivMax'][nump]/2.+ ParamP[nump]['offset_diamP']#0.5
             posini = array(carto[nump]) + array([random.uniform(-rpiv,rpiv),random.uniform(-rpiv,rpiv),0.])
         elif int(ParamP[nump]['type'])==3: #graminee
-            rplt = (invar['countShExp'][nump]*0.0002/4)**0.5 + 5. #diamete base qui depend du nb de talle (densite de 6000 talle/m2
+            rplt = (invar['countShExp'][nump]*0.0002/4)**0.5 + ParamP[nump]['offset_diamP']#5. #diamete base qui depend du nb de talle (densite de 6000 talle/m2
             posini = array(carto[nump]) + array([random.uniform(-rplt,rplt),random.uniform(-rplt,rplt),0.])
         
         new_nrhiz = binomial(ParamP[nump]['DistLRhiz'][0], ParamP[nump]['DistLRhiz'][1])#2#5#0
@@ -1225,8 +1232,8 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
             
             rgeq = invar['rgeq'][nump]#0
             produce [D(nump,newnsh,0,newageB,posini,nsh)]SHP(nump,azi,elv0,posi,0,newpar)GetPos(0,0,0)A(nump,nsh,1,newageA,0,deltaBud, rgeq,azi)
-    elif age >= ParamP[nump]['phyllochron']/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDevII'][nump]) and nrhiz>=1:
-        newageB = age%ParamP[nump]['phyllochron']
+    elif age >= phylloPot/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDevII'][nump]) and nrhiz>=1:
+        newageB = age%phylloPot
         produce F(ParamP[nump]['LenRhiz'])B(nump,nsh,newageB, posi,  nrhiz-1, azi, newpar, statut)
     else:
         newageB = age+STEPS
@@ -1281,16 +1288,24 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
     if opt_stressN == 0:
         stressN = 1.
     
+    # phyllo pot change selon rgeq pour les graminees
+    if int(ParamP[nump]['type'])==3 : #graminee
+        rk = rank+rgeq
+        phylloPot = sh.PhylloPot_Grass(rk, phylloI=ParamP[nump]['phyllochron'], k=0.3)#ParamP[nump]['phyllochron']#
+    else: 
+        phylloPot = ParamP[nump]['phyllochron']
+    
+    #print(nsh, rank, rgeq, phylloPot)
     
     #print nump, age #malgre retard, tous les A ont le meme age
-    if age >= ParamP[nump]['phyllochron']/(0.00001+stressW*stressN): # introduit arret developpement des apex en fonction gradient vertical PAR
+    if age >= phylloPot/(0.00001+stressW*stressN): # introduit arret developpement des apex en fonction gradient vertical PAR
         if PARsense>=meteo_j['I0']*ParamP[nump]['par_tresh']:
             if nsh==0:
                 invar['firstleaf'][nump]=min(TT,invar['firstleaf'][nump])
                 if rank>=1: #tige seminale, production de la premiere feuille
                     invar['germination'][nump] = 2
             
-            newage = age%ParamP[nump]['phyllochron']+STEPS
+            newage = age%phylloPot+STEPS
             liniF = sh.expansion(newage, ParamP[nump]['aF'], ParamP[nump]['delaiF'])
             liniP =  sh.expansion(newage, ParamP[nump]['aP'], ParamP[nump]['delaiP'])
             liniS = sh.expansion(newage, ParamP[nump]['aS'], ParamP[nump]['delaiS'])

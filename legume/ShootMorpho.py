@@ -50,6 +50,10 @@ def trilineaire(x, ratio0, ratiomax, parmaxeff, parnoeff):
     orlindesc = -(parnoeff * pentfin) + 1
     return min(pentor * x + ratio0, max(1, pentfin * x + orlindesc))
 
+def monomoleculaire(x, Amax, k):
+    #reponse saturante type mononmoleculaire
+    rate = Amax * (1- exp(-k*x))
+    return rate
 
 #general growth functions
 def expansion(t, a, delai):
@@ -516,7 +520,7 @@ def calcNB_NI(tab, nbplantes, seuilcountTige=0.5, seuilNItige=0.75):
             resNI[idp].append(float(tab[i][2]))
 
     for i in range(nbplantes):
-        resNB[i] = len(resNB[i]);
+        resNB[i] = len(resNB[i])
         resNI[i] = mean(resNI[i])
 
     return resNB, resI
@@ -685,3 +689,13 @@ def calcLeafStemRatio(ParamP, tab, lsapexI):
 
     return dp
 
+def PhylloPot_Grass(rgeq, phylloI, k=0.3):
+    #calcule changement de phyllochrone selon le rang
+    if rgeq>15:
+        phyllo = phylloI
+    elif rgeq<1:
+        phyllo = monomoleculaire(1., Amax=phylloI, k=k)
+    else:
+        phyllo = monomoleculaire(rgeq, Amax=phylloI, k=k)
+
+    return phyllo

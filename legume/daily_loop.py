@@ -83,11 +83,17 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     invar['DiampivMax'] = sqrt(invar['MS_pivot'] * array(riri.get_lsparami(ParamP, 'DPivot2_coeff')))
     # invar['RLTot'] = array(map(sum, IOtable.t_list(invar['Mrac_fine']))) * array(riri.get_lsparami(ParamP, 'SRL')) #somme de toutes les racinesfines produites par plante
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
-    nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.25,
-                                 seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
+    nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
+    #nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.,seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
+
+    #print('nbsh',invar['NBsh'], nbsh_2)
     for nump in range(nbplantes):
         if nb1_2[nump] > invar['NBI'][nump]:
             invar['NBI'][nump] = nb1_2[nump]
+
+        if nbsh_2[nump] > invar['NBsh'][nump]: # pour compter aussi les tiges arretes (au moins pour graminees)
+            invar['NBsh'][nump] = nbsh_2[nump]
+
 
     invar['L_Sp'] = array(invar['MS_feuil']) / (array(invar['MS_aerien']) - array(invar['MS_feuil']) + 10e-12)
 
@@ -602,6 +608,8 @@ def daily_growth_loop_oldini(ParamP, par_SN, invar, invar_sc, outvar, res_trans,
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
     nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.25,
                                  seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
+
+    #print(invar['NBsh'], nbsh_2)
     for nump in range(nbplantes):
         if nb1_2[nump] > invar['NBI'][nump]:
             invar['NBI'][nump] = nb1_2[nump]
