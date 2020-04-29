@@ -176,7 +176,7 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
     for k in list(meteo_j.keys()): meteo_j[k]=meteo_j[k][0]
     for k in list(mng_j.keys()): mng_j[k]=mng_j[k][0]
-    
+    meteo_j['durjour'] = sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     
     TT = 0
     TTsol = 0
@@ -926,6 +926,7 @@ def EndEach(lstring,lscene):
     print (DOY)
     for k in list(meteo_j.keys()): meteo_j[k]=meteo_j[k][0]
     for k in list(mng_j.keys()): mng_j[k]=mng_j[k][0]
+    meteo_j['durjour'] = sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     
     #print invar['rgeq']
     
@@ -1109,7 +1110,7 @@ module D2(nump, nsh, age, rankp, phyllotax,shoottype) #dormant bud at the leaf a
 module B(nump, nsh, age, posi, nrhiz, azi, par, statut) #active Bud of the crown nsh=numero de tige; rhiz  nb noeud de rhizome
 module SHP(nump, azi, elv0, posi, nbp,par) #SHoot Parameters: nbp et par pour moduler incli_ini en fonction de longueur et lumiere
 module In(nump, nsh, age, rank, rankp, l, statut, ordre) #Internode (l longueur normalisee)
-module Lf(nump, nsh, age, rank, rankp, l, tt_omb,statut, ordre) #Leaf (l longueur normalisee)
+module Lf(nump, nsh, age, azi, rank, rankp, l, tt_omb,statut, ordre) #Leaf (l longueur normalisee)
 module Pet(nump, nsh, age, azi, l, statut) #Petiole
 module Stp(nump, azi, l, statut)#Stipule
 module RA(nump, nsh, age, rankp, agecum, moduloH) #primary Root Apex
@@ -1337,7 +1338,7 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
             else:
                 rankp = 0
             
-            produce GetPos(X0,Y0,Z0)In(nump,nsh,newage,rank,0,liniE,'exp',1)[GetPos(X0,Y0,Z0)RB(nump, nsh,0,rank,0)][D2(nump,nsh,newage,rank,phyllotax,shoottype)][Stp(nump, phyllotax, liniS, 'exp')Pet(nump,nsh,newage, phyllotax,liniP,'exp')GetPos(X0,Y0,Z0)GetUp(0,0,0)Lf(nump,nsh,newage,rank,rankp,liniF,0.,'exp',1)]GetPos(X0,Y0,Z0)A(nump,nsh,1,newage, 0, rank+1, rgeq,phyllotax+ParamP[nump]['phyllotaxy'])
+            produce GetPos(X0,Y0,Z0)In(nump,nsh,newage,rank,0,liniE,'exp',1)[GetPos(X0,Y0,Z0)RB(nump, nsh,0,rank,0)][D2(nump,nsh,newage,rank,phyllotax,shoottype)][Stp(nump, phyllotax, liniS, 'exp')Pet(nump,nsh,newage, phyllotax,liniP,'exp')GetPos(X0,Y0,Z0)GetUp(0,0,0)Lf(nump,nsh,newage, phyllotax,rank,rankp,liniF,0.,'exp',1)]GetPos(X0,Y0,Z0)A(nump,nsh,1,newage, 0, rank+1, rgeq,phyllotax+ParamP[nump]['phyllotaxy'])
         else:#ombre
             #mort legume: si tige est ombre, n'est plus bourgeon et n'a plus de feuille (test 1), sinon en arret
             if rank>3 :# and int(ParamP[nump]['type'])!=3:
@@ -1415,7 +1416,7 @@ GetPos(X0,Y0,Z0)A2(nump, nsh, statut, age, duromb, rank, rankp, phyllotax):
             lsApexAll.append([nump,nsh,rank,2, I_I0,duromb, rankp])
             invar['NBapexAct'][nump]+=1
             
-            produce GetPos(X0,Y0,Z0)In(nump,nsh,newage,rank,rankp,liniE,'exp',2)GetPos(X0,Y0,Z0)[Stp(nump, phyllotax, liniS, 'exp')Pet(nump,nsh,newage, phyllotax,liniP,'exp')GetPos(X0,Y0,Z0)GetUp(0,0,0)Lf(nump,nsh,newage,rank,rankp,liniF,0.,'exp',2)]GetPos(X0,Y0,Z0)A2(nump, nsh, 1,newage, 0, rank+1, rankp, phyllotax+ParamP[nump]['phyllotaxy'])
+            produce GetPos(X0,Y0,Z0)In(nump,nsh,newage,rank,rankp,liniE,'exp',2)GetPos(X0,Y0,Z0)[Stp(nump, phyllotax, liniS, 'exp')Pet(nump,nsh,newage, phyllotax,liniP,'exp')GetPos(X0,Y0,Z0)GetUp(0,0,0)Lf(nump,nsh,newage, phyllotax,rank,rankp,liniF,0.,'exp',2)]GetPos(X0,Y0,Z0)A2(nump, nsh, 1,newage, 0, rank+1, rankp, phyllotax+ParamP[nump]['phyllotaxy'])
         else:
             if duromb<ParamP[nump]['MaxSurvOmbr']:
                 lsApexStop.append([nump,nsh,rank,2, I_I0, duromb+STEPS,rankp])
@@ -1450,7 +1451,7 @@ GetPos(X0,Y0,Z0): #Rq: le GetPos doit etre dans les regle de production (pas int
     if Z0>Hcut and isTTcut == True:
         produce Cut()
 
-GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre) :
+GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,statut,ordre) :
     global  SurfprofilPlant, ls_ftswStress, lsOrgans, I_I0profilLfPlant #SurfPlante, PARaPlante, PARiPlante, Hplante, Dplante,
     STEPS = invar['dTT'][nump]
     
@@ -1483,13 +1484,19 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
             ls_pts.append( o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'], geom=False))
         elif int(ParamP[nump]['type'])==3:#grass
-            ls_pts.append( o3d.leg_grass(Long, Larg, angfol=-5., nfol=nf, anginit=ParamP[nump]['gammaFeuil'], geom=False))
+            #ls_pts.append( o3d.leg_grass(Long, Larg, angfol=-5., nfol=nf, anginit=ParamP[nump]['gammaFeuil'], geom=False))
+            pointes, ls_ptsall , ls_cos, ls_sin = o3d.leg_grass_withoutgeom(Long, Larg, angfol=-5., nfol=nf, anginit=ParamP[nump]['gammaFeuil'])
+            ls_pts.append(pointes)
         
         #orientation
-        p1, lvec, rrec, r_azi, inclivec = o3d.conv_cyl(array([0.,0.,0.]), array([V1,V2,V3]), 1.)
+        #p1, lvec, rrec, r_azi, inclivec = o3d.conv_cyl(array([0.,0.,0.]), array([V1,V2,V3]), 1.)
+        #print(nsh,rank, r_azi,r_azi*180./pi,azi,azi%360., azi%360.-90.)
+        r_azi = (azi%360.-90.)*pi/180.#radians
         for i in range(len(ls_pts[0])):
-            #r_azi = (rank*ParamP[nump]['phyllotaxy'])/180.*3.14#radians + ajouter l'azi random de l'axe?
-            pt = o3d.RotateAxis (ls_pts[0][i], r_azi, 0)#rotation a faire
+            #pt = o3d.RotateAxis (ls_pts[0][i], r_azi, 0)#rotation a faire
+            dlp = abs(ls_pts[0][i][1])
+            pt = array([dlp*sin(r_azi), -dlp*cos(r_azi), ls_pts[0][i][2]]) #z inchange - applique rotation azi a x,y
+            #print(nsh,rank, i, ls_pts[0][i], pt, newpt)
             ls_pts[0][i] = pt + array([X0,Y0,Z0]) #translation point ini feuille
     
     #mise a jour Hmax
@@ -1600,7 +1607,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 m_lais_construct[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surF 
             
             invar['PARiPlante'][nump].append(PARaF)
-            produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l,tt_omb,'sen',ordre)
+            produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,azi,rank,rankp,l,tt_omb,'sen',ordre)
         elif tt_omb> ParamP[nump]['ombF_Ttresh']:
             #print "ombre!"
             if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee 
@@ -1612,7 +1619,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 m_lais_construct[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surF 
             
             invar['PARiPlante'][nump].append(PARaF)
-            produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l,tt_omb+STEPS,'sen',ordre)
+            produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,azi,rank,rankp,l,tt_omb+STEPS,'sen',ordre)
         else:
             invar['PARaPlante'][nump].append(PARaF)
             invar['PARiPlante'][nump].append(PARaF)
@@ -1632,7 +1639,7 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                     m_lais_construct[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += newsurF
                 
                 stat = 'mat'if pot<0.005 and age>ParamP[nump]['delaiF'] else 'exp'
-                produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l+dl,tt_omb+adTTomb,stat,ordre)
+                produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,azi,rank,rankp,l+dl,tt_omb+adTTomb,stat,ordre)
             elif statut == 'mat':
                 if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee 
                     surf_elementaire = surF / float(len(ls_pts[0]))
@@ -1642,10 +1649,10 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,rank,rankp,l,tt_omb,statut,ordre)
                 else:
                     m_lais_construct[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surF
                 
-                produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,rank,rankp,l,tt_omb+adTTomb,statut,ordre)
+                produce GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,newage,azi,rank,rankp,l,tt_omb+adTTomb,statut,ordre)
 
 
-Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
+Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,azi2,rank,rankp,l2,tt_omb,statut2,ordre):
     STEPS = invar['dTT'][nump]
     
     stressW = ls_ftswStress['WaterTreshExpSurf'][nump]
@@ -1705,7 +1712,7 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         produce *
 
 
-Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
+Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,azi,rank,rankp,l2,tt_omb,statut2,ordre):
     global ls_ftswStress
     STEPS = invar['dTT'][nump]
     
@@ -1722,7 +1729,7 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
     RFR=res_rfr[vox[2]][vox[1]][vox[0]]
     RFR_effect=(ParamP[nump]['photomorphRFR_pet'][0]*RFR)+ParamP[nump]['photomorphRFR_pet'][1]
     
-    durjour = sh.DayLength (latitude,sh.DecliSun (DOY % 365))
+    durjour = meteo_j['durjour']#sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     PAReff = PARif * 24./durjour #courbe de reponse au PAR calle sur moyenne sur photoperiode
     PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_pet'][0],ParamP[nump]['photomorphPAR_pet'][1],ParamP[nump]['photomorphPAR_pet'][2],ParamP[nump]['photomorphPAR_pet'][3])
     photomorph=RFR_effect*PAR_effect#1.
@@ -1775,7 +1782,7 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     RFR=RFR=res_rfr[vox[2]][vox[1]][vox[0]]
     RFR_effect=(ParamP[nump]['photomorphRFR_int'][0]*RFR)+ParamP[nump]['photomorphRFR_int'][1]
     
-    durjour = sh.DayLength (latitude,sh.DecliSun (DOY % 365))
+    durjour = meteo_j['durjour']#sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     PAReff = PARif * 24./durjour #courbe de reponse au PAR calle sur moyenne sur photoperiode
     PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_int'][0],ParamP[nump]['photomorphPAR_int'][1],ParamP[nump]['photomorphPAR_int'][2],ParamP[nump]['photomorphPAR_int'][3])
     photomorph=RFR_effect*PAR_effect #1.
@@ -2069,7 +2076,7 @@ A2(nump, nsh, statut, age, duromb,rank, rankp, phyllotax):
 #D(nump,statut,posi) --> @M(posi[0],posi[1],posi[2])#;(1)Sphere(0.2)#les voit pas
 
 
-Pet(nump, nsh, age, azi,l1, statut1) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
+Pet(nump, nsh, age, azi,l1, statut1) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,azi2,rank,rankp,l2,tt_omb,statut2,ordre):
     lpet = sh.calc_Lpet(ParamP[nump], rank, rankp, ordre, l1, type=ParamP[nump]['type'])*100.#cm
     IncPet = ParamP[nump]['IncPet']
     if visu_shoot==1:
@@ -2079,7 +2086,7 @@ Pet(nump, nsh, age, azi,l1, statut1) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump2,n
         produce SetHead(0,0,1, 1,0,0)/(azi%360)Up(IncPet)_(0.1)f(lpet,0.1)SetHead(0,0,1, 1,0,0)/(azi%360-90)
 
 
-Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
+Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, statut,ordre):
     if visu_shoot==1:
         cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2:#legumineuse
@@ -2124,7 +2131,7 @@ Lf(nump, nsh, age, rank, rankp, l, tt_omb, statut,ordre):
         produce ;(col)@g(geom)
 
 
-Stp(nump, azi,l, statut)> Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0_,Y0_,Z0_)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,rank,rankp,l2,tt_omb,statut2,ordre):
+Stp(nump, azi,l, statut)> Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0_,Y0_,Z0_)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,azi2,rank,rankp,l2,tt_omb,statut2,ordre):
     if visu_shoot==1: 
         if ParamP[nump]['gotStip']== 1.:
             cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
