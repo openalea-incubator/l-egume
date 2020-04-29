@@ -723,7 +723,7 @@ def Start():
     
     # initialisation des parametres plante
     global ParamP, nbplantes
-    global ongletP, ongletPvois, optdamier, typearrangement,ongletScenar1,ongletScenar2
+    global ongletP, ongletPvois, optdamier, typearrangement,ongletScenar1,ongletScenar2, ls_pointes1
     #ongletP = 'Fix1'#'Fix'#'timbale'#'formica'#'canto'#'giga'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
     #ongletPvois = 'nonFix2'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
     #optdamier = 4
@@ -731,9 +731,14 @@ def Start():
     ParamP, nbplantes = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
     
     #print 'Len ', riri.get_lsparami(ParamP, 'Len')
-    
-    #param residu
-    
+    #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
+    ls_pointes1 = []
+    for nump in range(nbplantes):
+        pointes1 = []
+        if int(ParamP[nump]['type'])==3:
+            pointes, ls_ptsall , ls_cos, ls_sin = o3d.leg_grass_withoutgeom(1., 1., angfol=-5., nfol=ParamP[nump]['profilLeafI_nfol'][3], anginit=ParamP[nump]['gammaFeuil'])
+            pointes1 = [array(pointes)]
+        ls_pointes1.append(pointes1)
     
     
     #initialisation de la scene
@@ -1452,7 +1457,7 @@ GetPos(X0,Y0,Z0): #Rq: le GetPos doit etre dans les regle de production (pas int
         produce Cut()
 
 GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,statut,ordre) :
-    global  SurfprofilPlant, ls_ftswStress, lsOrgans, I_I0profilLfPlant #SurfPlante, PARaPlante, PARiPlante, Hplante, Dplante,
+    global  SurfprofilPlant, ls_ftswStress, lsOrgans, I_I0profilLfPlant, ls_pointes1 #SurfPlante, PARaPlante, PARiPlante, Hplante, Dplante,
     STEPS = invar['dTT'][nump]
     
     
@@ -1485,8 +1490,14 @@ GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,statut,or
             ls_pts.append( o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'], geom=False))
         elif int(ParamP[nump]['type'])==3:#grass
             #ls_pts.append( o3d.leg_grass(Long, Larg, angfol=-5., nfol=nf, anginit=ParamP[nump]['gammaFeuil'], geom=False))
-            pointes, ls_ptsall , ls_cos, ls_sin = o3d.leg_grass_withoutgeom(Long, Larg, angfol=-5., nfol=nf, anginit=ParamP[nump]['gammaFeuil'])
-            ls_pts.append(pointes)
+            #pointes, ls_ptsall , ls_cos, ls_sin = o3d.leg_grass_withoutgeom(Long, Larg, angfol=-5., nfol=nf, anginit=ParamP[nump]['gammaFeuil'])
+            #ls_pts.append(pointes)
+            pointesL = ls_pointes1[nump][0]*Long
+            #pour repasser matrice en liste (for pas top)
+            lspts = []
+            for i in range(len(pointesL)):
+                lspts.append(pointesL[i])
+            ls_pts = [lspts]
         
         #orientation
         #p1, lvec, rrec, r_azi, inclivec = o3d.conv_cyl(array([0.,0.,0.]), array([V1,V2,V3]), 1.)
@@ -2112,14 +2123,14 @@ Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, statut,ordre):
         else:
             col=6
         
-		#insere pour gradient de distrib: gradient selon valeur d'un parametre
+        #insere pour gradient de distrib: gradient selon valeur d'un parametre
         if opt_sd==1:
             parname = 'Len' 
             parval = ParamP[nump][parname] #test_retard[nump]#
             vals = riri.get_lsparami(ParamP, parname) #test_retard#
             col = 30 + int(7* (parval - min(vals)) / (max(vals)+10E-12 -  min(vals)))
-
-
+        
+        
         #choix du geom
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
             geom = o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'])
