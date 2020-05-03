@@ -1,6 +1,7 @@
 import IOtable
 from scipy import *
 from copy import deepcopy
+import numpy as np
 #from openalea.plantgl.all import *
 #import sys
 #path_ = r'H:\devel\grassland\grassland\luzerne'
@@ -9,7 +10,7 @@ from copy import deepcopy
 
 
 ##changements version 5
-#ajout d'un patern en entree pour initialisation + stocke info surfsolref (facilite couplage racine dans impulse)
+#ajout d'un patern en entree pour initialisation + stocke info surfsolref (facilite couplage racine dans impulse)-> pas d'action sur calculs
 # ajout d'une entree obstarac (matrice 2D de profondeur d'obtacle en m ; None par defaut) et d'une matrice d'effet sur la disponibilite des ressource (m_obstrac)
 # mise a jour d calcul de FTSW pour tenir compte de m_obstrac
 # retire des ; dans le calcul de transpiration
@@ -46,6 +47,7 @@ def sum_mat(ls_m):
 
     return s
 
+
 def mask(mat, tresh=0.):
     """ retourne matrice masque de 0  et 1
     utile pour root/no roots; asw/no asw """
@@ -55,7 +57,6 @@ def mask(mat, tresh=0.):
 
 #mask(R2)
 #mask(asw_t)
-
 
 
 ##diverses fonction parametrage sol
@@ -97,7 +98,7 @@ class Soil(object):
         asw_t : quantite d'eau libre pour plante dans le voxel au temps t (mm)
         tsw_t : quantite d'eau totale dans le voxel au temps t (mm)
         ftsw_t : fraction d'eau libre disponible pour les plantes (Transpirable) par voxel (0-1, sans dimension)
-        Kzi() : fraction d'eau disponible pour evaporation (Evaporable) par voxel (0-1, sans dimension)
+        Kzi() : effet hydrique fraction d'eau disponible pour evaporation (Evaporable) par voxel (0-1, sans dimension)
         HRv() : humidite volumique du sol (%)
         HRp() : humidite ponderale du sol (%)
 
@@ -176,6 +177,12 @@ class Soil(object):
         self.m_obstarac  = self.set_mat_obstarac()
         self.init_asw(HRp_init=None)  # initialise par defaut a la capacite au champ...
         # self.update_ftsw()
+
+        xs = np.cumsum(np.array(self.dxyz[0])) - self.dxyz[0][0] + self.pattern[0][0] / 100 #S.pattern  in cm #S.dxyz  # m
+        ys = np.cumsum(np.array(self.dxyz[1])) - self.dxyz[1][0] + self.pattern[0][1] / 100
+        zs = -np.cumsum(np.array(self.dxyz[2])) + self.dxyz[2][0]
+        self.corners = [xs,ys,zs]#m
+
 
     def build_teta_m(self, par_sol, key='teta_fc'):
         m_teta = []#m_teta = matrice de teneur en eau volumique
@@ -268,6 +275,8 @@ class Soil(object):
 
     def Kzi(self):
         """ coefficients K(Z,I) de l'equation 7.6 p 129 - proportion de l'eau dispo pour evaporation """
+        #seuilmax = (self.m_QH20max - self.m_QH20min) * (1 - self.m_frac_evapZ) + self.m_QH20min
+        #return (self.tsw_t - seuilmax) / (self.m_QH20fc - seuilmax)
         return (self.tsw_t - self.m_QH20min) / (self.m_QH20fc - self.m_QH20min)
 
     def distrib_frac_evap(self, ZESX=0.3, CFES=1.):
@@ -347,6 +356,10 @@ class Soil(object):
 
         demandeEvap = demande * coeffsOK
         dispo =  self.tsw_t - self.m_QH20min - self.m_corr_vol_evap*(self.m_QH20fc - self.m_QH20min)
+        #dispo = self.tsw_t - ((self.m_QH20fc - self.m_QH20min)*(1-self.m_frac_evapZ) + self.m_QH20min)
+        #dispo = self.tsw_t - ((self.m_QH20fc - self.m_QH20min) * (self.m_frac_evapZ) + self.m_QH20min)
+        #dispo = self.tsw_t - ((self.m_QH20fc - self.m_QH20min) * 0.5 + self.m_QH20min) #forcage - marche bien sur AssosolNu
+
         diff = dispo - demandeEvap
         negs = diff<=0.
         demandeEvapOK = demandeEvap + negs*diff
@@ -358,6 +371,10 @@ class Soil(object):
     def soilSurface(self):
         """ compute soil surface (m2) """
         return sum(self.dxyz[0])*sum(self.dxyz[1])
+
+    def get_vox_coordinates(self, z, x, y):
+        """ to get the corner coordinates of a voxel from his IDs"""
+        return np.array([self.corners[0][x], self.corners[1][y], self.corners[2][z]])
 
     def stepWBmc(self, Et0, ls_roots, ls_epsi, Rain, Irrig, previous_state, ZESX=0.3, leafAlbedo=0.15, U=5., b=0.63, FTSWThreshold=0.4, treshEffRoots=0.5, opt=1):
         """ calcul du bilan hydrique journalier """
@@ -378,8 +395,11 @@ class Soil(object):
 
         ## evaporation
         #evapo_tot, state = soil_EV_1C(Et0, Precip, sum(ls_epsi), previous_state , leafAlbedo, U, b)
-        evapo_tot, state = soil_EV_STICS(Et0, Precip, sum(ls_epsi), previous_state , leafAlbedo, U, b)
-        map_Evap0 = self.m_1[0]*evapo_tot/float(len(self.dxyz[0])*len(self.dxyz[1])) #map_Evap0 -> devrait etre une entree? (interaction avec bilan radiatif?)
+        #evapo_tot, state = soil_EV_STICS(Et0 , Precip , sum(ls_epsi),previous_state, leafAlbedo, U, b)
+        #map_Evap0 = self.m_1[0] * evapo_tot  / float(len(self.dxyz[0]) * len(self.dxyz[1]))  # map_Evap0 -> devrait etre une entree? (interaction avec bilan radiatif?)
+
+        evapo_tot, state = soil_EV_STICS(Et0/self.soilSurface(), Precip/self.soilSurface(), sum(ls_epsi), previous_state , leafAlbedo, U, b)
+        map_Evap0 = self.m_1[0]*evapo_tot*self.soilSurface()/float(len(self.dxyz[0])*len(self.dxyz[1])) #map_Evap0 -> devrait etre une entree? (interaction avec bilan radiatif?)
 
         ## bilan WB
         map_PI = self.m_1[0]*Precip/float(len(self.dxyz[0])*len(self.dxyz[1]))
@@ -666,17 +686,19 @@ def soil_EV_1C(Et0, Precip, epsi, previous_state = [0.,0.,0.], leafAlbedo=0.15, 
     state = [SES1, SES2, SEP]
     soilEvaporation = ER 
     return soilEvaporation, state
+    #modele Eric #pb effet albedo pour partitionning vegetation
 
-# pourrait gerer par voxel de surface plutot que globalement (ne pas assumer homogeneite horizontale)
+# rq: pourrait gerer par voxel de surface plutot que globalement (ne pas assumer homogeneite horizontale)
 
 
-def soil_EV_STICS(Et0, Precip, epsi, previous_state = [0.,0.,0.], leafAlbedo=0.15, U=5., b=0.63):
+def soil_EV_STICS_old(Et0, Precip, epsi, previous_state = [0.,0.,0.], leafAlbedo=0.15, U=5., b=0.63):
     """ U: reservoir superficiel = quantite d'eau dans une couche superieure (varie generallement entre 0 et 30 mm
         b: coeef empirique sans dimension pour l'evaporation du sol (cf fonction bEV)
         Et0: Evapotranspiration potenrielle de reference (gazon) en mm
         meme formulation pour Lebon et al 2003 et STICS
         SES1: EP cumule depuis la derniere pluie (previous_state[0])
-        SES2: EP cumule depuis passage a phase 2  (previous_state[1])  
+        SES2: EP cumule depuis passage a phase 2  (previous_state[1])
+        SEP : cumul des evap depuis debut phase 2
         ER SoilEvaporation Reel"""
 
     ##Riou -> donne des valeur negatives pour forts epsi
@@ -716,7 +738,155 @@ def soil_EV_STICS(Et0, Precip, epsi, previous_state = [0.,0.,0.], leafAlbedo=0.1
         SEP = 0.
 
     return ER, [SES1, SES2, SEP]#0., [SES1, SES2, 0.]#
-    #a tester
+    #test par GL
+    #pb de reponse au faiblee pluies: remet tout a zero ; agit fort alors que devrait pas ('effet pompe')
+
+
+def soil_EV_STICS_new1(Et0, Precip, epsi, previous_state = [0.,0.,0.], leafAlbedo=0.15, U=5., b=0.63):
+    """ U: reservoir superficiel = quantite d'eau dans une couche superieure (varie generallement entre 0 et 30 mm
+        b: coeef empirique sans dimension pour l'evaporation du sol (cf fonction bEV)
+        Et0: Evapotranspiration potenrielle de reference (gazon) en mm
+        meme formulation pour Lebon et al 2003 et STICS
+        SES1: EP cumule depuis la derniere pluie (previous_state[0])
+        SES2: EP cumule depuis passage a phase 2  (previous_state[1])
+        SEP : cumul des evap depuis debut phase 2
+        ER SoilEvaporation Reel"""
+
+    ##Riou -> donne des valeur negatives pour forts epsi
+    #coeffTV = epsi/ (1.-leafAlbedo)
+    #EP = (1. - coeffTV) * Et0#potentialSoilEvaporation
+
+    ##adaptation eq 7.1 p127 STICS book
+    k_eq = 0.7 #LAI equivalent pour un k=0.7; pause k car les deux k et LAI sont inconnu
+    LAIeq = -log(1-epsi)/k_eq
+    EP = Et0 * exp(-(k_eq-0.2)*LAIeq)#potentialSoilEvaporation Eq. 7.1, p127
+    #rq: la bonne variable a recuperer a la place de espi serait le taux de couverture ou le transmis vertical pour lequel le correctif 0.2 n'est pas necessaire (Eq. 7.2)
+
+
+    if previous_state[0]+EP <U : #phase 1
+        SES1 = previous_state[0]+EP
+        SES2 = 0.
+        ER=EP
+        SEP = 0.
+        #mise a jour state!
+    elif previous_state[0] <U and previous_state[0]+EP >=U:#transition phase1->2
+        fracEP2 = previous_state[0]+EP-U #precipitation evaporee en phase 2
+        fracEP1 = EP-fracEP2
+        SES1 = previous_state[0]+EP
+        SES2 = fracEP2
+        ER2 = ((2*b*SES2 + b**2)**0.5) - b
+        ER = fracEP1 + (fracEP2/EP)*ER2 #verif
+        SEP = ER2
+    else: #phase 2
+        SES1 = previous_state[0]+EP
+        SES2 = previous_state[1]+EP
+        ER = ((2*b*SES2 + b**2)**0.5) - b - previous_state[2] #fonction cumul, donc retire valeur de la date precedente
+        SEP = ((2*b*SES2 + b**2)**0.5) - b
+
+    # MAJ memoire si pluie - comme si pluie vient en fin de journee, apres calcul ER
+    seuil = U #0.7*U
+    if Precip>0. and Precip>=seuil and SES1>U: #si en phase 2 et forte precipitation
+        SES1 = 0.
+        SES2 = 0.
+        SEP = 0.
+    elif Precip>0. and Precip<seuil and SES1>U: #si en phase 2 et faible precipitation
+        #remet en debut de phase 2
+        SES1 = SES1 - SES2
+        SES2 = 0.
+        SEP = 0.
+    elif Precip>0. and SES1<=U: #si en phase 1
+        SES1 = 0.
+        SES2 = 0.
+        SEP = 0.
+
+    return ER, [SES1, SES2, SEP]#0., [SES1, SES2, 0.]#
+    #a tester pour limiter effet peites pluie - effet trop fort! + seuil arbitraire avec tres fort impact
+
+
+def soil_EV_STICS(Et0, Precip, epsi, previous_state=[0., 0., 0.], leafAlbedo=0.15, U=5., b=0.63):
+    """ U: reservoir superficiel = quantite d'eau dans une couche superieure (varie generallement entre 0 et 30 mm
+        b: coeef empirique sans dimension pour l'evaporation du sol (cf fonction bEV)
+        meme formulation pour Lebon et al 2003 et STICS"""
+
+    # recup previous state
+    previousSES1 = previous_state[0]
+    previousSES2 = previous_state[1]
+    previousSEP = previous_state[2]
+
+    ##adaptation eq 7.1 p127 STICS book
+    k_eq = 0.7  # LAI equivalent pour un k=0.7; pause k car les deux k et LAI sont inconnu
+    LAIeq = -log(1 - epsi) / k_eq
+    EP = Et0 * exp(-(k_eq - 0.2) * LAIeq)  # potentialSoilEvaporation Eq. 7.1, p127
+    # rq: la bonne variable a recuperer a la place de espi serait le taux de couverture ou le transmis vertical pour lequel le correctif 0.2 n'est pas necessaire (Eq. 7.2)
+
+    SES1 = max(0., previousSES1)
+    SES2 = max(0., previousSES2)
+    SEP = max(0., previousSEP)
+
+    P = Precip
+    P1 = Precip
+
+    if (SES1 < U):
+        # phase 1
+        if (P1 > SES1):
+            SES1 = 0.
+            SES1 = SES1 + EP
+        else:
+            SES1 = SES1 - P
+            SES1 = SES1 + EP
+
+        if (SES1 > U):
+            ER = EP - 0.4 * (SES1 - U)
+            SES2 = 0.6 * (SES1 - U)
+        else:
+            ER = EP
+    else:
+        # phase 2
+        if (P1 > SES2):
+            SEP = 0
+            P1 = P1 - SES2
+            SES1 = U - P1
+
+            if (P1 > U):
+                SES1 = EP
+            else:
+                SES1 = SES1 + EP
+
+            if (SES1 > U):
+                ER = EP - 0.4 * (SES1 - U)
+                SES2 = 0.6 * (SES1 - U)
+            else:
+                ER = EP
+
+        else:
+            SES21 = ((2 * b * SEP + b ** 2) ** 0.5) - b
+            SEP = SEP + EP
+            SES20 = ((2 * b * SEP + b ** 2) ** 0.5) - b
+            ER = SES20 - SES21
+
+            if (P > 0):
+                ESx = 0.8 * P
+
+                if (ESx < ER):
+                    ESx = ER + P
+
+                if (ESx > EP):
+                    ESx = EP
+
+                ER = ESx
+                SES2 = SES2 + ER - P
+            else:
+                if (ER > EP):
+                    ER = EP
+                    SES2 = SES2 + ER - P
+                else:
+                    SES2 = SES2 + ER - P
+
+    state = [SES1, SES2, SEP]
+    soilEvaporation = ER
+    return soilEvaporation, state
+    #combine modele eric et calcul EP avec LAI
+
 
 def bEV(ACLIMc, ARGIs, HXs):
     """ calcul de  b: coeff empirique sans dimension pour l'evaporation du sol a partir de (STICS manual p 128) : 
@@ -940,18 +1110,18 @@ def vert_roots(dxyz, lvopt):
 #effective_root_length(R2, 0.5)
 
 
-def effective_root_lengths(ls_roots, tresh=0.5):
+def effective_root_lengths(ls_roots, tresh = 0.5):
     """ for multiple root systems in competition
     H0 : perfect symetry locally (in a voxel) for ressource aquisition
     treshold of effective density similar to single species
     fraction of effective density to each species/plant = proportion of total root length density"""
     m = deepcopy(ls_roots)
     nb_r = len(ls_roots)
-    tot_root_dens = sum_mat(ls_roots)  # sum bug
+    tot_root_dens = sum_mat(ls_roots) #sum bug
     for rt in range(nb_r):
-        # frac_root = divide(ls_roots[rt], tot_root_dens)## rq: gere bien les voxels vides
-        m[rt] = where(tot_root_dens > tresh, tresh * ls_roots[rt] / tot_root_dens, ls_roots[rt])
-
+        #frac_root = divide(ls_roots[rt], tot_root_dens)## rq: gere bien les voxels vides
+        m[rt] = where(tot_root_dens>tresh, tresh*ls_roots[rt]/tot_root_dens, ls_roots[rt])
+        
     return m
 
 
@@ -1053,7 +1223,7 @@ def test_uni1():
 
         ls_transp, evapo_tot, D, state,  m_frac_transpi, m_frac_evap, ls_ftsw =  S.stepWBmc(Et0, ls_roots, ls_epsi, Precip, Irrig, state, ZESX=ZESX, leafAlbedo=0.15, U=Uval, b=0.63, FTSWThreshold=0.4, treshEffRoots=0.5, opt=1)
 
-        print(i, ls_ftsw, sum3(S.asw_t),  sum3(m_frac_evap), sum3(m_frac_transpi), state)
+        print(i, ls_ftsw, sum3(S.asw_t),  sum3(m_frac_evap), sum3(m_frac_transpi[0]), state)
 
     #    ##visu
     #    #bx = Box(Vector3(1.,1.,1.))

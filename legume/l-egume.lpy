@@ -34,6 +34,7 @@ import Obj3Dutils as o3d
 
 try:
     from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    i#mport soil_moduleN3 as solN
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
@@ -465,10 +466,13 @@ def init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol, patter
     #print 'sol', sum(S.m_NO3), sum(S.m_NH4), sum(S.m_QH20fc)-sum(S.m_QH20wp)
     
     #Uval = 0.9*2.61#(epaisseur de sol* mm d'eau dans 1cm) #U quantite d'eau dans une couche superieure en mm (5 par default)
-    Uval = par_SN['q0']*0.1*sum(S.m_QH20fc[0])*surfsolref / (S.dxyz[2][0]*100.)#(epaisseur de sol (cm)* mm d'eau dans 1cm) #U quantite d'eau dans une couche superieure en mm (5 par default)
+    #Uval = par_SN['q0']*0.1*sum(S.m_QH20fc[0])*surfsolref / (S.dxyz[2][0]*100.)#(epaisseur de sol (cm)* mm d'eau dans 1cm) #U quantite d'eau dans une couche superieure en mm (5 par default)
+    Uval = par_SN['q0']
     stateEV = [0.,0.,0.] #pour le calcul de l'evaporation du sol (memoire du cumul evapore depuis derniere PI)
-    b_= solN.bEV(par_SN['ACLIMc'], par_SN['ARGIs'], HXs=0.261)#1.#valeur empirique tres proche#0.1#0.63#0.63
-    #print 'Uval', ' b ', Uval, b_, sum(S.m_QH20fc[0]), surfsolref , (S.dxyz[2][0]*100.)
+    HXs = par_sol[str(vsoilnumbers[0])]['teta_fc']#humidite a la capacite au champ de l'horizon de surface
+    b_= solN.bEV(par_SN['ACLIMc'], par_SN['ARGIs'], HXs)#HXs=0.261)#1.#valeur empirique tres proche#0.1#0.63#0.63
+    #print (par_SN['q0'],'Uval', ' b ', Uval, b_, sum(S.m_QH20fc[0]), surfsolref , (S.dxyz[2][0]*100.))
+    
     
     return S, Tsol, Uval, stateEV, b_
 
@@ -758,6 +762,7 @@ def Start():
         ls_mat_res = ls_mat_res + [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]#ajout de 4 residus par groupe d'organ et groupe d'especes: feuille(0), tige(1), rac_fine(2), pivot(3)#  pour chaque groupe_resid 
     
     #print len(ls_mat_res) #= [0.*S.m_1, 0.*S.m_1, 0.*S.m_1, 0.*S.m_1]
+    #print(S.m_frac_evapZ)
     
     #initialisation des variables d'etat plante
     global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root 
@@ -1034,6 +1039,11 @@ def End(lstring,lscene):
     dicout['dMSaer'] = outvar['BilanCdMaer']
     dicout['dMSenFeuil'] = outvar['BilanCdMSenFeuil']
     dicout['dMSenTige'] = outvar['BilanCdMSenTige']
+    #WB
+    dicout['cumEV'] = S.bilanW['cumEV']
+    dicout['cumTransp'] = S.bilanW['cumTransp']
+    dicout['cumD'] = S.bilanW['cumD']
+    
     
     if outf['outBilanNfile'] != 0.:
         IOtable.write_dict(dicout, path_out, outBilanNfile)
@@ -1368,7 +1378,7 @@ GetPos(X0,Y0,Z0)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
                     produce GetPos(X0,Y0,Z0)A(nump,nsh,0,age, duromb+STEPS, rank, rgeq,phyllotax)
             elif rank<=3 and int(ParamP[nump]['type'])==3 :#regression talles grass: si tige est ombre, regression de jeunes talles arretee (meme si elle a des feuilles)
                 invar['lsApexMort'][nump].append(nsh)
-                print("passe mort",nump,nsh,rank,rgeq)
+                #print("passe mort",nump,nsh,rank,rgeq)
                 try:
                     invar['lsA'][nump].remove(nsh)
                 except:
