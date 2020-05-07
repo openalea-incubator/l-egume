@@ -15,7 +15,7 @@ ls_files <- list.files(dir)#(dir0)#
 ls_outHR <- ls_files[grepl('outHR', ls_files)]
 
 
-filHR <- ls_outHR[2]#ls_outHR[5]#
+filHR <- ls_outHR[6]#ls_outHR[5]#
 #"outHR_52_l-egume_solnu-solnu_homogeneous0_scenario-1--1_LusignanAsso16_0_LusignanAsso16_.csv"
 
 dat <- read.table(filHR, sep=';', header=T)
