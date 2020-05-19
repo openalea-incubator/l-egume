@@ -151,8 +151,10 @@ build_simmoy <- function(ltoto, lsusm, esp=NA)
   NNI <- moysimval(ltoto,lsusm, var='NNI', esp)/ nbplt
   R_DemandC_Root <- moysimval(ltoto,lsusm, var='R_DemandC_Root', esp)/ nbplt
   cutNB <- moysimval(ltoto,lsusm, var='cutNB', esp)/ nbplt
+  Npc_aer <- moysimval(ltoto,lsusm, var='Npc_aer', esp)/ nbplt
+  Ndfa <- moysimval(ltoto,lsusm, var='Ndfa', esp)/ nbplt
   
-  simmoy <- data.frame(STEPS, TT, NBI, NBphyto, LAI, MSA, MSpiv, MSracfine, MSrac, RDepth, Hmax, FTSW, NNI, R_DemandC_Root, cutNB)
+  simmoy <- data.frame(STEPS, TT, NBI, NBphyto, LAI, MSA, MSpiv, MSracfine, MSrac, RDepth, Hmax, FTSW, NNI, R_DemandC_Root, cutNB, Npc_aer,Ndfa)
   simmoy
 }#version revue par Lucas tient cmpte du nom de l'espece dans les assos
 
