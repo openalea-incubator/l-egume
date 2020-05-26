@@ -23,7 +23,7 @@ import IOtable
 
 global foldin, fxls, ongletBatch, fscenar
 #to define if used for multisimulation or non-regression tests
-opttest = 4#2#5#1#4#2#'autre'#'exemple'#0#13#'exemple_BA'#
+opttest = 1#2#5#1#4#2#'autre'#'exemple'#0#13#'exemple_BA'#
 if opttest == 1 or opttest==2 or opttest==3 or opttest==4 or opttest==5: #si multisim des test de non regression (1 or 2)
     #global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'

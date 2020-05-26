@@ -185,9 +185,9 @@ def step_bilanWN_sol(S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j
         S.stepResidueMin(par_SN)
         S.stepMicrobioMin(par_SN)
     S.stepNitrif(par_SN)
-    ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi,
-                                                                     ls_demandeN_bis)
+    #ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi,ls_demandeN_bis)
     S.stepNINFILT(mapN_Rain, mapN_Irrig, mapN_fertNO3, mapN_fertNH4, Drainage, opt=1)
+    ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi, ls_demandeN_bis)
 
     temps_sol = [evapo_tot, Drainage, ls_m_transpi, m_evap, ActUpNtot, ls_DQ_N, idmin] #other output variables
 
