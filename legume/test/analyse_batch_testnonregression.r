@@ -97,8 +97,8 @@ for (key in names(sp_dtoto))#key <- names(sp_dtoto)[1]
   nbplt2 <- NULL
   
   #DOYScoupe <- c(165,199,231,271,334)#Avignon
-  DOYScoupe <- c(187,229,282,334)#Lusignan an1
-  #DOYScoupe <- c(463,504,557,609)#Lusignan an2
+  #DOYScoupe <- c(187,229,282,334)#Lusignan an1
+  DOYScoupe <- c(463,504,557,609)#Lusignan an2
   DOYdeb <- 60#
   idDOYScoupe <- DOYScoupe - DOYdeb
   Ytot <- NULL
