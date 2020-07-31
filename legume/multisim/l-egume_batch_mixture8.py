@@ -221,29 +221,6 @@ def animatelsystem(n):
 
 #run the L-systems
 
-### Ancienne methode ###
-#if __name__ == '__main__':
-#    multiprocessing.freeze_support()
-#    CPUnb=multiprocessing.cpu_count()-1###nombre de processeurs, moins un par prudence. (et pour pouvoir faire d'autres choses en meme temps)
-#    print 'nb CPU: '+str(CPUnb)
-#    #for i in range(nb_usms):#sans parallellisme
-#    #    runlsystem(i)
-#    for i in range(int(((nb_usms-1)/CPUnb)+1)):#avec parrallellisme
-#        pool = multiprocessing.Pool(processes=CPUnb)#doit etre superieur ou egal au range... PC lucas = 8 cpus.
-#        if i<int(((nb_usms-1)/CPUnb)+1)-1:
-#            pool.map(runlsystem, range(CPUnb*(i),CPUnb*(i+1)))
-#            pool.close()
-#            pool.join()
-#        else:
-#            pool.map(runlsystem, range(CPUnb*(i),nb_usms))
-#            pool.close()
-#            pool.join()
-#    #Parallel(n_jobs=multiprocessing.cpu_count())(delayed(montrucaparalleliser)(sp) for sp in range(6))
-#    #pool=multiprocessing.Pool(6)
-#    #pool.map(parallel, range(6))
-
-
-### Nouvelle methode ###
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     CPUnb=multiprocessing.cpu_count()-1 #nombre de processeurs, moins un par prudence. (et pour pouvoir faire d'autres choses en meme temps)
