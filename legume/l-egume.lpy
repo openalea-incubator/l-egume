@@ -159,7 +159,7 @@ opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas app
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
 opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
 visu_root=1#1# pour visualisation/interpretation root
-visu_shoot=0#1# pour visualisation/interpretation shoot
+visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
@@ -263,58 +263,15 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     
     
     #3) ajout de parametre 'recalcule'
+    #roots
     for nump in range(len(ParamP)):
       #update des parametre racinaire
       rt.update_root_params(ParamP[nump]) #'lsDrac', 'nb_ordre_rac', 'lsVrac', 'lsDemanDRac', 'LDs'
       #print 'LDs', ParamP[nump]['LDs2'], ParamP[nump]['LDs3'], ParamP[nump]['lsDrac'], ParamP[nump]['GDs2'], ParamP[nump]['GDs3']
-      
-      if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2: #feuille legumineuse
-          cor_lF = sqrt(ParamP[nump]['leafshape']/0.5) #pour afficher feuille avec surface reelle et corriger effet losange
-      elif int(ParamP[nump]['type'])==3: #graminee
-          cor_lF = ParamP[nump]['leafshape'] #pour afficher feuille avec surface reelle et corriger effet recangle (pas sqrt car appliquer que a largeur
-      
-      cor_lstp = sqrt(ParamP[nump]['stipshape']/0.5) #pour afficher feuille avec surface reelle et corriger effet losange
-      
-      ParamP[nump]['profilLeafI_l'] = []
-      ParamP[nump]['profilLeafI_larg'] = []
-      ParamP[nump]['profilNodeI_l'] = []
-      ParamP[nump]['profilPetI_l'] = []
-      ParamP[nump]['profilStipI_l'] = []
-      ParamP[nump]['profilStipI_larg'] = []
-      ParamP[nump]['profilPetI_l'] = []
-      ParamP[nump]['profilLeafI_nfol'] = []
-      if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2:#legumineuse
-          ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD'])#proportion de feuille par        classe d'incli pour calcul des k_teta
-      elif int(ParamP[nump]['type'])==3: #graminee avec courbure
-          nfol = 8
-          courbure = -5
-          angle_moyen = 0.5*(ParamP[nump]['gammaFeuil']+(nfol*courbure)+ParamP[nump]['gammaFeuil']) #marche pour nb fixe de rectangles (??coupe)
-          ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(angle_moyen), abs(2*courbure))
-          #passer courbure en parametre?? dans 'gammaFeuilSD'??
-      
-      ParamP[nump]['profilRoot'] = rt.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#rpy.r.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)#trajet d'une racine fille II
-      #print ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'],ParamP[nump]['profilRoot']
-      for rank in range(1,51): #!limite a 50 noeuds!
-          Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0]*rank+ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2]*rank+ParamP[nump]['profilLeafI_Rlen'][3])
-          Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlarg'][0]*rank+ParamP[nump]['profilLeafI_Rlarg'][1], ParamP[nump]['profilLeafI_Rlarg'][2]*rank+ParamP[nump]['profilLeafI_Rlarg'][3])
-          Norml_In = min(ParamP[nump]['profilNodeI'][0]*rank+ParamP[nump]['profilNodeI'][1], ParamP[nump]['profilNodeI'][2]*rank+ParamP[nump]['profilNodeI'][3])
-          Norm_pet = min(ParamP[nump]['profilPetI'][0]*rank+ParamP[nump]['profilPetI'][1], ParamP[nump]['profilPetI'][2]*rank+ParamP[nump]['profilPetI'][3])
-          Norml_Stp = min(ParamP[nump]['profilStpI_l'][0]*rank+ParamP[nump]['profilStpI_l'][1], ParamP[nump]['profilStpI_l'][2]*rank+ParamP[nump]['profilStpI_l'][3])
-          Normlarg_Stp = min(ParamP[nump]['profilStpI_Rlarg'][0]*rank+ParamP[nump]['profilStpI_Rlarg'][1],ParamP[nump]['profilStpI_Rlarg'][2]*rank+ParamP[nump]['profilStpI_Rlarg'][3])
-          Normnfol = min(ParamP[nump]['profilLeafI_Rnfol'][0]*rank+ParamP[nump]['profilLeafI_Rnfol'][1], 1.)#nfol est le maximum number of folioles
-          
-          if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2: #feuille legumineuse
-              ParamP[nump]['profilLeafI_l'].append(max(0.001,Norml_leaf*cor_lF*ParamP[nump]['Lfeuille']))
-              ParamP[nump]['profilLeafI_larg'].append(max(0.001,Normlarg_leaf*Norml_leaf*cor_lF*ParamP[nump]['Lfeuille']))
-          elif int(ParamP[nump]['type'])==3: #graminee (applique slmt largeur)
-              ParamP[nump]['profilLeafI_l'].append(max(0.001,Norml_leaf*1.*ParamP[nump]['Lfeuille']))
-              ParamP[nump]['profilLeafI_larg'].append(max(0.001,Normlarg_leaf*Norml_leaf*cor_lF*ParamP[nump]['Lfeuille']))
-          
-          ParamP[nump]['profilNodeI_l'].append(max(0.001,Norml_In*ParamP[nump]['Len']))
-          ParamP[nump]['profilPetI_l'].append(max(0.001,Norm_pet*ParamP[nump]['Lpet']))
-          ParamP[nump]['profilStipI_l'].append(max(0.001,Norml_Stp*cor_lstp*ParamP[nump]['Lstip']))
-          ParamP[nump]['profilStipI_larg'].append(max(0.001,Normlarg_Stp*Norml_Stp*cor_lstp*ParamP[nump]['Lstip']))
-          ParamP[nump]['profilLeafI_nfol'].append(int(max(1,Normnfol*ParamP[nump]['nfol'])))#max 1 pour interdire les feuilles sans folioles.
+      ParamP[nump]['profilRoot'] = rt.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)
+    
+    #shoot profiles
+    ParamP = sh.update_shoot_params(ParamP)
     
     nbplantes = len(ParamP)
     return ParamP, nbplantes
@@ -524,7 +481,7 @@ def init_plant_residues(S, opt_residu, ParamP):
 
 
 def init_variables_plantes(ParamP, nbplantes):
-    
+    global epsilon
     # 1) INVAR
     #dico des variables interne instantanes par plante  utilises dans differents calculs ou preparant des sorties
     
@@ -593,8 +550,9 @@ def init_variables_plantes(ParamP, nbplantes):
     #invar['Mrac_fine'].append(array(PG)*0.)
     
     #initialisation avec des epsilon pour pas que ca bug?
+    epsilon = 10e-10#10e-15
     frac_coty_ini = array(riri.get_lsparami(ParamP, 'frac_coty_ini')) #0.5 ##a passer en parametre?
-    PG = array(PG)*10e-15
+    PG = array(PG)*epsilon
     
     invar['Maerien'].append(array(PG)*frac_coty_ini) #4/5 va aerien
     invar['Mcoty'] = array(PG)*frac_coty_ini #dans les cotyledons
@@ -792,7 +750,7 @@ def Start():
 
 
 def StartEach():
-    global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
+    global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB, epsilon #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
     
     global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr, opt_sky    
     
@@ -855,8 +813,8 @@ def StartEach():
         isRegrowth = True
         cutNB += 1
         TT_repousse = TT
-        invar['Maerien'] = [array([1e-15]*nbplantes)] #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
-        invar['Mfeuil'] = [array([1e-15]*nbplantes)] #tout l'aerien
+        invar['Maerien'] = [array([epsilon]*nbplantes)] #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
+        invar['Mfeuil'] = [array([epsilon]*nbplantes)] #tout l'aerien
         invar['Naerien'] = invar['Maerien'][0]*invar['Npc_aer']/100. #remet avec teneur en N conservee par rapport a avant la coupe
         #invar['Naerien'] = []
         #for nump in range(nbplantes): 
@@ -1143,6 +1101,8 @@ module Coll(posi) #Collar
 module sol(S, nbcol) #objet sol entier (nbcol en y)
 module solxy(S, idcol) #colone de sol pour visu 2D
 module attente(n) #pour attendre initialisation des variables avant de representer le sol
+module pattern(pos) #pour sol surface
+
 
 Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)]#[Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)]
 

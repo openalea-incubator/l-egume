@@ -327,15 +327,13 @@ def germinate(invar, ParamP, nump):
     # creation des cotyledons
     frac_coty_ini = ParamP['frac_coty_ini']
     invar['Mcoty'][nump] = invar['MSgraine'][nump] * frac_coty_ini
-    # invar['Mfeuil'][nump] = invar['MSgraine'][nump] * frac_coty_ini
-    # invar['Naerien'][nump] = invar['Mfeuil'][nump] * ParamP['Npc_ini']/100.
+    #invar['Mfeuil'][nump] = invar['MSgraine'][nump] * frac_coty_ini
+    #invar['Naerien'][nump] = invar['Mfeuil'][nump] * ParamP['Npc_ini']/100.
     # met a jour graine qui a germe et defini pools de reserve (ce qui reste dans MSgraine et N graine = reserve pour soutenir croissance ini)
     invar['MSgraine'][nump] -= invar['Mcoty'][nump]
     invar['Ngraine'][nump] -= invar['Mcoty'][nump] * ParamP['Npc_ini'] / 100.
-    invar['dMSgraine'][nump] = invar['MSgraine'][nump] / ParamP[
-        'DurGraine']  # delta MS fourni par degrejour par graine pendant DurGraine
-    invar['dNgraine'][nump] = invar['Ngraine'][nump] / ParamP[
-        'DurGraine']  # delta QN fourni par degrejour par graine pendant DurGraine
+    invar['dMSgraine'][nump] = invar['MSgraine'][nump] / ParamP['DurGraine']  # delta MS fourni par degrejour par graine pendant DurGraine
+    invar['dNgraine'][nump] = invar['Ngraine'][nump] / ParamP['DurGraine']  # delta QN fourni par degrejour par graine pendant DurGraine
 
     # cotyledons meurent quand DurGraine atteint -> cf calc_surfcoty
     # en toute logique pas besoin de mettre a jour Mfeuil?
@@ -639,6 +637,78 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     #res ,carto=row4(1, 2, Lrow=50., nbprow=125,  opt=0)
     # dans un fichier d'initialiation?
     #prevoir nbprow different par esp... et melange on row...
+
+
+def updateLargProfile(Lmax, Largmax, profilLeafI_Rlen, profilLeafI_Rlarg):
+    """ A function to modify The relative LArg profile given Largmax for the Longest leaf - old parametrization way"""
+    # change the intercept of the second line b2
+    if Largmax > 0.: #negative values are not condidered for update of the intercept
+        ratioM = Largmax/Lmax
+        peak = (profilLeafI_Rlen[3] - profilLeafI_Rlen[1]) / (profilLeafI_Rlen[0] - profilLeafI_Rlen[2])
+        newb2 = ratioM - (peak * profilLeafI_Rlarg[2])#same slope but pass by Largmax at peak
+        newb1 = newb2*(profilLeafI_Rlarg[1]/profilLeafI_Rlarg[3])#same ratio of intercept
+        return [profilLeafI_Rlarg[0], newb1, profilLeafI_Rlarg[2], newb2]
+    else:
+        return profilLeafI_Rlarg #unchanged
+
+
+def update_shoot_params(ParamP, rankmax=51):
+    """ add readable rank profiles in paramP """
+    for nump in range(len(ParamP)):
+
+        if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # feuille legumineuse
+            cor_lF = sqrt(ParamP[nump]['leafshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+        elif int(ParamP[nump]['type']) == 3:  # graminee
+            cor_lF = ParamP[nump]['leafshape']  # pour afficher feuille avec surface reelle et corriger effet recangle (pas sqrt car appliquer que a largeur
+
+        cor_lstp = sqrt(
+            ParamP[nump]['stipshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+
+        ParamP[nump]['profilLeafI_l'] = []
+        ParamP[nump]['profilLeafI_larg'] = []
+        ParamP[nump]['profilNodeI_l'] = []
+        ParamP[nump]['profilPetI_l'] = []
+        ParamP[nump]['profilStipI_l'] = []
+        ParamP[nump]['profilStipI_larg'] = []
+        ParamP[nump]['profilPetI_l'] = []
+        ParamP[nump]['profilLeafI_nfol'] = []
+        if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # legumineuse
+            ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD'])  # proportion de feuille par        classe d'incli pour calcul des k_teta
+        elif int(ParamP[nump]['type']) == 3:  # graminee avec courbure
+            nfol = 8
+            courbure = -5
+            angle_moyen = 0.5 * (ParamP[nump]['gammaFeuil'] + (nfol * courbure) + ParamP[nump]['gammaFeuil'])  # marche pour nb fixe de rectangles (??coupe)
+            ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(angle_moyen), abs(2 * courbure))
+            # passer courbure en parametre?? dans 'gammaFeuilSD'??
+
+        ParamP[nump]['profilLeafI_Rlarg'] = updateLargProfile(ParamP[nump]['Lfeuille'], ParamP[nump]['Largfeuille'], ParamP[nump]['profilLeafI_Rlen'], ParamP[nump]['profilLeafI_Rlarg'])# to consider Largmax as a direct input forcing the relative profile
+        print('profilLeafI_Rlarg', ParamP[nump]['profilLeafI_Rlarg'])
+        for rank in range(1, rankmax):  # !limite a 50 noeuds! (rankmax)
+            Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0] * rank + ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2] * rank + ParamP[nump]['profilLeafI_Rlen'][3])
+            Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlarg'][0] * rank + ParamP[nump]['profilLeafI_Rlarg'][1],ParamP[nump]['profilLeafI_Rlarg'][2] * rank + ParamP[nump]['profilLeafI_Rlarg'][3])
+            Norml_In = min(ParamP[nump]['profilNodeI'][0] * rank + ParamP[nump]['profilNodeI'][1],ParamP[nump]['profilNodeI'][2] * rank + ParamP[nump]['profilNodeI'][3])
+            Norm_pet = min(ParamP[nump]['profilPetI'][0] * rank + ParamP[nump]['profilPetI'][1],ParamP[nump]['profilPetI'][2] * rank + ParamP[nump]['profilPetI'][3])
+            Norml_Stp = min(ParamP[nump]['profilStpI_l'][0] * rank + ParamP[nump]['profilStpI_l'][1],ParamP[nump]['profilStpI_l'][2] * rank + ParamP[nump]['profilStpI_l'][3])
+            Normlarg_Stp = min(ParamP[nump]['profilStpI_Rlarg'][0] * rank + ParamP[nump]['profilStpI_Rlarg'][1],ParamP[nump]['profilStpI_Rlarg'][2] * rank + ParamP[nump]['profilStpI_Rlarg'][3])
+            Normnfol = min(ParamP[nump]['profilLeafI_Rnfol'][0] * rank + ParamP[nump]['profilLeafI_Rnfol'][1],1.)  # nfol est le maximum number of folioles
+
+            if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # feuille legumineuse
+                ParamP[nump]['profilLeafI_l'].append(max(0.001, Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
+                ParamP[nump]['profilLeafI_larg'].append(max(0.001, Normlarg_leaf * Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
+            elif int(ParamP[nump]['type']) == 3:  # graminee (applique slmt largeur)
+                ParamP[nump]['profilLeafI_l'].append(max(0.001, Norml_leaf * 1. * ParamP[nump]['Lfeuille']))
+                ParamP[nump]['profilLeafI_larg'].append(max(0.001, Normlarg_leaf * Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
+
+            ParamP[nump]['profilNodeI_l'].append(max(0.001, Norml_In * ParamP[nump]['Len']))
+            ParamP[nump]['profilPetI_l'].append(max(0.001, Norm_pet * ParamP[nump]['Lpet']))
+            ParamP[nump]['profilStipI_l'].append(max(0.001, Norml_Stp * cor_lstp * ParamP[nump]['Lstip']))
+            ParamP[nump]['profilStipI_larg'].append(max(0.001, Normlarg_Stp * Norml_Stp * cor_lstp * ParamP[nump]['Lstip']))
+            ParamP[nump]['profilLeafI_nfol'].append(int(max(1, Normnfol * ParamP[nump]['nfol'])))  # max 1 pour interdire les feuilles sans folioles.
+
+    return ParamP
+
+
+
 
 
 #old - non utilise
