@@ -17,18 +17,27 @@ sys.path.insert(0, path_)
 import IOxls
 import IOtable
 
-
-
-
-#lecture scenario de changement des parametres
-#mn_sc = os.path.join(path_,'liste_scenarios.xls')
-## ?? ya aussi fscenar?
+import getopt
 
 
 
 
-def lsystemInputOutput_usm(path_, ls_usms, i=0):
+
+def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch = 'exemple'):
     """" cree et update l-system en fonction du fichier usm """
+
+    # lecture de la liste des usm
+    # path_ = r'H:\devel\grassland\grassland\L-gume'
+    usm_path = os.path.join(path_, foldin, fxls_usm)
+    usms = IOxls.xlrd.open_workbook(usm_path)
+    ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
+    #foldin = pour cas ou fichier d'usm dans un sous dossier different de input / tous les autres sont dans input
+
+    #nom fichier en dur (pas en entree de la fonction) + onglet determine par geno
+    fscenar = 'liste_scenarios.xls' #'liste_scenarios_exemple.xls'
+    fsd = 'exemple_sd.xls' #nom mis a jour mais pas table variance_geno
+
+
     testsim = {} #dico sortie avec un nom d'usm
     name = str(int(ls_usms['ID_usm'][i])) + '_' + str(ls_usms['l_system'][i])[0:-4]
     seednb = int(ls_usms['seed'][i])
@@ -55,6 +64,9 @@ def lsystemInputOutput_usm(path_, ls_usms, i=0):
     ongletP = str(ls_usms['ongletP'][i])
     ongletPvois = str(ls_usms['ongletVoisin'][i])
     testsim[name].path_plante = path_plante
+
+    path_scenar = os.path.join(path_, 'input', fscenar)
+    testsim[name].mn_sc = path_scenar
 
     path_variance_geno = os.path.join(path_, 'input', fsd)
     testsim[name].path_variance_geno = path_variance_geno
@@ -139,13 +151,18 @@ def lsystemInputOutput_usm(path_, ls_usms, i=0):
 
     # plante si dossier out pas cree
     # pourrait faire la lecture les ls_usm directement dans le l-system pour faciliter...+
-    return testsim
+    return testsim #dico avec {nom:lsystem}
+
 
 def runlsystem(lsys, name):
-    """ """
-    lsys[name].derive()
-    lsys[name].clear()
-    print((''.join((name," - done"))))
+    """ run the lsystem from a dict with its name"""
+    try:
+        lsys[name].derive()
+        lsys[name].clear()
+        print((''.join((name, " - done"))))
+    except Exception as e:
+        print(e)
+
 
 def animatelsystem(lsys, name):
     lsys[name].animate()
@@ -154,36 +171,41 @@ def animatelsystem(lsys, name):
 
 
 
-#bon pour dossier exemple
-foldin = 'multisim'
-fxls = 'liste_usms_exemple.xls'
-ongletBatch = 'exemple'
-fscenar = 'liste_scenarios_exemple.xls'
-fsd = 'exemple_sd.xls'
-#passer en parametre fonction?
-
-
-#lecture de la liste des usm
-#path_ = r'H:\devel\grassland\grassland\L-gume'
-usm_path = os.path.join(path_, foldin, fxls)
-usms = IOxls.xlrd.open_workbook(usm_path)
-ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
-
-IDusm = 0
-
-
-
 if __name__ == '__main__':
-    mylsys = lsystemInputOutput_usm(path_, ls_usms, IDusm)
-    key = list(mylsys)[0]
-    runlsystem(mylsys, key)
-    #animatelsystem(mylsys, key)
+
+    path_input = path_
+    usm_file = 'liste_usms_exemple.xls' #ex fxls
+    IDusm = 0
+
+    #definition d'arguments avec getopt
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "i:o:s:d", ["usm_file=", "usm_scenario="])#cf l-grass
+    except getopt.GetoptError as err:
+        print(str(err))
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-f", "--file"):
+            usm_file = arg
+        elif opt in ("-u", "--usm"):
+            IDusm = int(arg)
+        #elif opt in ("-o", "--outputs"):
+        #    outputs = arg
+        # pour le moment output folde fourni dans usm -> a changer
+
+    mylsys = lsystemInputOutput_usm(path_input, usm_file, IDusm, foldin='multisim', ongletBatch='exemple')
+    keyname = list(mylsys)[0]
+    runlsystem(mylsys, keyname)
+    #animatelsystem(mylsys, keyname)
 
 
-#rendre accessible en externe le fichier de gestion des sorties!
-#make it callable
-#can import it in batch!!
+#finir rendre accessible en externe le fichier de gestion des sorties!
+# -> input and output folders
+#rendre output accessible hors usm?
+#peut appeler en ligne de commande "python run_l-egume_usm.py -s 1"
+
+
 #a tester en remplacement dans le batch!
 #prevoir de tout mettre dans le meme dossier en entree
 
-#rendre output accessible hors usm?
+

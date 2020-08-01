@@ -88,8 +88,8 @@ ongletScenar2 = 'default'#'nonFixSimTest'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
-variance_geno = pd.read_excel(path_variance_geno)
-ls_parname = list(variance_geno.columns[1:])
+#variance_geno = pd.read_excel(path_variance_geno)
+#ls_parname = list(variance_geno.columns[1:])
 #ls_sdpar = list(pd.read_excel(path_variance_geno).iloc[(0)][ls_parname])
 #moy_modif=3.4875000000000003
 
