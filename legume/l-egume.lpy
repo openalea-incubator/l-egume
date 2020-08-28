@@ -84,7 +84,7 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
 ongletScenar1 = 'default'#'Fix2'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'default'#'nonFixSimTest'#'nonFix1'#'default'#'formica'#
+ongletScenar2 = 'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')

@@ -24,7 +24,7 @@ import run_legume_usm as runl
 
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
-opttest = 4  # 2#5#1#4#2#'autre'#'exemple'#0#13#'exemple_BA'#
+opttest = 1  # 2#5#1#4#2#'autre'#'exemple'#0#13#'exemple_BA'#
 if opttest == 1 or opttest == 2 or opttest == 3 or opttest == 4 or opttest == 5:  # si multisim des test de non regression (1 or 2)
     # global foldin, fxls, ongletBatch, fscenar
     foldin = 'test\inputs'
@@ -90,9 +90,24 @@ nb_usms = len(names)  # len(ls_usms['ID_usm'])#len(names)#
 
 #function to run an L-system from the 'testsim' dictionnary
 def runlsystem(n):
+    #testsim : global
     testsim[names[n]].derive()
     testsim[names[n]].clear()
     print((''.join((names[n]," - done"))))
+
+#def runlsystem_name(name):
+#    #testsim : global
+#    testsim[name].derive()
+#    testsim[name].clear()
+#    print((''.join((name," - done"))))
+
+#def runlsystem_obj(lsys):
+#    """ run the lsystem from lsys object"""
+#    lsys.derive()
+#    lsys.clear()
+#    #print((''.join((name, " - done"))))
+#    #marche pas en multiprocessing
+
 
 
 #run the L-systems
@@ -103,14 +118,22 @@ if __name__ == '__main__':
     print('nb CPU: '+str(CPUnb))
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(int(nb_usms)):
-        #pool.apply_async(runl.runlsystem, args=(testsim, names[i])) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
-        pool.apply_async(runlsystem, args=(i,))
-        # runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        pool.apply_async(runlsystem, args=(i,)) #marche
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+
+        #pool.apply_async(runlsystem_name, args=(names[i],)) #marche aussi
+        #pool.apply_async(runlsystem_obj, args=(testsim[names[i]],)) #marche pas!
+        # pool.apply_async(runlsystem, args=(testsim[names[i]],)) #Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
+        # pool.apply_async(runl.runlsystem, kwds = {'lsys':testsim ,'name': names[i]} ) #marche pas
         #runl.runlsystem(testsim, names[i]) #pour debug hors multisim (messages d'ereur visible)
         #runl.animatelsystem(testsim, names[i])  # pour debug hors multisim (messages d'ereur + sortie archi visible)
     pool.close()
     pool.join()
 
 #marche en single run
+#marche avec fonction locale a 1 argument si nom ou id..
 #marche pas en multiple run avec runl.runlsystem et argument mutiples???
-#marche avec fonction locale a 1 argument..
+#marche pas avec deux arguments, meme si fonction locale et sans gestion d'exception -> vraiment la gestion des deux arguments??
+#fonction a un argument marche si passe numero ou nom en args, pas si passe directement l'objet lsys? comme deepcopy - #RuntimeError: Pickling of "openalea.lpy.__lpy_kernel__.Lsystem" instances is not enabled
+#car pickling pas autorise : https://stackoverflow.com/questions/27868395/python-multiprocessing-object-passed-by-value
+#d'ou peut pas utiliser meme fonction que run_legume_usm et besoin d'un obljet liste de lsystem en variable globale
