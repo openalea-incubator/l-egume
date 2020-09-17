@@ -94,6 +94,8 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     ### testsim[name].ParamP = damier8(g4,g5,opt=optdamier)
     if str(ls_usms['arrangement'][i]) == 'damier8':
         arrang = 'damier' + str(optdamier)
+    if str(ls_usms['arrangement'][i]) == 'damier16':
+        arrang = 'damidouble' + str(optdamier)
     elif str(ls_usms['arrangement'][i]) == 'row4':
         arrang = 'row' + str(optdamier)
     else:

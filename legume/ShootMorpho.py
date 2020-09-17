@@ -610,6 +610,25 @@ def damier8(p, vois, opt=4):
     return res
     #dans un fichier d'initialiation?
 
+
+def damier16(p, vois, opt=4):
+    # cree un melange binaire homogene de 256 plantes avec differentes options de proportions
+    if opt == 4:  # 50/50
+        motif = [p, vois, p, vois, p, vois, p, vois]+[p, vois, p, vois, p, vois, p, vois]
+    elif opt == 0:  # 0/100
+        motif = [vois, vois, vois, vois, vois, vois, vois, vois]+[vois, vois, vois, vois, vois, vois, vois, vois]
+    elif opt == 8:  # 100/0
+        motif = [p, p, p, p, p, p, p, p]+[p, p, p, p, p, p, p, p]
+
+    res = []
+    for i in range(16):
+        res = res + motif[i:16] + motif[0:i]
+
+    return res
+    #dans un fichier d'initialiation?
+
+
+
 def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     """ cree un melange 50/50 alterne ou pur sur 4 rangs distance interow chanmp"""
     if opt == 2:  # 50/50
