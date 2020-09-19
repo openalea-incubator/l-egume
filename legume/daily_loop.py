@@ -123,6 +123,12 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
 
     # print invar['Maerien']#invar['MS_aerien']
     # print aer
+    #test si bourgeons en vie (could add conditions related water stress in another variable)
+    for nump in range(nbplantes):
+        if sum(invar['SurfPlante'][nump]) == 0. and invar['NBsh'][nump] == 0. and invar['NBB'][nump] == 0. and invar['NBD1'][nump] == 0.:
+            invar['aliveB'][nump] += 1. #ajoute 1 jour ou condition morte remplie
+        else:
+            invar['aliveB'][nump] = 0. #ou remise a zero
 
     # ajout des bilan C plante pour sorties / m2
     outvar['BilanC_PARa'].append(sum(invar['PARaPlanteU']) / surfsolref)
@@ -450,6 +456,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     outvar['MS_rac_fineNet'].append(['MS_rac_fineNet', DOY] + invar['MS_rac_fineNet'].tolist())
     outvar['perteN_rac_fine'].append(['perteN_rac_fine', DOY] + invar['perteN_rac_fine'].tolist())
     outvar['NBphyto'].append(['NBphyto', DOY] + invar['NBphyto'])
+    outvar['aliveB'].append(['aliveB', DOY] + invar['aliveB'])
     outvar['NBapexAct'].append(
         ['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
     outvar['transpi'].append(['transpi', DOY] + invar['transpi'])

@@ -25,20 +25,30 @@ ls_files <- list.files(dirlast)#(dir0)#
 #recupere la liste des toto file names du dossier de travail
 ls_toto <- ls_files[grepl('toto', ls_files)]
 
-#creation du dataFrame dtoto et recup des info fichier
-dtoto <- as.data.frame(t(as.data.frame(strsplit(ls_toto, '_'))))#[,c(2,3,6,7,8,9,10)]
+
+
+#11 col (avec sd)
+cols_ <- strsplit(ls_toto, '_')
+test_long <- as.numeric(lapply(cols_, length)) #pour separer selon nb de champs (avec sd)
+
+dtoto <- as.data.frame(t(as.data.frame(cols_[test_long==11])))#as.data.frame(t(as.data.frame(strsplit(ls_toto, '_'))))#
 row.names(dtoto) <- 1: length(dtoto[,1])
-dtoto <- dtoto[,c(2,3,4,5,6,7,8,9)]
-names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed','meteo')
-dtoto$name <- ls_toto
-dtoto$seed <- substr(as.character(dtoto$seed), 1, 1)
+dtoto <- dtoto[,c(2,3,4,5,6,7,8,10)]
+names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed','sd')
+dtoto$name <- ls_toto[test_long==11]
+dtoto$seed <- as.numeric(as.character(dtoto$seed))#substr(as.character(dtoto$seed), 1, 1)
 dtoto$scenario <- substr(as.character(dtoto$scenario), 9, nchar(as.character(dtoto$scenario)))
-dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng, dtoto$meteo, dtoto$damier)# ajout d'une cle unique par scenario
+
+#dtoto <- rbind(temp, dtoto) #merge des 2
+dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng, dtoto$sd)# ajout d'une cle unique par scenario
 #dtoto$damier <- as.numeric(substr(as.character(dtoto$damier), 7, 7))
+
+
+
 
 #split de dtoto et stockage dans une liste de scenatios
 sp_dtoto <- split(dtoto, dtoto$keysc)
-#names(sp_dtoto)
+
 
 
 
