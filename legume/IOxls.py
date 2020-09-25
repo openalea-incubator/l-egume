@@ -205,7 +205,10 @@ def modif_ParamP_sd(ParamP, g4, ls_parname, ls_sdpar):
             g = deepcopy(g4)
             for j in range(len(ls_parname)):
                 parname = ls_parname[j]
-                g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname], ls_sdpar[j]))  # seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
+                if parname in ['Largfeuille']: #liste param qui peuvent etre negatifs -> pas de contrainte de positivite
+                    g[parname] = random.gauss(ParamP[nump][parname], ls_sdpar[j])
+                else:
+                    g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname], ls_sdpar[j]))  # seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
                 #!! ici a revoir car certain parametre pruvent etre negatifs + peut vouloir rirer dans differentes lois de distrib!
                 ParamP[nump] = g
 
