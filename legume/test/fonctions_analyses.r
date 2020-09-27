@@ -450,7 +450,7 @@ PlotDynMStot <- function(MStot, sp_tabSD, sp, lscol="", titre="", ymax=28, appen
 }
 
 
-Build_EvolProportions <- function(MStot, sp_tabSD, sp)
+Build_EvolProportions <- function(MStot, sp_tabSD, sp, var="decile")
 {
   #consrtuction d'un tableau res des proportion par decile d'une espece
   
@@ -461,7 +461,7 @@ Build_EvolProportions <- function(MStot, sp_tabSD, sp)
   for (dec in 10:1)
   {
     #dec <-9 #numero de decile
-    lsp <- sp_tabSD[[sp]][sp_tabSD[[sp]]$decile==dec, c("nump")]
+    lsp <- sp_tabSD[[sp]][sp_tabSD[[sp]][,c(var)]==dec, c("nump")]
     #lsp+1
     
     frac <- as.numeric(rowSums(as.matrix(MStot[,lsp+1])))*100 / dynMtotsp

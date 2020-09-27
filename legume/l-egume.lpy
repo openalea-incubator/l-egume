@@ -1031,7 +1031,9 @@ def End(lstring,lscene):
         f.close()
     
     if outf['outsdfile'] != 0. and opt_sd==1:# valeur de parametres par plante 
-        ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
+        #ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
+        sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
+        ls_parname = ['name']+list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme; suppose la meme pour les 2 sp
         nbp = len(riri.get_lsparami(ParamP, 'name'))
         res_sd = {'nump':range(0,nbp)}
         res_sd['retard'] = test_retard[0:nbp]
