@@ -619,6 +619,18 @@ def damier16(p, vois, opt=4):
         motif = [vois, vois, vois, vois, vois, vois, vois, vois]+[vois, vois, vois, vois, vois, vois, vois, vois]
     elif opt == 8:  # 100/0
         motif = [p, p, p, p, p, p, p, p]+[p, p, p, p, p, p, p, p]
+    elif opt == 2:  # 25/75
+        motif = [p, vois, vois, vois, p, vois, vois, vois]+[p, vois, vois, vois, p, vois, vois, vois]
+    elif opt == 6:  # 75/25
+        motif = [vois, p, p, p, vois, p, p, p]+[vois, p, p, p, vois, p, p, p]
+    elif opt == 1:  # 1/8
+        motif = [p, vois, vois, vois, vois, vois, vois, vois]+[p, vois, vois, vois, vois, vois, vois, vois]
+    elif opt == 7:  # 7/8
+        motif = [vois, p, p, p, p, p, p, p]+[vois, p, p, p, p, p, p, p]
+    elif opt == 3:  # 5/8
+        motif = [vois, p, p, vois, p, vois, p, p]+[vois, p, p, vois, p, vois, p, p]
+    elif opt == 5:  # 3/8
+        motif = [p, vois, vois, p, vois, p, vois,vois]+[p, vois, vois, p, vois, p, vois,vois]
 
     res = []
     for i in range(16):
@@ -627,6 +639,28 @@ def damier16(p, vois, opt=4):
     return res
     #dans un fichier d'initialiation?
 
+
+def regular_square_planter(nbcote, distplantes):
+    "regular square planter - used with damier8 / homogeneous "
+    yyy = [distplantes / 2.]
+    for i in range(1, nbcote): yyy.append(yyy[-1] + distplantes)
+    xxx = yyy
+
+    carto = []
+    for i in range(len(xxx)):
+        for j in range(len(yyy)):
+            carto.append(array([xxx[i], yyy[j], 0.]))
+
+    return carto
+
+
+def random_planter(nbplt, cotex, cotey):
+    """ random plant position with scene defined by cotex and cotey"""
+    carto=[]
+    for i in range(nbplt):
+        carto.append(array([random.uniform(0., cotex), random.uniform(0., cotey), 0.]))
+
+    return carto
 
 
 def row4(p, vois, Lrow=50., nbprow=125,  opt=0):

@@ -120,7 +120,7 @@ deltalevsd = 15
 
 nbcote = 8#16#1#10
 optdamier = 4
-typearrangement='damier8'#'damier16'#'homogeneous'#
+typearrangement='damier8'#'random8'#'damier16'#'homogeneous'#'random16'
 idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar1_sd = 2
@@ -222,11 +222,11 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     g5 = IOxls.modif_param(g5, ongletPvois, ongletScenar2, idscenar2, mn_sc=mn_sc)
     if type == 'homogeneous': #cas d'un couvert monospe homogene
         ParamP = [g4]*nbcote*nbcote
-    elif type == 'damier8':#damier binaire 64 plantes
+    elif type == 'damier8' or type == 'random8':#damier binaire 64 plantes
         ParamP = sh.damier8(g4,g5,opt=opt)
         if nbcote!=8:
             print('Warning! : damier8 option is for a 64 plant design')
-    elif type == 'damier16':#damier binaire 64 plantes
+    elif type == 'damier16' or type == 'random16':#damier binaire 256 plantes
         ParamP = sh.damier16(g4,g5,opt=opt)
         if nbcote!=16:
             print('Warning! : damier16 option is for a 256 plant design')
@@ -314,16 +314,13 @@ def init_scene(ParamP, inis, cote, nbcote, dz_aerien, Hmaxcouv, type='damier8'):
     
     if type=='row4': #pour carre 4 rangs heterogenes
         Param_, carto = sh.row4(1,2,Lrow=cote , nbprow=nbcote)
+    elif type=='random8' or type=='random8':
+        #pour tirage random
+        carto = sh.random_planter(nbcote*nbcote, cote, cote)
     else:
         #pour carre distance homogene
-        yyy = [distplantes/2.]
-        for i in range(1,nbcote):yyy.append(yyy[-1]+distplantes)
-        xxx = yyy
+        carto = sh.regular_square_planter(nbcote, distplantes)
         
-        carto = []
-        for i in range(len(xxx)): 
-            for j in range(len(yyy)):
-                carto.append(array([xxx[i],yyy[j],0.]))
     
     
     # 2) definition du pattern et discretisation sol
