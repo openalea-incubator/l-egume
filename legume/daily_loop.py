@@ -221,7 +221,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
         NremobC = 0.
         invar['Naerien'] += invar['Nuptake_sol'] * fracNaer + NremobC
         invar['Npivot'] += invar['Nuptake_sol'] * fracNpiv
-        print('rem')
+        #print('rem')
 
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 

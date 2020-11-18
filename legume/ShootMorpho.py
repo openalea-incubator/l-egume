@@ -735,7 +735,7 @@ def update_shoot_params(ParamP, rankmax=51):
             # passer courbure en parametre?? dans 'gammaFeuilSD'??
 
         ParamP[nump]['profilLeafI_Rlarg'] = updateLargProfile(ParamP[nump]['Lfeuille'], ParamP[nump]['Largfeuille'], ParamP[nump]['profilLeafI_Rlen'], ParamP[nump]['profilLeafI_Rlarg'])# to consider Largmax as a direct input forcing the relative profile
-        print('profilLeafI_Rlarg', ParamP[nump]['profilLeafI_Rlarg'])
+        #print('profilLeafI_Rlarg', ParamP[nump]['profilLeafI_Rlarg'])
         for rank in range(1, rankmax):  # !limite a 50 noeuds! (rankmax)
             Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0] * rank + ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2] * rank + ParamP[nump]['profilLeafI_Rlen'][3])
             Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlarg'][0] * rank + ParamP[nump]['profilLeafI_Rlarg'][1],ParamP[nump]['profilLeafI_Rlarg'][2] * rank + ParamP[nump]['profilLeafI_Rlarg'][3])

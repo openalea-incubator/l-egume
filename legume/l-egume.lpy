@@ -52,6 +52,7 @@ import IOtable
 import IOxls
 import random
 import pandas as pd
+import zipfile
 
 ## lecture fichier meteo
 #faire une fonction??
@@ -137,6 +138,30 @@ obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transp
 
 
 
+#def Outzip(path_out, outzipfile, ls_names):
+#    """ zip a list of output files """
+#    pathzip = os.path.join(path_out, outzipfile)
+#    # create a ZipFile object
+#    zipObj = zipfile.ZipFile(pathzip, 'w', zipfile.ZIP_DEFLATED)
+#    # Add multiple files to the zip
+#    for namef in ls_names:
+#        abs_src = os.path.abspath(path_out)
+#        absname = os.path.abspath(namef)
+#        arcname = absname[len(abs_src) + 1:]
+#        zipObj.write(namef,arcname)
+#    # close the Zip File
+#    zipObj.close()
+
+#def Outdel(ls_names):
+#    """ delete a list of output files """
+#    for namef in ls_names:
+#        #zipObj.write(namef)
+#        os.remove(namef)
+#        #pass
+
+
+
+
 #1 residu = listes de 1 element
 #DOYres = DOYdeb+20#300 #jour d'ajout des residus -> pas utilise
 #nb_res = 8# 4 types de residus par espece (4 compatiment du papier) * 2 especes #pas utilise jusque la? (force donc cycles boucle pas? ou  ajuster a 1 moment?)
@@ -165,7 +190,8 @@ visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
 movDisplay =0 # #sauvegarde toutes les vues pour faire un film
-opt_zip = 0 #if 1, zip and delete the output csv files 
+opt_zip = 1 #if 1, zip and delete the output csv files 
+opt_verbose =0 #0, remove print in the console
 
 
 #1 seul axe en developpemnt? -> arret
@@ -226,11 +252,11 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
         ParamP = [g4]*nbcote*nbcote
     elif type == 'damier8' or type == 'random8':#damier binaire 64 plantes
         ParamP = sh.damier8(g4,g5,opt=opt)
-        if nbcote!=8:
+        if nbcote!=8 and opt_verbose==1:
             print('Warning! : damier8 option is for a 64 plant design')
     elif type == 'damier16' or type == 'random16':#damier binaire 256 plantes
         ParamP = sh.damier16(g4,g5,opt=opt)
-        if nbcote!=16:
+        if nbcote!=16 and opt_verbose==1:
             print('Warning! : damier16 option is for a 256 plant design')
     elif type == 'row4':#4 rangs - 500pl.m-2
         ParamP, cart_ = sh.row4(g4,g5,nbprow= nbcote, opt=opt)
@@ -812,7 +838,6 @@ def StartEach():
     #if TT%TTcutFreq <STEPS:
     if mng_j['Coupe']==1:
         Hcut = mng_j['Hcut']
-        print(('cut ', Hcut))
         isTTcut = True
         isRegrowth = True
         cutNB += 1
@@ -820,6 +845,9 @@ def StartEach():
         invar['Maerien'] = [array([epsilon]*nbplantes)] #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
         invar['Mfeuil'] = [array([epsilon]*nbplantes)] #tout l'aerien
         invar['Naerien'] = invar['Maerien'][0]*invar['Npc_aer']/100. #remet avec teneur en N conservee par rapport a avant la coupe
+        if opt_verbose==1:
+            print(('cut ', Hcut))
+        
         #invar['Naerien'] = []
         #for nump in range(nbplantes): 
         #    #invar['MS_aerien'][nump] = 1e-15 
@@ -897,7 +925,9 @@ def EndEach(lstring,lscene):
     DOY+=1
     meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','I0','Et0','Precip','Tsol'], 'DOY', val=DOY)
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
-    print (DOY)
+    if opt_verbose==1:
+        print (DOY)
+    
     for k in list(meteo_j.keys()): meteo_j[k]=meteo_j[k][0]
     for k in list(mng_j.keys()): mng_j[k]=mng_j[k][0]
     meteo_j['durjour'] = sh.DayLength (latitude,sh.DecliSun (DOY % 365))
@@ -968,6 +998,7 @@ def EndEach(lstring,lscene):
 def End(lstring,lscene):
     global res_root, outvarpath,outimagepath, savelsOrgans, lsOrgans
     
+    ls_fileOUT = [] #liste des fichiers ecrits en sortie
     #fermeture des bilans -> print cause pb: les sortir en fichier!
     #sys.stdout=open(outBilansTxt,'w')
     S.CloseWbalance(print_=0)
@@ -1014,6 +1045,7 @@ def End(lstring,lscene):
     
     if outf['outBilanNfile'] != 0.:
         IOtable.write_dict(dicout, path_out, outBilanNfile)
+        ls_fileOUT.append(os.path.join(path_out, outBilanNfile))
     
     
     #ecriture en sortie du profil racinaire
@@ -1022,12 +1054,14 @@ def End(lstring,lscene):
         f = open(resrootpath, 'w')#file (resrootpath, 'w')#r'H:\devel\grassland\newres.csv'
         IOtable.ecriture_csv(res_root, f)
         f.close()
+        ls_fileOUT.append(resrootpath)
     
     if outf['lsorgfile'] != 0.:
         lsorgpath = os.path.join(path_out, lsorgfile)#r'H:\devel\grassland\grassland\L-gume\lsAxes.csv'
         f = open(lsorgpath, 'w')#file (lsorgpath, 'w')
         IOtable.ecriture_csv_fromlist(savelsOrgans,  f)#savelsOrgans=liste des lsOrgans pour chaque iteration #lsOrgans #lsAxes #lsApex #lsApexStop #ls_systrac[0] 
         f.close()
+        ls_fileOUT.append(lsorgpath)
     
     if outf['outsdfile'] != 0. and opt_sd==1:# valeur de parametres par plante 
         #ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
@@ -1040,6 +1074,7 @@ def End(lstring,lscene):
             res_sd[p] = riri.get_lsparami(ParamP, p)
         
         IOtable.write_dict(res_sd, path_out, outsdfile)
+        ls_fileOUT.append(os.path.join(path_out, outsdfile))
     
     if outf['outvarfile'] != 0.:
         outvarpath = os.path.join(path_out, outvarfile)#r'H:\devel\grassland\grassland\L-gume\toto.csv'
@@ -1053,12 +1088,14 @@ def End(lstring,lscene):
         
         #ecrit fichier avec variables selectionnees
         IOtable.write_dicttables(outvarpath, outvar, ls_keyvar)
+        ls_fileOUT.append(outvarpath)
     
     if outf['outHRfile'] != 0. or outf['outFTSWfile'] != 0. or outf['outNO3file'] != 0. or outf['outNH4file'] != 0.:
         outHRpath = os.path.join(path_out, outHRfile)#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
         f = open(outHRpath, 'w')#file (outHRpath, 'w')
         IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
         f.close()
+        ls_fileOUT.append(outHRpath)
     
     #pour gerer la vue de la sortie finale - lucas
     outimagepath = os.path.join(path_out, outimagefile)#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
@@ -1082,7 +1119,18 @@ def End(lstring,lscene):
     #print sh.cumul_lenIN(lsApex, IOtable.conv_dataframe(IOtable.t_list(lsOrgans)), I_I0profilInPlant)#lsApex
     #tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
     #print calcSurfScale(tab, 'sh')
+    
+    #zippe les sorties si option opt_zip
+    if opt_zip==1:
+        if opt_verbose == 1:
+            print(ls_fileOUT)
+        
+        nomzip = outvarfile[0:-4]
+        IOtable.Outzip(path_out, nomzip+'.zip', ls_fileOUT)
+        IOtable.Outdel(ls_fileOUT)
+    
     pass
+
 
 
 

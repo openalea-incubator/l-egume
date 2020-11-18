@@ -18,7 +18,7 @@ import IOxls
 import IOtable
 
 import getopt
-
+import zipfile
 
 
 
@@ -142,6 +142,7 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     testsim[name].frDisplay = int(dic_opt['frDisplay'])  # 1 #sauvegarde de la derniere vue
     testsim[name].movDisplay = int(dic_opt['movDisplay'])  # #sauvegarde toutes les vues pour faire un film
     testsim[name].opt_zip = int(dic_opt['opt_zip'])  # if 1, zip and delete the output csv files
+    testsim[name].opt_verbose = int(dic_opt['opt_verbose'])  # 0, remove print in the console
 
 
     # mise a jour derivartionLength & axiom
