@@ -11,24 +11,25 @@ try:
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'
 
-print(('path', path_))
+#print(('path', path_))
 
 sys.path.insert(0, path_)
 import IOxls
 import IOtable
 
 import getopt
-import zipfile
+#import zipfile
 
 
 
 
-def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch = 'exemple'):
+#def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch = 'exemple'):
+def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', i=0, path_OUT='output'):
     """" cree et update l-system en fonction du fichier usm """
 
     # lecture de la liste des usm
     # path_ = r'H:\devel\grassland\grassland\L-gume'
-    usm_path = os.path.join(path_, foldin, fxls_usm)
+    usm_path = os.path.join(foldin, fxls_usm)#(path_, foldin, fxls_usm)
     usms = IOxls.xlrd.open_workbook(usm_path)
     ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
     #foldin = pour cas ou fichier d'usm dans un sous dossier different de input / tous les autres sont dans input
@@ -39,7 +40,7 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     fopt = 'mod_susm.xls'## fichier option
 
     #options
-    path_opt = os.path.join(path_, 'input', fopt)
+    path_opt = os.path.join(foldin, fopt)#(path_, 'input', fopt)
     dic_opt = IOxls.read_plant_param(path_opt, "options")
     #print(dic_opt)
 
@@ -47,33 +48,34 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     name = str(int(ls_usms['ID_usm'][i])) + '_' + str(ls_usms['l_system'][i])[0:-4]
     seednb = int(ls_usms['seed'][i])
     #names.append(name)
+    path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
     path_lsys = os.path.join(path_, str(ls_usms['l_system'][i]))
     testsim[name] = Lsystem(path_lsys)  # objet l-system
 
     # testsim[name].ongletM = str(ls_usms['ongletM'][i])
-    meteo_path_ = os.path.join(path_, 'input', str(ls_usms['meteo'][i]))
+    meteo_path_ = os.path.join(foldin, str(ls_usms['meteo'][i]))#(path_, 'input', str(ls_usms['meteo'][i]))
     ongletM_ = str(ls_usms['ongletM'][i])
     testsim[name].meteo = IOxls.read_met_file(meteo_path_, ongletM_)
 
     # testsim[name].ongletMn = str(ls_usms['ongletMn'][i])
-    mn_path_ = os.path.join(path_, 'input', str(ls_usms['mng'][i]))
+    mn_path_ = os.path.join(foldin, str(ls_usms['mng'][i]))#(path_, 'input', str(ls_usms['mng'][i]))
     ongletMn_ = str(ls_usms['ongletMn'][i])
     testsim[name].mng = IOxls.read_met_file(mn_path_, ongletMn_)
 
-    ini_path_ = os.path.join(path_, 'input', str(ls_usms['inis'][i]))
+    ini_path_ = os.path.join(foldin, str(ls_usms['inis'][i]))#(path_, 'input', str(ls_usms['inis'][i]))
     ongletIni_ = str(ls_usms['ongletIn'][i])
     testsim[name].inis = IOxls.read_plant_param(ini_path_, ongletIni_)
 
     # testsim[name].ongletP = str(ls_usms['ongletP'][i])
-    path_plante = os.path.join(path_, 'input', str(ls_usms['plante'][i]))
+    path_plante = os.path.join(foldin, str(ls_usms['plante'][i]))#(path_, 'input', str(ls_usms['plante'][i]))
     ongletP = str(ls_usms['ongletP'][i])
     ongletPvois = str(ls_usms['ongletVoisin'][i])
     testsim[name].path_plante = path_plante
 
-    path_scenar = os.path.join(path_, 'input', fscenar)
+    path_scenar = os.path.join(foldin, fscenar)#(path_, 'input', fscenar)
     testsim[name].mn_sc = path_scenar
 
-    path_variance_geno = os.path.join(path_, 'input', fsd)
+    path_variance_geno = os.path.join(foldin, fsd)#(path_, 'input', fsd)
     testsim[name].path_variance_geno = path_variance_geno
     # la, lire scenario et changer parametres
     idscenar1 = int(ls_usms['scenario1'][i])
@@ -84,7 +86,7 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     ongletScenar1 = ongletP
 
     # sol
-    path_sol = os.path.join(path_, 'input', str(ls_usms['sol'][i]))
+    path_sol = os.path.join(foldin, str(ls_usms['sol'][i]))#(path_, 'input', str(ls_usms['sol'][i]))
     ongletS = str(ls_usms['ongletS'][i])
     par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
     par_SN['concrr'] = 0.  # force eau de pluie dans ls test (a retirer)
@@ -165,7 +167,7 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
         sdname = '_-'
 
     # path fichiers de sortie
-    testsim[name].path_out = os.path.join(path_, str(ls_usms['folder_out'][i]))
+    testsim[name].path_out = path_OUT #os.path.join(path_, str(ls_usms['folder_out'][i]))
     testsim[name].outvarfile = 'toto_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + sdname + '_' + '.csv'
     testsim[name].lsorgfile = 'lsAxes_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + sdname + '_' + '.csv'
     testsim[name].outHRfile = 'outHR_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + sdname + '_' + '.csv'
@@ -202,35 +204,52 @@ if __name__ == '__main__':
     usm_file = 'liste_usms_exemple.xls' #ex fxls
     IDusm = 0
 
+    #default exemple simulation
+    foldinputs = os.path.join(path_, 'input')
+    foldoutputs = os.path.join(path_, 'output')
+    ongletB = 'exemple__'
+    #print(foldoutputs)
+
+
     #definition d'arguments avec getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "i:o:s:d", ["usm_file=", "usm_scenario="])#cf l-grass
+        opts, args = getopt.getopt(sys.argv[1:], "f:i:b:u:o:d", ["usm_file=", "inputs=", "onglet_batch=","usm_scenario=",  "outputs=",])#cf l-grass #"f:o:s:d" #!:d necessaire a la fin sinon lit pas dernier argument
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(2)
 
+    #print("opts", opts)
     for opt, arg in opts:
-        if opt in ("-f", "--file"):
+        if opt in ("-f", "--file"):#usm file
             usm_file = arg
-        elif opt in ("-u", "--usm"):
+        elif opt in ("-i", "--inputs"):#inputs folder
+            foldinputs = arg
+        elif opt in ("-b", "--batch"):#onglet_batch
+            ongletB = arg
+        elif opt in ("-u", "--usm"):#usm ID
             IDusm = int(arg)
-        #elif opt in ("-o", "--outputs"):
-        #    outputs = arg
+        elif opt in ("-o", "--outputs"):#outputs folder
+            foldoutputs = arg
+
         # pour le moment output folde fourni dans usm -> a changer
 
-    mylsys = lsystemInputOutput_usm(path_input, usm_file, IDusm, foldin='multisim', ongletBatch='exemple')
+    #mylsys = lsystemInputOutput_usm(path_input, usm_file, IDusm, foldin='multisim', ongletBatch='exemple')
+    #print('foldoutputs', foldoutputs)
+    mylsys = lsystemInputOutput_usm(usm_file, foldin=foldinputs, ongletBatch=ongletB, i=IDusm, path_OUT=foldoutputs)
     keyname = list(mylsys)[0]
     runlsystem(mylsys, keyname)
     #animatelsystem(mylsys, keyname)
 
 
 #finir rendre accessible en externe le fichier de gestion des sorties!
-# -> input and output folders
-#rendre output accessible hors usm?
-#peut appeler en ligne de commande "python run_l-egume_usm.py -s 1"
+# -> input and output folders -> fait
+#rendre output accessible hors usm? -> fait!
+
+#juste id usm: "python run_legume_usm.py -u 1" -> OK!
+#test ttes les options: "python run_legume_usm.py -f liste_usms_exemple.xls -i C:\inputs -b exemple -u 1 -o C:\outputs" ->  OK!
 
 
-#a tester en remplacement dans le batch!
-#prevoir de tout mettre dans le meme dossier en entree
+#a tester en remplacement dans le batch! -> a faire
+#prevoir de tout mettre dans le meme dossier en entree -> fichiers a migrer
 
 
