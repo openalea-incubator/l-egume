@@ -36,7 +36,12 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     #nom fichier en dur (pas en entree de la fonction) + onglet determine par geno
     fscenar = 'liste_scenarios.xls' #'liste_scenarios_exemple.xls'
     fsd = 'exemple_sd.xls' #nom mis a jour mais pas table variance_geno
+    fopt = 'mod_susm.xls'## fichier option
 
+    #options
+    path_opt = os.path.join(path_, 'input', fopt)
+    dic_opt = IOxls.read_plant_param(path_opt, "options")
+    #print(dic_opt)
 
     testsim = {} #dico sortie avec un nom d'usm
     name = str(int(ls_usms['ID_usm'][i])) + '_' + str(ls_usms['l_system'][i])[0:-4]
@@ -121,6 +126,23 @@ def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch =
     testsim[name].Rseed = seednb
     testsim[name].DOYdeb = int(ls_usms['DOYdeb'][i])
     testsim[name].DOYend = int(ls_usms['DOYend'][i])
+
+
+    #mise a jour des options de simulation
+    testsim[name].opt_residu = int(dic_opt['opt_residu'])  # si 0, pas activation de mineralisation
+    testsim[name].opt_sd = int(dic_opt['opt_sd'])  # 1 #genere distribution des valeurs de parametres
+    testsim[name].opt_stressN = int(dic_opt['opt_stressN'])  # Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
+    testsim[name].opt_stressW = int(dic_opt['opt_stressW'])  # Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
+    testsim[name].opt_ReadstressN = int(dic_opt['opt_ReadstressN'])  # Force stress N to read input values - for debugging/calibration
+    testsim[name].opt_photomorph = int(dic_opt['opt_photomorph'])  # 1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
+    testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
+    testsim[name].visu_shoot = int(dic_opt['visu_shoot'])  # 1# pour visualisation/interpretation shoot
+    testsim[name].visu_sol = int(dic_opt['visu_sol'])  # 1# pour visualisation/interpretation sol
+    testsim[name].visu_solsurf = int(dic_opt['visu_solsurf'])  # 0 pour visualisation du pattern
+    testsim[name].frDisplay = int(dic_opt['frDisplay'])  # 1 #sauvegarde de la derniere vue
+    testsim[name].movDisplay = int(dic_opt['movDisplay'])  # #sauvegarde toutes les vues pour faire un film
+    testsim[name].opt_zip = int(dic_opt['opt_zip'])  # if 1, zip and delete the output csv files
+
 
     # mise a jour derivartionLength & axiom
     testsim[name].derivationLength = int(ls_usms['DOYend'][i]) - int(ls_usms['DOYdeb'][i])  # derivationLength variable predefinie dans L-py

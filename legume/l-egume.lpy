@@ -158,12 +158,14 @@ opt_sd = 0 #1 #genere distribution des valeurs de parametres
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
 opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
+opt_photomorph =1#1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
 visu_solsurf=1#0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
 movDisplay =0 # #sauvegarde toutes les vues pour faire un film
+opt_zip = 0 #if 1, zip and delete the output csv files 
 
 
 #1 seul axe en developpemnt? -> arret
@@ -1761,7 +1763,12 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0)GetUp(V1,V2,V3)Lf(nump
     durjour = meteo_j['durjour']#sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     PAReff = PARif * 24./durjour #courbe de reponse au PAR calle sur moyenne sur photoperiode
     PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_pet'][0],ParamP[nump]['photomorphPAR_pet'][1],ParamP[nump]['photomorphPAR_pet'][2],ParamP[nump]['photomorphPAR_pet'][3])
-    photomorph=RFR_effect*PAR_effect#1.
+    
+    if opt_photomorph ==1:
+        photomorph = RFR_effect*PAR_effect
+    else:
+        photomorph = 1.
+    
     invar['phmgPet'][nump].append(photomorph)
     invar['phmgPet_m'][nump].append(photomorph)
     
@@ -1819,7 +1826,12 @@ GetPos(X0,Y0,Z0)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     durjour = meteo_j['durjour']#sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     PAReff = PARif * 24./durjour #courbe de reponse au PAR calle sur moyenne sur photoperiode
     PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_int'][0],ParamP[nump]['photomorphPAR_int'][1],ParamP[nump]['photomorphPAR_int'][2],ParamP[nump]['photomorphPAR_int'][3])
-    photomorph=RFR_effect*PAR_effect #1.
+    
+    if opt_photomorph ==1:
+        photomorph = RFR_effect*PAR_effect
+    else:
+        photomorph = 1.
+    
     invar['phmgEntr'][nump].append(photomorph)
     invar['phmgEntr_m'][nump].append(photomorph)
     
