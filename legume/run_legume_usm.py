@@ -207,7 +207,7 @@ if __name__ == '__main__':
     #default exemple simulation
     foldinputs = os.path.join(path_, 'input')
     foldoutputs = os.path.join(path_, 'output')
-    ongletB = 'exemple__'
+    ongletB = 'exemple'
     #print(foldoutputs)
 
 
@@ -247,7 +247,7 @@ if __name__ == '__main__':
 
 #juste id usm: "python run_legume_usm.py -u 1" -> OK!
 #test ttes les options: "python run_legume_usm.py -f liste_usms_exemple.xls -i C:\inputs -b exemple -u 1 -o C:\outputs" ->  OK!
-
+#test sur le serveur: "python run_legume_usm.py -f liste_usms_exemple.xls -i /nfs/work/inra_ea/P3F/VGL/inputs -b exemple -u 1 -o /nfs/work/inra_ea/P3F/VGL/outputs"
 
 #a tester en remplacement dans le batch! -> a faire
 #prevoir de tout mettre dans le meme dossier en entree -> fichiers a migrer

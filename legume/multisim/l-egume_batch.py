@@ -24,38 +24,47 @@ import run_legume_usm as runl
 
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
-opttest = 4  # 2#5#1#4#2#'autre'#'exemple'#0#13#'exemple_BA'#
+opttest = 'exemple'##2#1# 4  # 5#4#2#'autre'#0#13#'exemple_BA'#
 if opttest == 1 or opttest == 2 or opttest == 3 or opttest == 4 or opttest == 5:  # si multisim des test de non regression (1 or 2)
     # global foldin, fxls, ongletBatch, fscenar
-    foldin = 'test\inputs'
+    foldin =  os.path.join(path_, 'input')#'test\inputs'
     fxls = 'liste_usms_nonregression.xls'
     if opttest == 1:  # non regression
         ongletBatch = 'test'
+        foldout = os.path.join(path_, 'test\lastcheck')
     elif opttest == 2:  # obssim
         ongletBatch = 'valid'
+        foldout = os.path.join(path_, 'test\lastvalid')
     elif opttest == 3:  # solnu
         ongletBatch = 'solnu'  #
+        foldout = os.path.join(path_, 'output')
     elif opttest == 4:  # champ
         ongletBatch = 'test_champ'  #
+        foldout = os.path.join(path_, 'test', 'test_champ')
     elif opttest == 5:  # pour bea
         ongletBatch = 'test_beajul'  #
+        foldout = os.path.join(path_, 'test', 'test2')
 elif opttest == 'exemple':
     # global foldin, fxls, ongletBatch, fscenar
-    foldin = 'multisim'
+    foldin =  os.path.join(path_, 'input')#'multisim'
+    foldout = os.path.join(path_, 'output')
     fxls = 'liste_usms_exemple.xls'
     ongletBatch = 'exemple'
     #fscenar = 'liste_scenarios_exemple.xls'
 elif opttest == 'exemple_BA':
     # global foldin, fxls, ongletBatch, fscenar
-    foldin = 'multisim'
+    foldin =  os.path.join(path_, 'input')#'multisim'
     fxls = 'liste_usms_exemple_BA.xls'
     ongletBatch = 'exemple'
-else:  # other multisimulation to be defined (0)
+    foldout = os.path.join(path_, 'test', 'test2')
+else:  # to personalize - other multisimulation to be defined (0)
     # global foldin, fxls, ongletBatch, fscenar
     # to be manually updated
-    foldin = 'input'  # 'multisim'
+    foldin =  os.path.join(path_, 'input')#'input'  # 'multisim'
     fxls = 'liste_usms_essais.xls'  # 'liste_usms_mix.xls'
-    ongletBatch = 'Champs'  # 'SimTest'
+    ongletBatch = 'Histor'#'Champs'  # 'SimTest'
+    foldout = os.path.join(path_, 'output')
+
 
 #scenar et fsd definis en dur dans la fonction lsystemInputOutput_usm
 #fscenar = 'liste_scenarios.xls'
@@ -77,7 +86,8 @@ testsim = {}
 names = []
 for i in range(len(ls_usms['ID_usm'])):
     if int(ls_usms['torun'][i]) == 1:  # si 1 dans la colonne 'torun' l'ajoute a la liste
-        mylsys = runl.lsystemInputOutput_usm(path_, fxls, i, foldin=foldin, ongletBatch=ongletBatch)
+        #mylsys = runl.lsystemInputOutput_usm(path_, fxls, i, foldin=foldin, ongletBatch=ongletBatch)
+        mylsys = runl.lsystemInputOutput_usm(fxls, foldin=foldin, ongletBatch=ongletBatch, i=i, path_OUT=foldout)
         name = list(mylsys)[0]
         names.append(name)
         testsim[name] = mylsys[name]
