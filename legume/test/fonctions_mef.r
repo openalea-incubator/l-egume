@@ -434,6 +434,219 @@ build_ls_dobssim <-function(esp_, ls_expe, ls_var, ls_varsim)
 
 
 
+library(ineq)
+build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
+{
+  ls_toto_paquet <- sp_dtoto[[key]]$name
+
+  #recuperation par paquet des fichiers de base (pas de stockage de l'ensemble des fichiers en memoire)
+  ltoto <- read_ltoto(ls_toto_paquet)
+  #version locale du paquet de doto
+  dtoto <- sp_dtoto[[key]]
+
+  #recup du nom des esp
+  mix <- strsplit(ls_toto_paquet[1], '_')[[1]][4] #suppose paquet fait par traitement
+  esp <- strsplit(mix, '-')[[1]][1] #'Fix2'
+  esp2 <- strsplit(mix, '-')[[1]][2] #'nonFixSimTest'
+
+  #visu des rendement moyen m2 / a un DOY
+  surfsolref <- NULL
+  nbplt <- NULL
+  nbplt1 <- NULL
+  nbplt2 <- NULL
+
+  #DOYScoupe <- c(165,199,231,271,334)#Avignon
+  #DOYScoupe <- c(187,229,282,334)#Lusignan
+  #DOYdeb <- 60
+  idDOYScoupe <- DOYScoupe - DOYdeb
+  Ytot <- NULL
+  Ycoupe <- NULL
+
+  YEsp1 <- NULL
+  YEsp2 <- NULL
+
+  QNfix <- NULL
+  QNupttot <- NULL
+  QNuptleg <- NULL
+
+  PARi1 <- NULL
+  PARi2 <- NULL
+  Surf1 <- NULL
+  Surf2 <- NULL
+  LRac1 <- NULL
+  LRac2 <- NULL
+  MRac1 <- NULL
+  MRac2 <- NULL
+  MGini1 <- NULL
+  MGini2 <- NULL
+
+  for (i in 1:length(ls_toto_paquet))#(ls_toto))
+  {
+    name <- ls_toto_paquet[i]
+    damier <- strsplit(name, '_')[[1]][5]
+    dat <- ltoto[[name]]
+    s <- dat[dat$V1=='pattern',3]#m2
+    surfsolref <- cbind(surfsolref, as.numeric(as.character(s)))
+    nb <- length(dat)-2
+    nbplt <- cbind(nbplt, nb)
+
+    #Y Totaux
+    MSaerien <- as.matrix(dat[dat$V1=='MSaerien' & dat$steps %in% DOYScoupe,3:(3+nb-1)], ncol=nb)
+    ProdIaer <- rowSums(MSaerien) / s
+    Ycoupe <- rbind(Ycoupe, ProdIaer)
+    Ytot <- cbind(Ytot, sum(ProdIaer))#cumul des 5 coupes
+
+
+    #N totaux et fixation
+    Qfix <- as.matrix(dat[dat$V1=='Qfix',3:(3+nb-1)], ncol=nb)
+    Qfix <- as.numeric(rowSums(Qfix) / s)
+    Nuptake_sol_tot <- as.matrix(dat[dat$V1=='Nuptake_sol',3:(3+nb-1)], ncol=nb)
+    Nuptake_sol_tot <- as.numeric(rowSums(Nuptake_sol_tot) / s)
+    QNfix <-cbind(QNfix, sum(Qfix))
+    QNupttot <- cbind(QNupttot, sum(Nuptake_sol_tot))
+
+    #YEsp1
+    #esp <- 'Fix2'#'Fix3'#'Fix1'#'Fix' #pourquoi c'est ce nom au lieu de Fix???
+    #esp2 <- 'nonFixSimTest'#'nonFix1'#'nonFix0' #pourquoi c'est ce nom au lieu de Fix???
+
+    nomcol <- names(ltoto[[name]])
+    #if (esp==esp2 & grep('damier', damier)==1)#si deux fois le meme nom d'espece, mais mixture damier
+    #{
+    #  idcols <- as.logical(didcols[didcols$damier==damier,1:66])#idcols lu dans fichier qui leve les ambiguite
+    #} else
+    #{
+    idcols <- grepl(esp, nomcol) & !grepl(esp2, nomcol)#contient esp1 et pas esp2
+    #}
+
+    dat1 <- cbind(ltoto[[name]][,c(1:2)], ltoto[[name]][,idcols])
+    nb1 <- length(dat1)-2
+    nbplt1 <- cbind(nbplt1, nb1)
+    if (nb1>0)
+    {
+      MS1 <- as.matrix(dat1[dat1$V1=='MSaerien' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)
+      ProdIaer1 <- rowSums(MS1) / s
+      Nuptake_sol_leg <- as.matrix(dat1[dat1$V1=='Nuptake_sol',3:(3+nb1-1)], ncol=nb1)
+      Nuptake_sol_leg <- as.numeric(rowSums(Nuptake_sol_leg) / s)
+      jPARi1 <- rowSums(as.matrix(dat1[dat1$V1=='PARiPlante' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jSurf1 <- rowSums(as.matrix(dat1[dat1$V1=='SurfPlante' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jLRac1 <- rowSums(as.matrix(dat1[dat1$V1=='RLTot' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jMRac1 <- rowSums(as.matrix(dat1[dat1$V1=='MS_rac_fine' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      jMPiv1 <- rowSums(as.matrix(dat1[dat1$V1=='MS_pivot' & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)) / s
+      #gini par date sur MSA (ttes les plantes)
+      Gini1 <- NULL
+      for (k in 1:length(DOYScoupe))
+      { Gini1 <- cbind(Gini1, ineq(MS1[k,], type="Gini"))}
+
+
+    } else
+    {
+      ProdIaer1 <- 0 #pas de plante de l'esp1
+      Nuptake_sol_leg <- 0
+      jPARi1 <- 0
+      jSurf1 <- 0
+      jLRac1 <- 0
+      jMRac1 <- 0
+      jMPiv1 <- 0
+      Gini1 <- c(NA,NA,NA,NA)
+    }
+    YEsp1 <- cbind(YEsp1, sum(ProdIaer1))#cumul des 5 coupes
+    QNuptleg <- cbind(QNuptleg, sum(Nuptake_sol_leg))
+    PARi1 <- cbind(PARi1, sum(jPARi1))
+    Surf1 <- cbind(Surf1, sum(jSurf1))
+    LRac1 <- cbind(LRac1, max(jLRac1))
+    MRac1 <- cbind(MRac1, max(jMRac1)+max(jMPiv1))
+    MGini1 <- rbind(MGini1, Gini1)
+
+    #YEsp2
+    #if (esp==esp2 & grep('damier', damier)==1)#si deux fois le meme nom d'espece, mais mixture damier
+    #{
+    #  idcols <- !as.logical(didcols[didcols$damier==damier,1:66])#idcols lu dans fichier qui leve les ambiguite
+    #  idcols[1:2] <- FALSE #remet a faux les deux premieres colonnes
+    #} else
+    #{
+    idcols <- grepl(esp2, nomcol)#contient esp2
+    #}
+
+    dat2 <- cbind(ltoto[[name]][,c(1:2)], ltoto[[name]][,idcols])
+    nb2 <- length(dat2)-2
+    nbplt2 <- cbind(nbplt2, nb2)
+    if (nb2>0)
+    {
+      MS2 <- as.matrix(dat2[dat2$V1=='MSaerien' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)
+      ProdIaer2 <- rowSums(MS2) / s
+      jPARi2 <- rowSums(as.matrix(dat2[dat2$V1=='PARiPlante' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jSurf2 <- rowSums(as.matrix(dat2[dat2$V1=='SurfPlante' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jLRac2 <- rowSums(as.matrix(dat2[dat2$V1=='RLTot' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jMRac2 <- rowSums(as.matrix(dat2[dat2$V1=='MS_rac_fine' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      jMPiv2 <- rowSums(as.matrix(dat2[dat2$V1=='MS_pivot' & dat2$steps %in% DOYScoupe,3:(3+nb2-1)], ncol=nb2)) / s
+      #gini par date sur MSA (ttes les plantes)
+      Gini2 <- NULL
+      for (k in 1:length(DOYScoupe))
+      { Gini2 <- cbind(Gini2, ineq(MS2[k,], type="Gini"))}
+    }
+    else
+    {
+      ProdIaer2 <- 0 #pas de plante de l'esp2
+      jPARi2 <- 0
+      jSurf2 <- 0
+      jLRac2 <- 0
+      jMRac2 <- 0
+      jMPiv2 <- 0
+      Gini2 <- c(NA,NA,NA,NA)
+    }
+    YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
+    #YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
+    PARi2 <- cbind(PARi2, sum(jPARi2))
+    Surf2 <- cbind(Surf2, sum(jSurf2))
+    LRac2 <- cbind(LRac2, max(jLRac2))
+    MRac2 <- cbind(MRac2, max(jMRac2)+max(jMPiv2))
+    MGini2 <- rbind(MGini2, Gini2)
+
+  }
+
+  dtoto$surfsolref <- as.numeric(surfsolref)
+  dtoto$nbplt <- as.numeric(nbplt)
+  dtoto$nbplt1 <- as.numeric(nbplt1)
+  dtoto$nbplt2 <- as.numeric(nbplt2)
+  dtoto$Ytot <- as.numeric(Ytot)
+  dtoto$densite <- dtoto$nbplt/dtoto$surfsolref
+  dtoto$densite1 <- dtoto$nbplt1/dtoto$surfsolref
+  dtoto$YEsp1 <- as.numeric(YEsp1)
+  dtoto$densite2 <- dtoto$nbplt2/dtoto$surfsolref
+  dtoto$YEsp2 <- as.numeric(YEsp2)
+  dtoto$Semprop1 <- dtoto$densite1/dtoto$densite
+  dtoto$Yprop1 <- dtoto$YEsp1 / (dtoto$YEsp1 +dtoto$YEsp2)
+  dtoto$Yprop2 <- dtoto$YEsp2 / (dtoto$YEsp1 +dtoto$YEsp2)
+  dtoto$QNfix <- as.numeric(QNfix)
+  dtoto$QNupttot <- as.numeric(QNupttot)
+  dtoto$QNuptleg <- as.numeric(QNuptleg)
+  dtoto$QNtot <- dtoto$QNfix + dtoto$QNupttot
+
+  #new var
+  dtoto$Pari1 <- as.numeric(PARi1)
+  dtoto$Pari2 <- as.numeric(PARi2)
+  dtoto$Surf1 <- as.numeric(Surf1)
+  dtoto$Surf2 <- as.numeric(Surf2)
+  dtoto$PhiSurf1 <- as.numeric(PARi1) / (as.numeric(Surf1) + 10e-12)#Phi Surf
+  dtoto$PhiSurf2 <- as.numeric(PARi2) / (as.numeric(Surf2) + 10e-12)
+  dtoto$PhiMass1 <- as.numeric(PARi1) / (as.numeric(YEsp1) + 10e-12)#Phi Mass
+  dtoto$PhiMass2 <- as.numeric(PARi2) / (as.numeric(YEsp2) + 10e-12)
+  dtoto$LRac1 <- as.numeric(LRac1)
+  dtoto$LRac2 <- as.numeric(LRac2)
+  dtoto$MRac1 <- as.numeric(MRac1)
+  dtoto$MRac2 <- as.numeric(MRac2)
+  dtoto$UptNLen1 <- (as.numeric(QNupttot) - as.numeric(QNuptleg)) / (as.numeric(LRac1) + 10e-12)#Uptake par Len
+  dtoto$UptNLen2 <- as.numeric(QNuptleg) / (as.numeric(LRac2) + 10e-12)
+  dtoto$UptNMass1 <- (as.numeric(QNupttot) - as.numeric(QNuptleg)) / (as.numeric(MRac1) + 10e-12)#Uptake par Mass root
+  dtoto$UptNMass2 <- as.numeric(QNuptleg) / (as.numeric(MRac2) + 10e-12)
+  dtoto$gini1 <- rowMeans(MGini1) #moyenne des gini de ttes les dates (sans retirer pltes mortes)
+  dtoto$gini2 <- rowMeans(MGini2)
+
+  dtoto
+
+}
+#fonction a generaliser et a bouger ailleurs
+
 
 
 

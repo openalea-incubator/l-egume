@@ -137,6 +137,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_stressW = int(dic_opt['opt_stressW'])  # Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
     testsim[name].opt_ReadstressN = int(dic_opt['opt_ReadstressN'])  # Force stress N to read input values - for debugging/calibration
     testsim[name].opt_photomorph = int(dic_opt['opt_photomorph'])  # 1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
+    testsim[name].opt_stressGel = int(dic_opt['opt_stressGel'])
     testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
     testsim[name].visu_shoot = int(dic_opt['visu_shoot'])  # 1# pour visualisation/interpretation shoot
     testsim[name].visu_sol = int(dic_opt['visu_sol'])  # 1# pour visualisation/interpretation sol

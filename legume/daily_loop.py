@@ -22,6 +22,8 @@ except:
 def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW=1, opt_stressN=1):
     """ daily potential growth loop (computes epsi, DM production / allocation / Ndemand) """
 
+    epsilon = 10e-10  #
+
     # calcul de ls_epsi
     invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
     invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
@@ -90,13 +92,13 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
             invar['NBsh'][nump] = nbsh_2[nump]
 
 
-    invar['L_Sp'] = array(invar['MS_feuil']) / (array(invar['MS_aerien']) - array(invar['MS_feuil']) + 10e-12)
+    invar['L_Sp'] = array(invar['MS_feuil']) / (array(invar['MS_aerien']) - array(invar['MS_feuil']) + epsilon)
+    #pas tres realiste / a revoir (allometrie?)
 
     # print("MS AERIEN",invar['MS_aerien'],invar['MS_aer_cumul'])
     # print invar['Mtot']
 
-    ls_demandeN = array(invar[
-                            'DemandN_Tot']) * 0.001 + 1e-15  # en kg N.plant-1 #[1e-12]*nbplantes #sera a renseigner -> la, force a zero - devra utiliser invar['DemandN_Tot'] qui est mis a jour + loin #en kg N
+    ls_demandeN = array(invar['DemandN_Tot']) * 0.001 + 1e-15  # en kg N.plant-1 #[1e-12]*nbplantes #sera a renseigner -> la, force a zero - devra utiliser invar['DemandN_Tot'] qui est mis a jour + loin #en kg N
     #Npc_aer = array(invar['Naerien']) / (aer + array(invar['MS_aerien'])) * 100.  # Npc avec accroissement de biomasse pour calculer la demande
     Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100. #aer deja dans MS_aerien!
     Npc_piv = array(invar['Npivot']) / (pivot + array(invar['MS_pivot'])) * 100.
@@ -132,7 +134,7 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
 
     # ajout des bilan C plante pour sorties / m2
     outvar['BilanC_PARa'].append(sum(invar['PARaPlanteU']) / surfsolref)
-    outvar['BilanC_RUE'].append(sum(dM) / sum(invar['PARaPlanteU']))
+    outvar['BilanC_RUE'].append(sum(dM) / (sum(invar['PARaPlanteU'])+epsilon))
     outvar['BilanCdMStot'].append(sum(dM) / surfsolref)
     outvar['BilanCdMrac_fine'].append(sum(rac_fine) / surfsolref)
     outvar['BilanCdMpivot'].append(sum(pivot) / surfsolref)
@@ -226,14 +228,12 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
     # Fixation et allocation
-    maxFix = sh.Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')) * array(
-        riri.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  # * invar['dTT']
+    maxFix = sh.Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')) * array(riri.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  # * invar['dTT']
     stressHFix = array(ls_ftswStress['WaterTreshFix']) * maxFix  # effet hydrique
     invar['Qfix'] = sh.ActualFix(ls_demandeN_bis * 1000., invar['Nuptake_sol'], stressHFix)  # g N.plant-1
     invar['Ndfa'] = invar['Qfix'] / (invar['Qfix'] + invar['Nuptake_sol'] + 1e-15)
 
-    delta_besoinN_aerien = invar['DemandN_TotAer'] * 1000. - invar['Qfix'] * fracNaer - invar[
-        'Nuptake_sol'] * fracNaer - NremobC  # besoin N are sont ils couverts? g N.plant-1
+    delta_besoinN_aerien = invar['DemandN_TotAer'] * 1000. - invar['Qfix'] * fracNaer - invar['Nuptake_sol'] * fracNaer - NremobC  # besoin N are sont ils couverts? g N.plant-1
     NremobN = minimum(delta_besoinN_aerien, invar['NreservPiv'])  # si pas couvert remobilisation N du pivot directement
     NremobN[NremobN < 0.] = 0.  # verifie que pas de negatif
 
@@ -242,11 +242,21 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # print 'delta_besoinN', delta_besoinN_aerien[0:2]
     # print 'NremobN', NremobN[0:2]
 
-    invar['Naerien'] += invar['Qfix'] * fracNaer + NremobN
+    invar['Naerien'] += invar['Qfix'] * fracNaer + NremobN #- invar['dNmortGel']
     invar['Npivot'] += invar['Qfix'] * fracNpiv - NremobN
     invar['NreservPiv'] -= NremobN
     invar['Nrac_fine'] += invar['Qfix'] * fracNrac_fine  # total : vivantes et mortes
 
+    #correction si gel
+    #if sum(invar['isGelDam'])!=0: #certaines plantes gel
+    #    for nump in range(nbplantes):
+    #        if invar['isGelDam'][nump] == 1:
+    #            invar['Naerien'][nump] = invar['dMSmortGel'][nump] * invar['Npc_aer'][nump] / 100.
+    #            #invar['Npc_aer'] = invar['dNmortGel']/invar['dMSmortGel']
+    #            #invar['dMSmortGel'][nump] = MSA
+    #            #invar['dNmortGel'][nump]
+
+    #print(invar['Naerien'], invar['Qfix'] * fracNaer, NremobN, invar['dMSmortGel'])
     # effet feedback N pas fait (priorite) -> necessaire???
     # mise a jour Npc et calcul NNI
 
@@ -350,10 +360,8 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # print 'graine', graineC, dltot, invar['Surfcoty'], invar['Mcoty']#
 
-    dur2 = (array(riri.get_lsparami(ParamP, 'GDs2')) + array(
-        riri.get_lsparami(ParamP, 'LDs2'))) / 20.  # en jours a 20 degres!
-    dur3 = (array(riri.get_lsparami(ParamP, 'GDs3')) + array(
-        riri.get_lsparami(ParamP, 'LDs3'))) / 20.  # en jours a 20 degres!
+    dur2 = (array(riri.get_lsparami(ParamP, 'GDs2')) + array(riri.get_lsparami(ParamP, 'LDs2'))) / 20.  # en jours a 20 degres!
+    dur3 = (array(riri.get_lsparami(ParamP, 'GDs3')) + array(riri.get_lsparami(ParamP, 'LDs3'))) / 20.  # en jours a 20 degres!
     invar['dRLenSentot'], invar['dMSenRoot'] = rt.calc_root_senescence(invar['dRLen2'], invar['dRLen3'], dur2, dur3,
                                                                        array(invar['SRL']))
     invar['RLTotNet'] = array(invar['RLTotNet']) + dltot - invar['dRLenSentot']
@@ -366,8 +374,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # calcul senesc a faire a l'echelle des axes plutot? -> a priori pas necessaire
 
-    invar['R_DemandC_Root'] = rt.calc_QDplante(nbplantes, invar_sc['ax']['QDCRac'], invar_sc['ax']['cumlRac'],
-                                               invar['RLentot'])
+    invar['R_DemandC_Root'] = rt.calc_QDplante(nbplantes, invar_sc['ax']['QDCRac'], invar_sc['ax']['cumlRac'], invar['RLentot'])
     invar['R_DemandC_Shoot'] = aer / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + 10e-15)
 
     # if '0_0_0' in invar_sc['ax']['NRac'].keys():
@@ -390,8 +397,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['DemandN_Tot'] = ls_demandeN_bis * 1000.
     # print invar['DemandN_Tot'][0], sum(ls_Act_Nuptake_plt[0]), sum(ls_Act_Nuptake_plt[0])/(invar['DemandN_Tot'][0]+10e-12), sum(S.m_NO3)
 
-    Npc = (array(invar['DemandN_Feuil']) + array(invar['DemandN_Pet']) + array(invar['DemandN_Stem'])) * 100. / array(
-        invar['MS_aerien'])
+    Npc = (array(invar['DemandN_Feuil']) + array(invar['DemandN_Pet']) + array(invar['DemandN_Stem'])) * 100. / array(invar['MS_aerien'])
 
     # temps de calcul
     past_time = time.time() - start_time
@@ -461,6 +467,9 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
         ['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
     outvar['transpi'].append(['transpi', DOY] + invar['transpi'])
     outvar['cumtranspi'].append(['cumtranspi', DOY] + invar['cumtranspi'].tolist())
+    outvar['dMSmortGel'].append(['dMSmortGel', DOY] + invar['dMSmortGel'])
+    outvar['dNmortGel'].append(['dNmortGel', DOY] + invar['dNmortGel'])
+
 
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
     outvar['phmgPet'].append(['phmgPet', DOY] + list(map(max, invar['phmgPet'])))
