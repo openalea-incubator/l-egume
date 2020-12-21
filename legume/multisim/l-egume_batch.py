@@ -24,7 +24,7 @@ import run_legume_usm as runl
 
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
-opttest = 'Histor'#'exemple'##2#1# 4  # 5#4#2#'autre'#0#13#'exemple_BA'#
+opttest = 'Histor'#'exemple'##2#1#  5#4#2#'autre'#0#13#'exemple_BA'#4 #
 if opttest == 1 or opttest == 2 or opttest == 3 or opttest == 4 or opttest == 5:  # si multisim des test de non regression (1 or 2)
     # global foldin, fxls, ongletBatch, fscenar
     foldin =  os.path.join(path_, 'input')#'test\inputs'
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     print('nb CPU: '+str(CPUnb))
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(int(nb_usms)):
-        #pool.apply_async(runlsystem, args=(i,)) #marche
-        runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        pool.apply_async(runlsystem, args=(i,)) #marche
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
 
         #pool.apply_async(runlsystem_name, args=(names[i],)) #marche aussi
         #pool.apply_async(runlsystem_obj, args=(testsim[names[i]],)) #marche pas!

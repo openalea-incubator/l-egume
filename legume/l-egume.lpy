@@ -74,7 +74,7 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 ongletP = 'Fix2'#'Orca'#'Fet'#'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletPvois = 'nonFixSimTest'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 #lecture des parametres du sol
 path_sol = os.path.join(path_leg,'Parametres_sol_exemple.xls')#'Parametres_sol_exemple2_debugL_glbis.xls')#
@@ -84,8 +84,8 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'default'#'Fix2'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'default'#'nonFix1'#'default'#'formica'#
+ongletScenar1 = 'default'#'Orca'#'Fix2'#'nonFixSimTest'#'default'#'formica'#
+ongletScenar2 = 'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
@@ -1156,7 +1156,7 @@ module A2(nump, nsh, statut, age, duromb, rank, rankp, phyllotax) #secondary sho
 module D(nump, nsh, statut, age, posi, parent) #Dormant bud of the crown
 module D2(nump, nsh, age, rankp, phyllotax,shoottype) #dormant bud at the leaf axil
 module B(nump, nsh, age, posi, nrhiz, azi, par, statut) #active Bud of the crown nsh=numero de tige; rhiz  nb noeud de rhizome
-module SHP(nump, azi, elv0, posi, nbp,par) #SHoot Parameters: nbp et par pour moduler incli_ini en fonction de longueur et lumiere
+module SHP(nump, nsh, azi, elv0, posi, nbp,par) #SHoot Parameters: nbp et par pour moduler incli_ini en fonction de longueur et lumiere
 module In(nump, nsh, age, rank, rankp, l, statut, ordre) #Internode (l longueur normalisee)
 module Lf(nump, nsh, age, azi, rank, rankp, l, tt_omb,Lcut, statut, ordre) #Leaf (l longueur normalisee)
 module Pet(nump, nsh, age, azi, l, statut) #Petiole
@@ -1246,7 +1246,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
         ageref = min(phylloPot, phylloPot*ParamP[nump]['RvitTallage'])
         newageB = age%ageref - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron'] - test_retard[nump] 
         newageA = age%ageref +STEPS - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron']+STEPS - test_retard[nump] 
-        deltaBud = int(age/phylloPot)
+        deltaBud = min(2, int(age/phylloPot))#plafonne a 2 phylloc pour B ages
         #position ini
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
             #boureons sur le collet -> epend de rpiv
@@ -1274,7 +1274,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
             
             rgeq = invar['rgeq'][nump]#0
             #print nsh, 'rgeq', rgeq, invar['rgeq'][nump]
-            produce [@M(posi[0],posi[1],posi[2])SetHead()/(azi)&(90)B(nump,newnsh,newageB,posini,new_nrhiz,newazi,0,'exp')][D(nump,newnsh2,0,newageB,posini,nsh)]SHP(nump,azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,0,rgeq,azi)
+            produce [@M(posi[0],posi[1],posi[2])SetHead()/(azi)&(90)B(nump,newnsh,newageB,posini,new_nrhiz,newazi,0,'exp')][D(nump,newnsh2,0,newageB,posini,nsh)]SHP(nump,nsh, azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,0,rgeq,azi)
         else:
             invar['countSh'][nump] += 1
             newnsh = invar['countSh'][nump] #nsh
@@ -1284,7 +1284,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
                 sh.germinate(invar, ParamP[nump], nump)
             
             rgeq = invar['rgeq'][nump]#0
-            produce [D(nump,newnsh,0,newageB,posini,nsh)]SHP(nump,azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,deltaBud, rgeq,azi)
+            produce [D(nump,newnsh,0,newageB,posini,nsh)]SHP(nump,nsh, azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,deltaBud, rgeq,azi)
     elif age >= phylloPot/(0.00001+ls_ftswStress['WaterTreshDevI'][nump]*ls_NNIStress['NTreshDevII'][nump]) and nrhiz>=1:
         newageB = age%phylloPot
         produce F(ParamP[nump]['LenRhiz'])B(nump,nsh,newageB, posi,  nrhiz-1, azi, newpar, statut)
@@ -1315,7 +1315,9 @@ GetPos(X0,Y0,Z0,nump2)A(nump,nsh,statut, age, duromb, rank, rgeq, phyllotax):
         invar['Hplante'][nump]=0.001
         invar['Dplante'][nump]=0.
         invar['lsA'][nump].remove(nsh)
-        invar['lsApexMort'][nump].append(nsh)
+        #invar['lsApexMort'][nump].append(nsh) #si mis, retire aussi les D()
+        IOxls.append_dic(invar_sc['sh']['MaxNI'], idsh, rank+10)#+10 pour pas repartir avec gros retard!
+        produce *
     
     dX, dY = X0-carto[nump][0],Y0-carto[nump][1]
     dist2 =  dX*dX+dY*dY
@@ -1508,10 +1510,13 @@ GetPos(X0,Y0,Z0,nump2)A2(nump, nsh, statut, age, duromb, rank, rankp, phyllotax)
 
 
 
-SHP(nump,azi,elv0,posi,nbp,par):
-     vox = riri.WhichVoxel(carto[nump], origin_grid, na, dxyz)
-     newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX
-     produce SHP(nump,azi,elv0,posi, nbp+1, newpar)
+SHP(nump,nsh, azi,elv0,posi,nbp,par):
+     if nsh in invar['lsApexMort'][nump]:
+        produce * #pour nettoyer lstring si tige morte
+     else:
+        vox = riri.WhichVoxel(carto[nump], origin_grid, na, dxyz)
+        newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX
+        produce SHP(nump,nsh, azi,elv0,posi, nbp+1, newpar)
 #??erreur nbp (nb phytomere devrait dependre meme regle que phyllochrone! (bon seulement pour cet exemple)
 
 GetPos(X0,Y0,Z0,nump): #Rq: le GetPos doit etre dans les regle de production (pas interpretation pour que coupe soit effective)
@@ -1519,7 +1524,7 @@ GetPos(X0,Y0,Z0,nump): #Rq: le GetPos doit etre dans les regle de production (pa
         produce Cut()
     
     #effet gel
-    if Z0>0. and invar['isGelDam'][nump]==1: #coupe tout au dessus du collet:
+    if Z0>=0. and invar['isGelDam'][nump]==1: #coupe tout au dessus du collet:
         produce Cut()
 
 
@@ -2139,6 +2144,7 @@ GetPos(X0,Y0,Z0,nump2)RLAP(nump,nsh,age,rankp,l, Horiz):
         produce [GetPos(X0,Y0,Z0,nump)RB(nump,nsh,age+STEPSsol,rankp,statut)]
 
 [] --> * #pour nettoyer les bracket des D() morts
+[Pet(nump, nsh, age, azi, l, statut)] --> * #pour nettoyer les restes de coupe qui on enelver feuille -> ajouter a residus!
 
 
 sol(sol_obj, nbcol):
@@ -2156,7 +2162,7 @@ attente(n):
 
 
 interpretation:
-SHP(nump,azi, elv0,posi,nbp,par):
+SHP(nump,nsh,azi, elv0,posi,nbp,par):
     if elv0 < ParamP[nump]['elvtresh'] and par>=meteo_j['I0']*ParamP[nump]['par_tresh']:#pour moduler incli0 par longueur/incli en plante isolee
         Lsh = ParamP[nump]['Len']*nbp
         Hsh = Lsh*sin(elv0*pi/180.)
