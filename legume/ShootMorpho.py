@@ -23,7 +23,8 @@ def betaT(Tmin, Tmax, q, T):
 
 def dTT(T, p):
     """ fonction de cumul du temp thermique; integre reponse non lineaire"""
-    return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
+    Tref=20.
+    return max((Tref - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
 
 
 
