@@ -1,6 +1,10 @@
 
+#determiner le path du fichier actuel et le recuper 
+dir <- dirname(rstudioapi::getSourceEditorContext()$path)
+#marche pas hors de rstudio/ligne de commande? (https://stackoverflow.com/questions/47044068/get-the-path-of-current-script)
 
-dir <- choose.dir()
+
+#dir <- choose.dir()
 #"C:\\devel\\l-egume\\legume\\test"
 
 
@@ -9,8 +13,8 @@ source(paste(dir, "fonctions_analyses.r",sep="\\"))
 source(paste(dir, "fonctions_mef.r",sep="\\"))
 
 
-
-dirlast <-  paste(dir, "lastvalid",sep="\\")
+dirlast <-  paste(dir, "lastvalidBis",sep="\\")
+#dirlast <-  paste(dir, "lastvalid",sep="\\")
 #dirlast <-  paste(dir, "test_champ",sep="\\") #pour visu dossier sorties champ
 setwd(dirlast)#(dir0)#
 pathobs <- paste(dir, "obs", sep="\\")
@@ -61,7 +65,7 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 for (key in names(sp_dtoto))#
 {
   #analyse par usm
-  #key <- names(sp_dtoto)[20]#dileg luz
+  #key <- names(sp_dtoto)[4]#dileg luz
 
 
   ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -81,6 +85,7 @@ for (key in names(sp_dtoto))#
   #recup des obs correspondant
   namexl <- paste0(meteo, "_obs.xls")#"morpholeg14_obs.xls"
   trait <- if (esp == esp2 & damier=="homogeneous0") "ISO" else "HD-M2" #sera a adapter selon les melanges ou a renommer "timbale-krasno"
+  trait <- if (esp == esp2 & damier=="homogeneous0" & meteo == "DigitLuz10") "LD" else trait
   if (meteo == "DivLeg15" | meteo == "LusignanDivLeg" | meteo == "LusignanAsso16")
   {
     trait <- "HD"
@@ -135,6 +140,7 @@ ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("homogeneous0", 
 #ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("damier4", names(sp_dtoto))]#cle comportant le bon geno
 ls_var <- c('NBI','nb_phyto_tot','surf_tot','Hmax','MSaerien')#,'long_pivot')
 ls_varsim <- c('NBI','NBphyto','LAI', 'Hmax','MSA')#, 'RDepth')
+#plante car ls_expe pas bon!
 
 
 ls_dobssim <- build_ls_dobssim(esp_, ls_expe, ls_var, ls_varsim)
@@ -146,6 +152,7 @@ ls_dobssim <- build_ls_dobssim(esp_, ls_expe, ls_var, ls_varsim)
 layout(matrix(1:6,2,3, byrow=T))
 for (var in ls_varsim) #var <- "NBI"#"MSA"#"LAI"#"NBphyto"#
 {
+  #var <- "NBI"
   mobssim <- merge_dobssim(ls_dobssim[[var]])
   plot_obssim(mobssim, name=paste(esp_, "ISO/LD", var), displayusm=T)
 }

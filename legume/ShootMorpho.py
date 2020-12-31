@@ -9,7 +9,6 @@ except:
     import RIRI5 as riri
 
 
-
 #Temperature response funtions
 def betaT(Tmin, Tmax, q, T):
     """ beta de Graux (2011)"""
@@ -21,10 +20,35 @@ def betaT(Tmin, Tmax, q, T):
 
     return max(fT, 0.)
 
-def dTT(T, p):
+def TempHoraire(h, Tmin, Tmax):
+    """ interpolation cos des temperatures horaires"""
+    """ Eq S33a - Evers et al 2010"""
+    """ Temperature moyenne journaliere = (Tmin+Tmax/2)"""
+    Ta = 0.5*((Tmax+Tmin)+(Tmax+Tmin)*cos(pi*(h+8.)/12.))
+    return Ta
+
+
+def dTT(vT, p, optT=0):
     """ fonction de cumul du temp thermique; integre reponse non lineaire"""
-    Tref=20.
-    return max((Tref - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
+    """ 3 options: 0=betaD journalier ; 1=betaH Horaire; 2=Tbase lineaire ; vT liste des temperatures"""
+    Tref = 20. #reference temperature = 20 degreC
+    if optT==0: #betaD
+        T = mean(vT)
+        return max((Tref - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
+    elif optT==1: #betaH
+        ls_betaH = []
+        for T in vT:
+            ls_betaH.append(betaT(p[1], p[2], p[3], T))
+
+        return max((Tref - p[0]) * mean(ls_betaH), 0.)
+    elif optT==2:#Tbase lineaire
+        T = mean(vT)
+        return max((T - p[0]), 0.)
+    elif optT==3:#olg bug
+        #just for debuging and testing conformity with oler model verions!!! do not use
+        T = mean(vT)
+        return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
+
 
 
 

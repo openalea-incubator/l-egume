@@ -38,6 +38,8 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     fscenar = 'liste_scenarios.xls' #'liste_scenarios_exemple.xls'
     fsd = 'exemple_sd.xls' #nom mis a jour mais pas table variance_geno
     fopt = 'mod_susm.xls'## fichier option
+    fsta = 'stations_exemple.xls' ##fichier station
+    ongletSta = 'Lusignan'  # 'exemple'
 
     #options
     path_opt = os.path.join(foldin, fopt)#(path_, 'input', fopt)
@@ -94,6 +96,11 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].par_SN = par_SN
     testsim[name].par_sol = par_sol
 
+    #station
+    path_station = os.path.join(foldin, fsta)
+    testsim[name].path_station = path_station
+    testsim[name].ongletSta = ongletSta
+
     # nbcote=7 # a passer ext
     # testsim[name].ParamP = [g4]*int(ls_usms['nbplt'][i])#nbcote*nbcote
     optdamier = int(ls_usms['damier'][i])
@@ -137,6 +144,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_stressW = int(dic_opt['opt_stressW'])  # Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
     testsim[name].opt_ReadstressN = int(dic_opt['opt_ReadstressN'])  # Force stress N to read input values - for debugging/calibration
     testsim[name].opt_photomorph = int(dic_opt['opt_photomorph'])  # 1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
+    testsim[name].opt_optT = int(dic_opt['opt_optT']) # option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
     testsim[name].opt_stressGel = int(dic_opt['opt_stressGel'])
     testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
     testsim[name].visu_shoot = int(dic_opt['visu_shoot'])  # 1# pour visualisation/interpretation shoot

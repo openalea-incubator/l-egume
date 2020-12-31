@@ -406,6 +406,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # sorties
     outvar['TT'].append(['TT', DOY] + invar['TT'])
+    outvar['TTphyllo'].append(['TTphyllo', DOY] + invar['TTphyllo'].tolist())
     outvar['time'].append(['time', DOY] + [past_time] * nbplantes)
     outvar['cutNB'].append(['cutNB', DOY] + [cutNB] * nbplantes)
     outvar['SurfPlante'].append(['SurfPlante', DOY] + list(map(sum, invar['SurfPlante'])))
