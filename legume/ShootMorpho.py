@@ -428,6 +428,9 @@ def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
     # distingue les Lf et Stp! car pas meme calcul de surface!
     dp = {}  # dictionnaire a l'echelle choisie: plante/shoot/axe #-> demande tot
     dplf = {}  # demande des feuilles
+    dpin = {} #demande des En
+    dppt = {} #demande pet
+
     for i in range(len(tab['nump'])):
         if scale == 'plt':
             idp = str(tab['nump'][i])
@@ -478,6 +481,7 @@ def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
                               dl)  # m, delta longueur potentiel (sans limitation C mais avec stress hydrique)
             dMin = dLpot / ParamP[nump]['SNLmin']  # delta masse min En
             IOxls.append_dic(dp, idp, dMin)
+            IOxls.append_dic(dpin, idp, dMin)
 
         if tab['organ'][i] == 'Pet' and tab['statut'][i] == 'exp':
             pot = expansion(age + dTT[nump], ParamP[nump]['aP'], ParamP[nump]['delaiP']) - expansion(age,
@@ -488,12 +492,15 @@ def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
             dLpot = calc_Lpet(ParamP[nump], rank, rankp, ordre, dl)  # m
             dMin = dLpot / ParamP[nump]['SPLmin']  # delta masse min En
             IOxls.append_dic(dp, idp, dMin)
+            IOxls.append_dic(dppt, idp, dMin)
 
     IOxls.sum_ls_dic(dp)
     IOxls.sum_ls_dic(dplf)
+    IOxls.sum_ls_dic(dpin)
+    IOxls.sum_ls_dic(dppt)
 
-    return dp, dplf
-    # pourrait decliner demande globale en demande par organe?
+    return dp, dplf, dpin, dppt
+    # pourrait decliner en demande pot sans et avec stress?
 
 def Cremob(DemCp, R_DemandC_Shoot, MSPiv, frac_remob=0.1):
     """ remobilisation of C from the taproot to the shoot to ensure minimal growth """
