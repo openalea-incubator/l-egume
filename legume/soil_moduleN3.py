@@ -1007,7 +1007,7 @@ def demandeNdefaut2(MSp,dMSp,Npc, surfsolref, a=4.8, b1=-0.1 ,b2=-0.33):
     PotN = (MSp + dMSp) * NcritTot/100. #gN.plant-1
     ls_demandeN = PotN-QN
     ls_demandeN[ls_demandeN<0.]=0.#gN.plant-1
-    return ls_demandeN
+    return ls_demandeN, NcritTot, MStot #renvoie aussi Ncrit et MStot
 
 
 

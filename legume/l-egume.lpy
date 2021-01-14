@@ -170,7 +170,7 @@ opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas app
 opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
 opt_photomorph =1#1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
 opt_stressGel = 1 #Active gel stress option below Tgel
-opt_optT = 0 #option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
+opt_optT = 1 #option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
 visu_root=1#1# pour visualisation/interpretation root
 visu_shoot=1#1# pour visualisation/interpretation shoot
 visu_sol=0#1# pour visualisation/interpretation sol
@@ -796,12 +796,13 @@ def StartEach():
     #MAJ temps phyllochronique
     invar['TTphyllo'] = array(invar['TTphyllo']) + array(invar['dTTphyllo'])
     
+    graineC, graineN = sh.reserves_graine(invar, ParamP)
     for nump in range(nbplantes): 
         invar['dTT'][nump] = sh.dTT(vT, [ParamP[nump]['Tdev'], ParamP[nump]['Tmin'], ParamP[nump]['Tmax'], ParamP[nump]['q']], optT=opt_optT)
         invar['dTTsol'][nump] = sh.dTT(vTsol, [ParamP[nump]['Tdev'], ParamP[nump]['Tmin'], ParamP[nump]['Tmax'], ParamP[nump]['q']], optT=0)
         
         ##update gel status par plante
-        if (meteo_j['TmoyDay'] > ParamP[nump]['Tgel']):
+        if (meteo_j['TmoyDay'] > ParamP[nump]['Tgel'] and opt_stressGel == 1) or  opt_stressGel == 0 or graineN[nump]>0.:
             invar['isGelDam'][nump] = 0
             invar['dMSmortGel'][nump] = 0.
             invar['dNmortGel'][nump] = 0.
@@ -810,6 +811,9 @@ def StartEach():
             #MSA = outvar['MS_aerien'][-1][nump+2]-epsilon #MSA cumulee de la coupe jusqu'au jour d'avant
             #invar['dMSmortGel'][nump] = MSA
             #invar['dNmortGel'][nump] = MSA*invar['Npc_aer'][nump]/100.
+            print("GEL !!!!!!!!!!")
+            
+            #gerer le cas des gel pendant phase graine (-> mort?)
         
         if invar['germination'][nump]>0:
             invar['TT'][nump] = invar['TT'][nump] + invar['dTT'][nump]
@@ -881,15 +885,16 @@ def StartEach():
         invar['dMSmortGel'] = [0.]*nbplantes
         invar['dNmortGel'] = [0.]*nbplantes
         for nump in range(nbplantes): 
-            ##si gel status par plante
-            if invar['isGelDam'][nump] == 1:
+            ##si gel status par plante et plus dans la phase de germination 
+            if invar['isGelDam'][nump] == 1 :
+                frac_mortGel = 0.95#1.#
                 #mise a jour de ce qui est mort vers sorties sol
-                invar['dMSmortGel'][nump] = invar['Maerien'][0][nump]
-                invar['dNmortGel'][nump] = invar['Maerien'][0][nump]*invar['Npc_aer']/100.
+                invar['dMSmortGel'][nump] = frac_mortGel * invar['Maerien'][0][nump]
+                invar['dNmortGel'][nump] = frac_mortGel * invar['Maerien'][0][nump]*invar['Npc_aer'][nump]/100.
                 #mise a zero de ce qui est mort
-                invar['Maerien'][0][nump] = epsilon #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
-                invar['Mfeuil'][0][nump] = epsilon #tout l'aerien
-                invar['Naerien'][nump] = invar['Maerien'][0][nump]*invar['Npc_aer'][nump]/100.
+                invar['Maerien'][0][nump] = (1.-frac_mortGel) * invar['Maerien'][0][nump] + epsilon #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
+                invar['Mfeuil'][0][nump] = (1.-frac_mortGel) * invar['Maerien'][0][nump] + epsilon #tout l'aerien
+                invar['Naerien'][nump] = (1.-frac_mortGel) * invar['Maerien'][0][nump]*invar['Npc_aer'][nump]/100.
                 
                 #ajout de residu gel - dans voxel du collet
                 voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
@@ -902,7 +907,7 @@ def StartEach():
     #calcul offre/demandeC sur la base des tableaux precedent avant leur remise a zero
     tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
     OffCp = sh.calcOffreC (ParamP, tab, 'plt')#pas utilise??!
-    invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['dTT'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
+    #invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['dTT'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
     #invar['L_Sp'] = sh.calcLeafStemRatio(ParmP,tab, lsAxes)
 
     #sortie    
@@ -946,7 +951,7 @@ def EndEach(lstring,lscene):
     # * unpacks the list of arguments
     
     #Potential plant growth
-    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW, opt_stressN)
+    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
     #step soil 
     tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
     res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
@@ -2054,7 +2059,13 @@ RA(nump, nsh, age, rankp, agecum, moduloH):
         prof_obst =  -S.obstarac[vox[0], vox[1]]*100.
         #print 'sol depth', prof_sol_max, vox, S.obstarac[vox[0], vox[1]]#, na, [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], vox
     
+    #stressHydrique
+    Horizmax = int(min([prof_sol_max, prof_obst])/dz_sol)-1
+    Horiz = min(int(moduloH/dz_sol), Horizmax)
+    stressH = sh.FTSW_resp(mean(S.ftsw_t[Horiz,:,:]), ParamP[nump]['WaterTreshElRoots'])
+    stressHLim = 0.05 #limite de croissance (a calculer dans ParamP)
     
+    #MAJ de RDepth
     if moduloH>invar['RDepth'][nump]:
         invar['RDepth'][nump]=moduloH
     
@@ -2080,10 +2091,13 @@ RA(nump, nsh, age, rankp, agecum, moduloH):
     #seuil pour emission d'un nouveau root segment
     tresh=ParamP[nump]['Relongation_duration0']/max(0.0001, ratio)#effet lineaire sur profondeur: OK meme pour tropisme grass 
     #print moduloH, moduloH%dz_sol, prof_sol_max
-    if age>tresh and moduloH%dz_sol==0. and moduloH<min([prof_sol_max, prof_obst]):
+    if stressH < stressHLim :
+        #arret en sol sec
+        produce RA(nump, nsh, age, rankp, agecum, moduloH) #stop = change pas : tout ou rien attends eau
+    elif age>tresh and moduloH%dz_sol==0. and moduloH<min([prof_sol_max, prof_obst]) and stressH >= stressHLim:
         #print moduloH, dz_sol, moduloH%dz_sol, int(moduloH/dz_sol)
         produce RLB(nump,nsh,0,rankp, int(moduloH/dz_sol))RS(nump,nsh, rankp,moduloH)RA(nump,nsh, age%tresh+STEPSsol, rankp, agecum+STEPSsol, moduloH+ParamP[nump]['LRS'])
-    elif age>tresh and moduloH<min([prof_sol_max, prof_obst]):
+    elif age>tresh and moduloH<min([prof_sol_max, prof_obst]) and stressH >= stressHLim:
         produce RS(nump, nsh, rankp, moduloH)RA(nump, nsh, age%tresh+STEPSsol, rankp, agecum+STEPSsol,moduloH+ParamP[nump]['LRS'])
     else:
         produce RA(nump,nsh, age+STEPSsol, rankp, agecum+STEPSsol,moduloH)

@@ -89,6 +89,31 @@ def sigmo_stress(v,delai,x):
     "reponse sigmo a stress - FTSW ou INN"
     return 1-1/(1+exp(v*(x-delai)))
 
+def linear_stress(tresh, x):
+    "linear response between 0 and tresh - 1 above - FTSW ou INN"
+    if x>=tresh:
+        resp = 1.
+    else:
+        resp = (1/tresh)*x
+    return resp
+    #e.g. response of tranpsiration below FTSW=0.6
+
+def linear_stress2(treshbas, treshhaut, x, opt=0):
+    "linear response between 0 and 1, from tresh bas to treshhaut; opt 0: monte; opt 1: baisse"
+    if x<=treshbas:
+        resp = 0.
+    elif x>=treshhaut:
+        resp = 1.
+    else:
+        resp = (1/(treshhaut - treshbas ))* (x-treshbas)
+
+    if opt==1: #reponse descendante
+        resp = 1. - resp
+
+    return resp
+    #e.g. response to photoperiod
+    #linear_stress2(8, 13, 10, opt=0)
+
 
 # N response functions
 def Na_N0(I_I0):

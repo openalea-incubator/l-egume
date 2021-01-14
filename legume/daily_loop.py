@@ -19,10 +19,25 @@ except:
 #daily loop
 # decoupe daily_growth_loop initial en 4 fonctions pour donner acces au calcul du sol depuis l'exterieur
 
-def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW=1, opt_stressN=1):
+def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW=1, opt_stressN=1, opt_stressGel=0):
     """ daily potential growth loop (computes epsi, DM production / allocation / Ndemand) """
 
     epsilon = 10e-10  #
+    isTTcut = False
+    if mng_j['Coupe'] == 1.:
+        isTTcut = True
+        #print("cut ???")
+
+    #gel a gerer par plante!
+    graineC, graineN = sh.reserves_graine(invar, ParamP)
+    isGelDam = [0]*nbplantes #liste par plante comme invar['isGelDam']
+    for nump in range(nbplantes):
+        ##update gel status par plante
+        if (meteo_j['TmoyDay'] > ParamP[nump]['Tgel'] and opt_stressGel == 1) or opt_stressGel == 0 or graineN[nump]>0.:
+            isGelDam[nump] = 0 #laisse a zero
+        else:
+            isGelDam[nump] = 1
+            #print("gel ???")
 
     # calcul de ls_epsi
     invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
@@ -36,7 +51,7 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     epsi = 1. - transmi_sol  # bon
     ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
 
-    graineC, graineN = sh.reserves_graine(invar, ParamP)
+    print('graine', graineC, graineN, invar['NBI'], riri.get_lsparami(ParamP, 'DurGraine'),invar['TT'])
 
     # calcul de Biomasse tot
     stressHRUE = array(ls_ftswStress['WaterTreshRUE'])
@@ -61,11 +76,14 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     invar['remob'] = sh.Cremob(array(IOxls.dic2vec(nbplantes, invar['DemCp'])), invar['R_DemandC_Shoot'], invar['MS_pivot'])  # vraiment marginal
     rac_fine = dM * froot * array(riri.get_lsparami(ParamP, 'frac_rac_fine'))  # * rtd.filtre_ratio(invar['R_DemandC_Shoot'])
     pivot = dM * froot * (1 - array(riri.get_lsparami(ParamP, 'frac_rac_fine'))) - invar['remob']
-    aer = dM - rac_fine - pivot + invar['remob']
-    ffeuil = array(IOxls.dic2vec(nbplantes, invar['DemCp_lf'])) / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + 10e-12)  # fraction aux feuilles
+    aer = dM - rac_fine - pivot #+ invar['remob']
+    aer[aer==0.] += invar['remob'][aer==0.] # pour cas ou organes en croissance apres coupe, mais sans feuille (demande mini = remob)
+    ffeuil = array(IOxls.dic2vec(nbplantes, invar['DemCp_lf'])) / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + epsilon)  # fraction aux feuilles
     feuil = aer * ffeuil
     tige = aer * (1 - ffeuil)
 
+    MS_aerien_tm1 = invar['MS_aerien'] #recupere MS aerien du t-1
+    Npc_aerien_tm1 = invar['Npc_aer'] #Npc aerien du t-1
     invar['Mtot'].append(dM.tolist())
     invar['Mrac_fine'].append(rac_fine.tolist())  # matrice des delta MSrac fine par date
     invar['Mpivot'].append(pivot.tolist())  # matrice des delta MSpivot par date
@@ -98,30 +116,59 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     # print("MS AERIEN",invar['MS_aerien'],invar['MS_aer_cumul'])
     # print invar['Mtot']
 
-    ls_demandeN = array(invar['DemandN_Tot']) * 0.001 + 1e-15  # en kg N.plant-1 #[1e-12]*nbplantes #sera a renseigner -> la, force a zero - devra utiliser invar['DemandN_Tot'] qui est mis a jour + loin #en kg N
+    #ls_demandeN = array(invar['DemandN_Tot']) * 0.001 + 1e-15  # en kg N.plant-1 #[1e-12]*nbplantes #sera a renseigner -> la, force a zero - devra utiliser invar['DemandN_Tot'] qui est mis a jour + loin #en kg N
     #Npc_aer = array(invar['Naerien']) / (aer + array(invar['MS_aerien'])) * 100.  # Npc avec accroissement de biomasse pour calculer la demande
-    Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100. #aer deja dans MS_aerien!
-    Npc_piv = array(invar['Npivot']) / (pivot + array(invar['MS_pivot'])) * 100.
-    Npc_rac_fine = array(invar['Nrac_fine']) / (rac_fine + array(invar['MS_rac_fine'])) * 100.
+
+    #Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100.  # aer deja dans MS_aerien! -> mis a jour
+    #distingue calcul partie coupee pour jour de coupe ou 1er step ou jour de gel
+    if MS_aerien_tm1 == []:
+        #jour 1
+        Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100. #aer deja dans MS_aerien! -> mis a jour
+        Npc_piv = array(invar['Npivot']) / (pivot + array(invar['MS_pivot'])) * 100.
+        Npc_rac_fine = array(invar['Nrac_fine']) / (rac_fine + array(invar['MS_rac_fine'])) * 100.
+    elif isTTcut:
+        # jour de coupe = prends info du jour
+        # MS_aerien_tm1 = array(aer)
+        Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100.  # aer deja dans MS_aerien! -> mis a jour
+        Npc_piv = invar['Npc_piv']
+        Npc_rac_fine = invar['Npc_rac_fine']
+    else:#pas jour de coupe
+        Npc_piv = invar['Npc_piv']
+        Npc_rac_fine = invar['Npc_rac_fine']
+        if sum(isGelDam) == 0: #jour sans gel
+            #jour d'avant pour etre synchro Naerien / MSaerein
+            Npc_aer = Npc_aerien_tm1
+        else: #jour avec gel -> plante a plante
+            Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100.  # aer deja dans MS_aerien! -> mis a jour
+            for nump in range(nbplantes):
+                if isGelDam[nump] == 0: #plante pas gelee
+                    Npc_aer[nump] = Npc_aerien_tm1[nump]
+
+    #Npc_piv = array(invar['Npivot']) / (pivot + array(invar['MS_pivot'])) * 100.
+    #Npc_rac_fine = array(invar['Nrac_fine']) / (rac_fine + array(invar['MS_rac_fine'])) * 100.
+    print('piv', Npc_piv, invar['Npc_piv'])
+    print('aer', aer, dM, invar['remob'], invar['DemCp'])
+
 
     invar['NreservPiv'] = array(invar['Npivot']) * (Npc_piv - array(riri.get_lsparami(ParamP, 'NminPiv'))) / Npc_piv
     invar['NreservPiv'][invar['NreservPiv'] < 0.] = 0.  # verifier que depasse pas zero!!
 
-    ls_demandeN_aer = solN.demandeNdefaut2(MSp=array(invar['MS_aerien'])-array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref,
-                                           a=array(riri.get_lsparami(ParamP, 'ADIL')),
-                                           b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(
-            riri.get_lsparami(ParamP, 'BDIL'))) * 0.001 + 1e-15  # en kg N.plant-1
+    ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(invar['MS_aerien'])-array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(riri.get_lsparami(ParamP, 'ADIL')), b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(riri.get_lsparami(ParamP, 'BDIL')))
+    #ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(MS_aerien_tm1), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(riri.get_lsparami(ParamP, 'ADIL')), b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(riri.get_lsparami(ParamP, 'BDIL')))
+    ls_demandeN_aer = ls_demandeN_aer * 0.001 #+ 1e-15  # en kg N.plant-1
     ls_demandN_piv = solN.demandeNroot(array(invar['MS_pivot']), pivot, Npc_piv, surfsolref,
-                                       array(riri.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + 1e-15  # en kg N.plant-1
+                                       array(riri.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + epsilon #+ 1e-15  # en kg N.plant-1
     ls_demandN_rac_fine = solN.demandeNroot(array(invar['MS_rac_fine']), rac_fine, Npc_rac_fine, surfsolref, array(
-        riri.get_lsparami(ParamP, 'NoptFR'))) * 0.001 + 1e-15  # en kg N.plant-1
+        riri.get_lsparami(ParamP, 'NoptFR'))) * 0.001 #+ 1e-15  # en kg N.plant-1
 
-    ls_demandeN_bis = ls_demandeN_aer + ls_demandN_piv + ls_demandN_rac_fine
-    fracNaer = ls_demandeN_aer / ls_demandeN_bis
-    fracNpiv = ls_demandN_piv / ls_demandeN_bis
-    fracNrac_fine = ls_demandN_rac_fine / ls_demandeN_bis
+    ls_demandeN_bis = ls_demandeN_aer + ls_demandN_piv + ls_demandN_rac_fine #+ epsilon
+    fracNaer = ls_demandeN_aer  / (ls_demandeN_bis + epsilon)
+    fracNpiv = ls_demandN_piv / (ls_demandeN_bis + epsilon)
+    fracNrac_fine = ls_demandN_rac_fine / (ls_demandeN_bis + epsilon)
+    print('frac',fracNaer,fracNpiv ,fracNrac_fine, ls_demandeN_bis, ls_demandN_piv )
 
     invar['DemandN_TotAer'] = ls_demandeN_aer
+    print('in pot Npc', invar['Naerien'], invar['MS_aerien'], Npc_aer, Npc_aerien_tm1,ls_demandeN_aer, NcritTot_, MStot_)
 
     # print invar['Maerien']#invar['MS_aerien']
     # print aer
@@ -142,10 +189,8 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, nbplantes, surf
     outvar['BilanCdMSenFeuil'].append(sum(invar['dMSenFeuil']) / surfsolref)
     outvar['BilanCdMSenTige'].append(sum(invar['dMSenTige']) / surfsolref)
 
-
-
     #test des 3 autres fonctions en interne au sein d'une fonction globale
-    temps = [aer, rac_fine, pivot, graineN, fracNaer, fracNpiv, fracNrac_fine] #variable temporaires pour passer entre fonctions (passer ds invar?)
+    temps = [aer, rac_fine, pivot, graineN, fracNaer, fracNpiv, fracNrac_fine, MS_aerien_tm1, isTTcut,NcritTot_,epsilon] #variable temporaires pour passer entre fonctions (passer ds invar?)
 
     return invar, outvar, ls_epsi, ls_demandeN_bis, temps
 
@@ -207,12 +252,13 @@ def step_bilanWN_sol(S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j
 def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar):
     """ Update daily N uptake/fixation from soil WN balance and plant demands / prepares stress variables for next step / write output variables   """
 
-    aer, rac_fine, pivot, graineN, fracNaer, fracNpiv, fracNrac_fine = temps# temps[0], temps[1],temps[2], temps[3],temps[4], temps[5],temps[6] #unpacks variables temporaires passes entre fonction -> a repasser dans invar!!!
+    aer, rac_fine, pivot, graineN, fracNaer, fracNpiv, fracNrac_fine, MS_aerien_tm1, isTTcut, NcritTot_, epsilon = temps# temps[0], temps[1],temps[2], temps[3],temps[4], temps[5],temps[6] #unpacks variables temporaires passes entre fonction -> a repasser dans invar!!!
 
     # water
     invar['transpi'] = ls_transp
     invar['cumtranspi'] += array(ls_transp)
 
+    print('test demandeN', (invar['DemandN_TotAer'] * 1000. + invar['Naerien'])*100. / (invar['MS_aerien'] + aer), invar['MS_aerien'] , aer, invar['DemandN_TotAer'] * 1000. , invar['Naerien'])
     # Uptake N et allocation
     invar['Nuptake_sol'] = array(list(map(sum, ls_Act_Nuptake_plt))) * 1000 + graineN  # g N.plant-1 #test ls_demandeN_bis*1000.#
     try:
@@ -228,14 +274,16 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
     # Fixation et allocation
-    maxFix = sh.Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')) * array(riri.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  # * invar['dTT']
+    maxFix = sh.Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')) * array(riri.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  #invar['MS_aerien']# * invar['dTT']
     stressHFix = array(ls_ftswStress['WaterTreshFix']) * maxFix  # effet hydrique
     invar['Qfix'] = sh.ActualFix(ls_demandeN_bis * 1000., invar['Nuptake_sol'], stressHFix)  # g N.plant-1
     invar['Ndfa'] = invar['Qfix'] / (invar['Qfix'] + invar['Nuptake_sol'] + 1e-15)
 
     delta_besoinN_aerien = invar['DemandN_TotAer'] * 1000. - invar['Qfix'] * fracNaer - invar['Nuptake_sol'] * fracNaer - NremobC  # besoin N are sont ils couverts? g N.plant-1
+    delta_besoinN_aerien[delta_besoinN_aerien < 0.] = 0.#max(0., delta_besoinN_aerien) #si negatif (e.g. avec remob!)
     NremobN = minimum(delta_besoinN_aerien, invar['NreservPiv'])  # si pas couvert remobilisation N du pivot directement
     NremobN[NremobN < 0.] = 0.  # verifie que pas de negatif
+    print('bilan', invar['DemandN_TotAer'] * 1000., invar['Qfix'] * fracNaer + invar['Nuptake_sol'] * fracNaer + NremobC + delta_besoinN_aerien, invar['Qfix'] * fracNaer , invar['Nuptake_sol'] * fracNaer , NremobC ,NremobN, delta_besoinN_aerien, fracNaer, invar['Nuptake_sol'])
 
     # print 'Npivot', invar['Npivot'][0:2]
     # print 'NreservPiv', invar['NreservPiv'][0:2]
@@ -263,10 +311,13 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['Npc_aer'] = array(invar['Naerien']) / (aer + array(invar['MS_aerien'])) * 100.  # %
     invar['Npc_piv'] = array(invar['Npivot']) / (pivot + array(invar['MS_pivot'])) * 100.  # %
     invar['Npc_rac_fine'] = array(invar['Nrac_fine']) / (rac_fine + array(invar['MS_rac_fine'])) * 100.  # %
+    print('in stres Npc', invar['Naerien'], invar['MS_aerien'], aer, invar['Npc_aer'], delta_besoinN_aerien)
+    print('besoinN', delta_besoinN_aerien, invar['DemandN_TotAer'] * 1000., invar['Qfix'] * fracNaer, invar['Nuptake_sol'] * fracNaer, NremobC)
 
     # print 'Npc_piv', invar['Npc_piv'][0:2]
 
-    critN_inst = solN.critN(sum(aer + array(invar['MS_aerien'])) / (surfsolref * 100.))  # azote critique couvert
+    critN_inst = NcritTot_#solN.critN(sum(aer + array(invar['MS_aerien'])) / (surfsolref * 100.))  # azote critique couvert
+    print('critN' , critN_inst, invar['Npc_aer'])
     invar['NNI'] = invar['Npc_aer'] / critN_inst
 
 
@@ -375,7 +426,8 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # calcul senesc a faire a l'echelle des axes plutot? -> a priori pas necessaire
 
     invar['R_DemandC_Root'] = rt.calc_QDplante(nbplantes, invar_sc['ax']['QDCRac'], invar_sc['ax']['cumlRac'], invar['RLentot'])
-    invar['R_DemandC_Shoot'] = aer / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + 10e-15)
+    invar['R_DemandC_Shoot'] = aer / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + epsilon)#10e-15)
+    print('R_DemandC_Shoot', invar['R_DemandC_Shoot'], aer, invar['DemCp'], array(IOxls.dic2vec(nbplantes, invar['DemCp'])))
 
     # if '0_0_0' in invar_sc['ax']['NRac'].keys():
     #    print invar_sc['ax']['NRac']['0_0_0']
