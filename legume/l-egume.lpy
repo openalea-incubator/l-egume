@@ -210,6 +210,7 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     ##coupe
     TT_repousse = 0 #TT de la derniere coupev #resoud pb: TT utilise pour LAI pour NI revenait jamais a zero
     isTTcut = False
+    wasTTcut = False
     #TTcutFreq = 18.*32#15.*32 #phyllochron
     isRegrowth = False #indicateur: est on a la pousse initiale ou bien plus tard?
     Hcut = 1.#3.#simple initialisation : est passe en lecture fichier management
@@ -227,7 +228,7 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     #for i in range(138): test_retard.append(0)#pas de retard.
     # a affectr a ['TT']!!
     
-    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station
+    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station
 
 
 
@@ -697,14 +698,14 @@ def init_outputs(ParamP, nbplantes,ncouches_sol):
 def Start():
     
     #initialisation des variables globale de simulation
-    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, mn_sc, station
+    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, mn_sc, station
     
     ##seed nombre aleatoires
     global Rseed
     random.seed(Rseed)
     seed(Rseed)
     
-    DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station = init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd)
+    DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station = init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd)
     
     # initialisation des parametres plante
     global ParamP, nbplantes
@@ -771,7 +772,7 @@ def Start():
 
 
 def StartEach():
-    global TT,TTsol, STEPS_, STEPSsol_, isTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB, epsilon #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
+    global TT,TTsol, STEPS_, STEPSsol_, isTTcut,wasTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB, epsilon #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
     
     global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr, station    
     
@@ -860,6 +861,7 @@ def StartEach():
     if mng_j['Coupe']==1:
         Hcut = mng_j['Hcut']
         isTTcut = True
+        wasTTcut = True
         isRegrowth = True
         cutNB += 1
         TT_repousse = TT
@@ -908,8 +910,18 @@ def StartEach():
     tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
     OffCp = sh.calcOffreC (ParamP, tab, 'plt')#pas utilise??!
     #invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['dTT'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
+    #print('DemCp',invar['DemCp'])
+    
+    if isTTcut == False and wasTTcut==False:
+        invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['dTT'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
+    else:
+        invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = {},{},{},{}
     #invar['L_Sp'] = sh.calcLeafStemRatio(ParmP,tab, lsAxes)
-
+    #print('DemCp', invar['DemCp'], isTTcut , wasTTcut)
+    
+    if isTTcut == False and wasTTcut == True:
+        wasTTcut = False #remet a faux un tour apres isTTcut
+    
     #sortie    
     lsAxes = []
     lsApex = []
@@ -1277,7 +1289,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     
     if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh_til'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
         ##azi = random.uniform(0,360)
-        elv0 = random.uniform(ParamP[nump]['elv0'][0],ParamP[nump]['elv0'][1])#(0,90)
+        elv0 = random.uniform(ParamP[nump]['elv0b'],ParamP[nump]['elv0h'])#(0,90)
         ageref = min(phylloPot, phylloPot*ParamP[nump]['RvitTallage'])
         newageB = age%ageref - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron'] - test_retard[nump] 
         newageA = age%ageref +STEPS - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron']+STEPS - test_retard[nump] 
@@ -1291,7 +1303,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
             rplt = (invar['countShExp'][nump]*0.0002/4)**0.5 + ParamP[nump]['offset_diamP']#5. #diamete base qui depend du nb de talle (densite de 6000 talle/m2
             posini = array(carto[nump]) + array([random.uniform(-rplt,rplt),random.uniform(-rplt,rplt),0.])
         
-        new_nrhiz = binomial(ParamP[nump]['DistLRhiz'][0], ParamP[nump]['DistLRhiz'][1])#2#5#0
+        new_nrhiz = binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#5#0
         
         
         if statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1:#nsh< ParamP[nump]['nshoots'] and  : #modifie en nshoots-1, sinon la premiere tige n'est pas comptee!
@@ -1881,11 +1893,11 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0,nump3)GetUp(V1,V2,V3)L
     #photomorphogenese
     
     RFR=res_rfr[vox[2]][vox[1]][vox[0]]
-    RFR_effect=(ParamP[nump]['photomorphRFR_pet'][0]*RFR)+ParamP[nump]['photomorphRFR_pet'][1]
+    RFR_effect=(ParamP[nump]['photomorphRFR_pets']*RFR)+ParamP[nump]['photomorphRFR_peti']
     
     durjour = meteo_j['durjour']#sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     PAReff = PARif * 24./durjour #courbe de reponse au PAR calle sur moyenne sur photoperiode
-    PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_pet'][0],ParamP[nump]['photomorphPAR_pet'][1],ParamP[nump]['photomorphPAR_pet'][2],ParamP[nump]['photomorphPAR_pet'][3])
+    PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_petini'],ParamP[nump]['photomorphPAR_petM'],ParamP[nump]['photomorphPAR_pett1'],ParamP[nump]['photomorphPAR_pett2'])
     
     if opt_photomorph ==1:
         photomorph = RFR_effect*PAR_effect
@@ -1944,11 +1956,11 @@ GetPos(X0,Y0,Z0,nump2)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.    
     
     RFR=RFR=res_rfr[vox[2]][vox[1]][vox[0]]
-    RFR_effect=(ParamP[nump]['photomorphRFR_int'][0]*RFR)+ParamP[nump]['photomorphRFR_int'][1]
+    RFR_effect=(ParamP[nump]['photomorphRFR_ints']*RFR)+ParamP[nump]['photomorphRFR_inti']
     
     durjour = meteo_j['durjour']#sh.DayLength (latitude,sh.DecliSun (DOY % 365))
     PAReff = PARif * 24./durjour #courbe de reponse au PAR calle sur moyenne sur photoperiode
-    PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_int'][0],ParamP[nump]['photomorphPAR_int'][1],ParamP[nump]['photomorphPAR_int'][2],ParamP[nump]['photomorphPAR_int'][3])
+    PAR_effect= sh.trilineaire(PAReff,ParamP[nump]['photomorphPAR_intini'],ParamP[nump]['photomorphPAR_intM'],ParamP[nump]['photomorphPAR_intt1'],ParamP[nump]['photomorphPAR_intt2'])
     
     if opt_photomorph ==1:
         photomorph = RFR_effect*PAR_effect
@@ -2018,7 +2030,7 @@ D(nump,nsh, statut,age,posi,parent):
         
         #newage = age%ParamP[nump]['phyllochron']+STEPS
         newage = deltaBud*ParamP[nump]['phyllochron']# + STEPS  #+age%ParamP[nump]['phyllochron'] #rajoute pas le steps car compare a zero apres
-        new_nrhiz = binomial(ParamP[nump]['DistLRhiz'][0], ParamP[nump]['DistLRhiz'][1])#2#0
+        new_nrhiz = binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#0
         newazi = random.uniform(0.,360.)
         
         #print 'D', nsh, parent, NIparent, deltaBud, newage
@@ -2062,7 +2074,7 @@ RA(nump, nsh, age, rankp, agecum, moduloH):
     #stressHydrique
     Horizmax = int(min([prof_sol_max, prof_obst])/dz_sol)-1
     Horiz = min(int(moduloH/dz_sol), Horizmax)
-    stressH = sh.FTSW_resp(mean(S.ftsw_t[Horiz,:,:]), ParamP[nump]['WaterTreshElRoots'])
+    stressH = sh.FTSW_resp(mean(S.ftsw_t[Horiz,:,:]), [ParamP[nump]['WaterTreshElRootss'], ParamP[nump]['WaterTreshElRootsd']])
     stressHLim = 0.05 #limite de croissance (a calculer dans ParamP)
     
     #MAJ de RDepth
@@ -2126,7 +2138,7 @@ GetPos(X0,Y0,Z0,nump2)RLAP(nump,nsh,age,rankp,l, Horiz):
     ratioC = rt.get_QDCmoy(invar_sc['ax']['QDCRac'], idax) 
     
     #stressHydrique
-    stressH = sh.FTSW_resp(mean(S.ftsw_t[Horiz,:,:]), ParamP[nump]['WaterTreshElRoots'])
+    stressH = sh.FTSW_resp(mean(S.ftsw_t[Horiz,:,:]), [ParamP[nump]['WaterTreshElRootss'], ParamP[nump]['WaterTreshElRootsd']])
     
     #ajout pondere pour calcul de stress H racinaire global
     invar_sc['ax']['StressHRac'] = IOxls.add_dic({idax:stressH*l}, invar_sc['ax']['StressHRac'])

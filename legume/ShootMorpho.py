@@ -408,16 +408,16 @@ def reserves_graine(invar, ParamP):
 
 
 # Carbon allocation
-def rootalloc(params, SB):
+def rootalloc(parB, parA, SB):
     """ calcule fraction d'alloc racine/shoots en fonction du cumule shoots - Eq. 8 draft article V Migault"""
     """ puis concerti en fraction d'allocation de biomasse totale produite au racine dRB/dMStot a partir du ratio SRB/dSB"""
+    #params = [parB, parA]
     nbplantes = len(SB)
     res = [0] * nbplantes
     for nump in range(nbplantes):
-        bet = params[nump][0]
-        alph = params[nump][1]
-        res[nump] = min(bet, bet * alph * max(SB[nump], 0.00000000001) ** (
-                    alph - 1))  # epsilon evitant de calculer un 0 avec puissance negative (cause erreur). Le maximum possible est pour alpha=1, donc beta*1*SB**(1-1) = beta * 1 * 1 = beta.
+        bet = parB[nump]
+        alph = parA[nump]
+        res[nump] = min(bet, bet * alph * max(SB[nump], 0.00000000001) ** (alph - 1))  # epsilon evitant de calculer un 0 avec puissance negative (cause erreur). Le maximum possible est pour alpha=1, donc beta*1*SB**(1-1) = beta * 1 * 1 = beta.
 
     dRB_dSB = array(res)
     return dRB_dSB / (1 + dRB_dSB)
@@ -791,16 +791,18 @@ def update_shoot_params(ParamP, rankmax=51):
             ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(angle_moyen), abs(2 * courbure))
             # passer courbure en parametre?? dans 'gammaFeuilSD'??
 
+        ParamP[nump]['profilLeafI_Rlen'] = [ParamP[nump]['profilLeafI_Rlens1'], ParamP[nump]['profilLeafI_Rleni1'], ParamP[nump]['profilLeafI_Rlens2'] , ParamP[nump]['profilLeafI_Rleni2']]
+        ParamP[nump]['profilLeafI_Rlarg'] = [ParamP[nump]['profilLeafI_Rlargs1'] , ParamP[nump]['profilLeafI_Rlargi1'], ParamP[nump]['profilLeafI_Rlargs2'] , ParamP[nump]['profilLeafI_Rlargi2']]
         ParamP[nump]['profilLeafI_Rlarg'] = updateLargProfile(ParamP[nump]['Lfeuille'], ParamP[nump]['Largfeuille'], ParamP[nump]['profilLeafI_Rlen'], ParamP[nump]['profilLeafI_Rlarg'])# to consider Largmax as a direct input forcing the relative profile
         #print('profilLeafI_Rlarg', ParamP[nump]['profilLeafI_Rlarg'])
         for rank in range(1, rankmax):  # !limite a 50 noeuds! (rankmax)
-            Norml_leaf = min(ParamP[nump]['profilLeafI_Rlen'][0] * rank + ParamP[nump]['profilLeafI_Rlen'][1], ParamP[nump]['profilLeafI_Rlen'][2] * rank + ParamP[nump]['profilLeafI_Rlen'][3])
-            Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlarg'][0] * rank + ParamP[nump]['profilLeafI_Rlarg'][1],ParamP[nump]['profilLeafI_Rlarg'][2] * rank + ParamP[nump]['profilLeafI_Rlarg'][3])
-            Norml_In = min(ParamP[nump]['profilNodeI'][0] * rank + ParamP[nump]['profilNodeI'][1],ParamP[nump]['profilNodeI'][2] * rank + ParamP[nump]['profilNodeI'][3])
-            Norm_pet = min(ParamP[nump]['profilPetI'][0] * rank + ParamP[nump]['profilPetI'][1],ParamP[nump]['profilPetI'][2] * rank + ParamP[nump]['profilPetI'][3])
-            Norml_Stp = min(ParamP[nump]['profilStpI_l'][0] * rank + ParamP[nump]['profilStpI_l'][1],ParamP[nump]['profilStpI_l'][2] * rank + ParamP[nump]['profilStpI_l'][3])
-            Normlarg_Stp = min(ParamP[nump]['profilStpI_Rlarg'][0] * rank + ParamP[nump]['profilStpI_Rlarg'][1],ParamP[nump]['profilStpI_Rlarg'][2] * rank + ParamP[nump]['profilStpI_Rlarg'][3])
-            Normnfol = min(ParamP[nump]['profilLeafI_Rnfol'][0] * rank + ParamP[nump]['profilLeafI_Rnfol'][1],1.)  # nfol est le maximum number of folioles
+            Norml_leaf = min(ParamP[nump]['profilLeafI_Rlens1'] * rank + ParamP[nump]['profilLeafI_Rleni1'], ParamP[nump]['profilLeafI_Rlens2'] * rank + ParamP[nump]['profilLeafI_Rleni2'])
+            Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlargs1'] * rank + ParamP[nump]['profilLeafI_Rlargi1'],ParamP[nump]['profilLeafI_Rlargs2'] * rank + ParamP[nump]['profilLeafI_Rlargi2'])
+            Norml_In = min(ParamP[nump]['profilNodeIs1'] * rank + ParamP[nump]['profilNodeIi1'],ParamP[nump]['profilNodeIs2'] * rank + ParamP[nump]['profilNodeIi2'])
+            Norm_pet = min(ParamP[nump]['profilPetIs1'] * rank + ParamP[nump]['profilPetIi1'],ParamP[nump]['profilPetIs2'] * rank + ParamP[nump]['profilPetIi2'])
+            Norml_Stp = min(ParamP[nump]['profilStpI_ls1'] * rank + ParamP[nump]['profilStpI_li1'],ParamP[nump]['profilStpI_ls2'] * rank + ParamP[nump]['profilStpI_li2'])
+            Normlarg_Stp = min(ParamP[nump]['profilStpI_Rlargs1'] * rank + ParamP[nump]['profilStpI_Rlargi1'],ParamP[nump]['profilStpI_Rlargs2'] * rank + ParamP[nump]['profilStpI_Rlargi2'])
+            Normnfol = min(ParamP[nump]['profilLeafI_Rnfols'] * rank + ParamP[nump]['profilLeafI_Rnfoli'],1.)  # nfol est le maximum number of folioles
 
             if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # feuille legumineuse
                 ParamP[nump]['profilLeafI_l'].append(max(0.001, Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
@@ -814,6 +816,11 @@ def update_shoot_params(ParamP, rankmax=51):
             ParamP[nump]['profilStipI_l'].append(max(0.001, Norml_Stp * cor_lstp * ParamP[nump]['Lstip']))
             ParamP[nump]['profilStipI_larg'].append(max(0.001, Normlarg_Stp * Norml_Stp * cor_lstp * ParamP[nump]['Lstip']))
             ParamP[nump]['profilLeafI_nfol'].append(int(max(1, Normnfol * ParamP[nump]['nfol'])))  # max 1 pour interdire les feuilles sans folioles.
+
+        #MAJ param residues (old format)
+        ParamP[nump]['CC'] = [ParamP[nump]['CClf'], ParamP[nump]['CCst'],ParamP[nump]['CCr'],ParamP[nump]['CCpiv']]
+        ParamP[nump]['WC'] = [ParamP[nump]['WClf'], ParamP[nump]['WCst'], ParamP[nump]['WCr'], ParamP[nump]['WCpiv']]
+        ParamP[nump]['Nmires'] = [ParamP[nump]['Nmireslf'], ParamP[nump]['Nmiresst'], ParamP[nump]['Nmiresr'], ParamP[nump]['Nmirespiv']]
 
     return ParamP
 

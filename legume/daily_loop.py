@@ -68,7 +68,7 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplante
     # dM2 = array(dpar) * array(get_lsparami(ParamP, 'RUE'))
 
     # allocation
-    froot = sh.rootalloc(riri.get_lsparami(ParamP, 'alloc_root'), invar['MS_aer_cumul'])  # fraction aux racines
+    froot = sh.rootalloc(riri.get_lsparami(ParamP, 'alloc_rootB'), riri.get_lsparami(ParamP, 'alloc_rootA'), invar['MS_aer_cumul'])  # fraction aux racines
     for nump in range(nbplantes):
         if invar['germination'][nump] < 2:  # tout aux racines avant apparition de la premiere feuille
             froot[nump] = 0.99
@@ -324,15 +324,15 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # update des indices de stress hydrique par plante pour step suivant
     p1, p2, p3, p4, p5, p6, p7, p8, p9 = [], [], [], [], [], [], [], [], []  # liste de parametres
     for nump in range(nbplantes):
-        p1.append(ParamP[nump]['WaterTreshExpSurf'])
-        p2.append(ParamP[nump]['WaterTreshDevII'])
-        p3.append(ParamP[nump]['WaterTreshDevI'])
-        p4.append(ParamP[nump]['WaterTreshFix'])
-        p5.append(ParamP[nump]['WaterTreshRUE'])
-        p6.append(ParamP[nump]['NTreshRUE'])
-        p7.append(ParamP[nump]['NTreshExpSurf'])
-        p8.append(ParamP[nump]['NTreshDev'])
-        p9.append(ParamP[nump]['NTreshDevII'])
+        p1.append([ParamP[nump]['WaterTreshExpSurfs'], ParamP[nump]['WaterTreshExpSurfd']])
+        p2.append([ParamP[nump]['WaterTreshDevIIs'], ParamP[nump]['WaterTreshDevIId']])
+        p3.append([ParamP[nump]['WaterTreshDevIs'], ParamP[nump]['WaterTreshDevId']])
+        p4.append([ParamP[nump]['WaterTreshFixs'], ParamP[nump]['WaterTreshFixd']])
+        p5.append([ParamP[nump]['WaterTreshRUEs'], ParamP[nump]['WaterTreshRUEd']])
+        p6.append([ParamP[nump]['NTreshRUEs'], ParamP[nump]['NTreshRUEd']])
+        p7.append([ParamP[nump]['NTreshExpSurfs'], ParamP[nump]['NTreshExpSurfd']])
+        p8.append([ParamP[nump]['NTreshDevs'], ParamP[nump]['NTreshDevd']])
+        p9.append([ParamP[nump]['NTreshDevIIs'], ParamP[nump]['NTreshDevIId']])
 
     ls_ftswStress = {}
     ls_ftswStress['WaterTreshExpSurf'] = list(map(sh.FTSW_resp, ls_ftsw, p1))
