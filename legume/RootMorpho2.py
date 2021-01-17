@@ -90,8 +90,9 @@ def nb_rac_ordre(ParamP, TT, satisfC=1., stressH=1.):
 
 #nb_rac_ordre(ParamP, 1000.)
 
-def calc_DemandC_root(ParamP, ageTT, dTT, satisf=1., nbnodale=1.):
+def calc_DemandC_root(ParamP, ageTT, udev, satisf=1., nbnodale=1.):
     """ demande d'un systeme pivotant """
+    dTT = udev
     ls_Nrac = nb_rac_ordre(ParamP, ageTT, satisf)
     demande = sum(ParamP['lsDemanDRac'] * ls_Nrac) * dTT * nbnodale
     return demande, ls_Nrac
@@ -101,8 +102,9 @@ def calc_DemandC_root(ParamP, ageTT, dTT, satisf=1., nbnodale=1.):
 #AgePiv = {'0_0_5': 164.80000000000001, '0_0_4': 288.39999999999998, '0_0_0': 988.80000000000041, '0_1_4': 123.60000000000001, '0_1_5': 41.200000000000003, '0_1_2': 329.59999999999997, '0_1_3': 164.80000000000001, '0_3_2': 164.80000000000001, '0_3_3': 123.60000000000001, '0_3_0': 370.79999999999995, '0_3_1': 247.19999999999999, '0_3_4': 41.200000000000003}
 
 
-def calc_DemandC_roots(ParamP, dAgePiv, dTT, dsatisfC, nbnodale=1.):
+def calc_DemandC_roots(ParamP, dAgePiv, udev, dsatisfC, nbnodale=1.):
     """ demande d'une serie de systeme pivotant d'age differents - dsatisf dico des staisf integree ds le temps"""
+    dTT = udev
     demande = {}
     Nbrac = {}
     for k in list(dAgePiv.keys()):
@@ -139,8 +141,9 @@ def calc_QDC_roots(dOffre,dDemand):
 
     return QD
 
-def calc_QDCmoy_roots(dQD, dQDmoy, dAgePiv, dTT):
+def calc_QDCmoy_roots(dQD, dQDmoy, dAgePiv, udev):
     """ calcul offre sur demande integre dans le temps """
+    dTT = udev
     newQDmoy = {}
     for k in list(dQD.keys()):
         nump = int(str.split(k, '_')[0])
@@ -155,8 +158,9 @@ def calc_QDCmoy_roots(dQD, dQDmoy, dAgePiv, dTT):
     #calculer QDmoy par plante?
 
 
-def calc_StressHmoy_roots(dStressH, dPonder, dStressHmoy, dAgePiv, dTT):
+def calc_StressHmoy_roots(dStressH, dPonder, dStressHmoy, dAgePiv, udev):
     """ calcul offre sur demande integre dans le temps """
+    dTT = udev
     newSressmoy = {}
     for k in list(dStressH.keys()):
         nump = int(str.split(k, '_')[0])
@@ -183,13 +187,15 @@ def get_QDCmoy(dQDC, idax):
 
 
 
-def dLong_root(ParamP, ls_Nrac, dTT, QD, StressH, nbnodale=1.):
-    """ increment de longueur par ordre pendant dTT """
+def dLong_root(ParamP, ls_Nrac, udev, QD, StressH, nbnodale=1.):
+    """ increment de longueur par ordre pendant dTT=udev """
+    dTT = udev
     return ParamP['lsVrac']*ls_Nrac*dTT*QD*StressH*nbnodale
 
 
-def calc_dLong_roots(ParamP, dNrac, dTT, dsatisfC, dStressH, dPonder, nbnodale=1.):
+def calc_dLong_roots(ParamP, dNrac, udev, dsatisfC, dStressH, dPonder, nbnodale=1.):
     """ increment de longueur par ordre pendant dTT d'une serie de systeme pivotant d'age differents (cm) """
+    dTT = udev
     ddl = {}
     for k in list(dNrac.keys()):
         nump = int(str.split(k, '_')[0])

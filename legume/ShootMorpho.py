@@ -390,12 +390,14 @@ def germinate(invar, ParamP, nump):
 
 def reserves_graine(invar, ParamP):
     """ calcul des reserves de graine """
+
     graineC, graineN = [], []
     for nump in range(len(ParamP)):
-        if invar['TT'][nump] < ParamP[nump]['DurGraine'] and invar['TT'][nump] > 0.:
+        dTT = invar['Udev'][nump]  #invar['dTT'][nump]
+        if invar['TTudev'][nump] < ParamP[nump]['DurGraine'] and invar['TTudev'][nump] > 0.:
             # suppose consommation reguliere pendant DurGraine
-            dMSgraine = invar['dMSgraine'][nump] * invar['dTT'][nump]
-            dNgraine = invar['dNgraine'][nump] * invar['dTT'][nump]
+            dMSgraine = invar['dMSgraine'][nump] * dTT
+            dNgraine = invar['dNgraine'][nump] * dTT
         else:
             dMSgraine = 0.
             dNgraine = 0.
@@ -448,13 +450,14 @@ def calcOffreC(ParamP, tab, scale):
     # pas utilise dans version actuelle
     # approche RUE limite a echelle feuille! ; garder aussi 'sen'?
 
-def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
+def calcDemandeC(ParamP, tab, scale, udev, ls_ftswStress, ls_NNIStress):
     """ calcul de demande pour assurer croissance potentielle minimale des Lf(), In() et Pet()en phase d'expansion """
     # distingue les Lf et Stp! car pas meme calcul de surface!
     dp = {}  # dictionnaire a l'echelle choisie: plante/shoot/axe #-> demande tot
     dplf = {}  # demande des feuilles
     dpin = {} #demande des En
     dppt = {} #demande pet
+    dTT = udev #temps themique efficace (avec PP)
 
     for i in range(len(tab['nump'])):
         if scale == 'plt':

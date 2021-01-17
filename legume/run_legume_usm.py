@@ -143,9 +143,12 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_stressN = int(dic_opt['opt_stressN'])  # Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
     testsim[name].opt_stressW = int(dic_opt['opt_stressW'])  # Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
     testsim[name].opt_ReadstressN = int(dic_opt['opt_ReadstressN'])  # Force stress N to read input values - for debugging/calibration
+    testsim[name].opt_ReadstressW = int(dic_opt['opt_ReadstressW'])  # Force stress FTSW to read input values - for debugging/calibration
     testsim[name].opt_photomorph = int(dic_opt['opt_photomorph'])  # 1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
     testsim[name].opt_optT = int(dic_opt['opt_optT']) # option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
     testsim[name].opt_stressGel = int(dic_opt['opt_stressGel'])
+    testsim[name].opt_PP = int(dic_opt['opt_PP']) # Active photoperiodic effects (1 active; 0 inactive)
+    testsim[name].opt_ReadPP = int(dic_opt['opt_ReadPP'])  # Force photoperiod to read input values in management - for indoor experiment
     testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
     testsim[name].visu_shoot = int(dic_opt['visu_shoot'])  # 1# pour visualisation/interpretation shoot
     testsim[name].visu_sol = int(dic_opt['visu_sol'])  # 1# pour visualisation/interpretation sol

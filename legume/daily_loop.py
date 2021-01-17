@@ -374,7 +374,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
                                                      invar_sc['ax']['PARaF'])
     # calcul demande par pivot
     invar_sc['ax']['DemCRac'], invar_sc['ax']['NRac'] = rt.calc_DemandC_roots(ParamP, invar_sc['ax']['AgePiv'],
-                                                                              invar['dTTsol'],
+                                                                              invar['Udevsol'],
                                                                               invar_sc['ax']['QDCmoyRac'])
 
     # calcul biomasse, diametres pivots indivs, QDC des racines, increment de longueur et SRL
@@ -388,14 +388,14 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
                                                  Frac_piv_loc=riri.get_lsparami(ParamP, 'Frac_piv_loc'))
     invar_sc['ax']['QDCRac'] = rt.calc_QDC_roots(invar_sc['ax']['OfrCRac'], invar_sc['ax']['DemCRac'])
     invar_sc['ax']['QDCmoyRac'] = rt.calc_QDCmoy_roots(invar_sc['ax']['QDCRac'], invar_sc['ax']['QDCmoyRac'],
-                                                       invar_sc['ax']['AgePiv'], invar['dTTsol'])
+                                                       invar_sc['ax']['AgePiv'], invar['Udevsol'])
     invar_sc['ax']['StressHmoyRac'] = rt.calc_StressHmoy_roots(invar_sc['ax']['StressHRac'],
                                                                invar_sc['ax']['PonderStressHRac'],
                                                                invar_sc['ax']['StressHmoyRac'],
                                                                invar_sc['ax']['AgePiv'], invar[
-                                                                   'dTTsol'])  # (dStressH, dPonder, dStressHmoy, dAgePiv, dTT)
+                                                                   'Udevsol'])  # (dStressH, dPonder, dStressHmoy, dAgePiv, dTT)
 
-    invar_sc['ax']['dlRac'] = rt.calc_dLong_roots(ParamP, invar_sc['ax']['NRac'], invar['dTTsol'],
+    invar_sc['ax']['dlRac'] = rt.calc_dLong_roots(ParamP, invar_sc['ax']['NRac'], invar['Udevsol'],
                                                   invar_sc['ax']['QDCRac'], invar_sc['ax']['StressHRac'],
                                                   invar_sc['ax'][
                                                       'PonderStressHRac'])  # passe STEPS, mais devrait filer les dTT de chaque plante
@@ -458,6 +458,10 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # sorties
     outvar['TT'].append(['TT', DOY] + invar['TT'])
+    outvar['TTudev'].append(['TTudev', DOY] + invar['TTudev'])
+    outvar['dTT'].append(['dTT', DOY] + invar['dTT'])
+    outvar['Udev'].append(['Udev', DOY] + invar['Udev'])
+    outvar['Udevstress'].append(['Udevstress', DOY] + invar['Udevstress'])
     outvar['TTphyllo'].append(['TTphyllo', DOY] + invar['TTphyllo'].tolist())
     outvar['time'].append(['time', DOY] + [past_time] * nbplantes)
     outvar['cutNB'].append(['cutNB', DOY] + [cutNB] * nbplantes)
