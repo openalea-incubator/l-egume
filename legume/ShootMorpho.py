@@ -98,8 +98,9 @@ def linear_stress(tresh, x):
     return resp
     #e.g. response of tranpsiration below FTSW=0.6
 
-def linear_stress2(treshbas, treshhaut, x, opt=0):
+def linear_stress2(x, par, opt=0):#treshbas, treshhaut,
     "linear response between 0 and 1, from tresh bas to treshhaut; opt 0: monte; opt 1: baisse"
+    treshbas, treshhaut = par[0], par[1]
     if x<=treshbas:
         resp = 0.
     elif x>=treshhaut:
@@ -113,6 +114,7 @@ def linear_stress2(treshbas, treshhaut, x, opt=0):
     return resp
     #e.g. response to photoperiod
     #linear_stress2(8, 13, 10, opt=0)
+    #linear_stress2( 10,[8, 13], opt=0)
 
 
 # N response functions

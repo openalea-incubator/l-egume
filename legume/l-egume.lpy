@@ -557,11 +557,11 @@ def init_variables_plantes(ParamP, nbplantes):
     #! RLentot va remplacer RLTot!
     
     
-    invar = {'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'PARaPlanteU':[],'Hplante':[], 'Dplante':[], 'RLTot':[], 'RDepth':[], 'parap':[], 'parip':[], 'Mrac_fine':[], 'Mpivot':[], 'Maerien':[], 'Mfeuil':[],'Mcoty':[],'MS_rac_fine':[], 'MS_pivot':[], 'MS_aerien':[],'MS_feuil':[],'MS_aer_cumul':[], 'Mtot':[], 'MS_tot':[], 'DiampivMax':[], 'countSh':[], 'NBsh':[], 'NBI':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'DemandN_TotAer':[], 'NBD1':[], 'NBB':[], 'countShExp':[],'lsA':[],'lsAPrev':[],'lsApexMort':[], 'NBBexp':[], 'R_DemandC_Root':[],'RLen1':[], 'RLen2':[],'RLen3':[],'RLentot':[],'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[],'firstleaf':[], 'Naerien':[], 'Npc_aer':[], 'Npc_piv':[], 'Npc_rac_fine':[],'Nuptake_sol':[],'NNI':[], 'Ndfa':[], 'Qfix':[], 'TT':[],'TTsol':[], 'dTT':[], 'dTTsol':[], 'dMSenFeuil':[],'dMSenTige':[], 'R_DemandC_Shoot':[],'RUEactu':[], 'DemCp':[],'DemCp_lf':[], 'DemCp_in':[], 'DemCp_pt':[], 'L_Sp':[],'remob':[],'Nrac_fine':[], 'Npivot':[],'dRLen2':[],'dRLen3':[],'dMSenRoot':[],'dRLenSentot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'Surfcoty':[],'NBphyto':[],'germination':[],'MSgraine':[], 'Ngraine':[],'dMSgraine':[],'dNgraine':[], 'NBapexAct':[],'NreservPiv':[],'rgeq':[], 'transpi':[], 'cumtranspi':[],'aliveB':[],'isGelDam':[],'dMSmortGel':[],'dNmortGel':[],'dTTphyllo':[],'TTphyllo':[], 'Udev':[],'Udevstress':[],'Udevsol':[],'TTudev':[]} 
+    invar = {'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'PARaPlanteU':[],'Hplante':[], 'Dplante':[], 'RLTot':[], 'RDepth':[], 'parap':[], 'parip':[], 'Mrac_fine':[], 'Mpivot':[], 'Maerien':[], 'Mfeuil':[],'Mcoty':[],'MS_rac_fine':[], 'MS_pivot':[], 'MS_aerien':[],'MS_feuil':[],'MS_aer_cumul':[], 'Mtot':[], 'MS_tot':[], 'DiampivMax':[], 'countSh':[], 'NBsh':[], 'NBI':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'DemandN_TotAer':[], 'NBD1':[], 'NBB':[], 'countShExp':[],'lsA':[],'lsAPrev':[],'lsApexMort':[], 'NBBexp':[], 'R_DemandC_Root':[],'RLen1':[], 'RLen2':[],'RLen3':[],'RLentot':[],'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[],'firstleaf':[], 'Naerien':[], 'Npc_aer':[], 'Npc_piv':[], 'Npc_rac_fine':[],'Nuptake_sol':[],'NNI':[], 'Ndfa':[], 'Qfix':[], 'TT':[],'TTsol':[], 'dTT':[], 'dTTsol':[], 'dMSenFeuil':[],'dMSenTige':[], 'R_DemandC_Shoot':[],'RUEactu':[], 'DemCp':[],'DemCp_lf':[], 'DemCp_in':[], 'DemCp_pt':[], 'L_Sp':[],'remob':[],'Nrac_fine':[], 'Npivot':[],'dRLen2':[],'dRLen3':[],'dMSenRoot':[],'dRLenSentot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'Surfcoty':[],'NBphyto':[],'germination':[],'MSgraine':[], 'Ngraine':[],'dMSgraine':[],'dNgraine':[], 'NBapexAct':[],'NreservPiv':[],'rgeq':[], 'transpi':[], 'cumtranspi':[],'aliveB':[],'isGelDam':[],'dMSmortGel':[],'dNmortGel':[],'dTTphyllo':[],'TTphyllo':[], 'Udev':[],'Udevstress':[],'Udevsol':[],'TTudev':[],'RUEpot':[],'countGelD':[]} 
     
     for i in range(nbplantes): invar['SurfPlante'].append([]); invar['PARaPlante'].append([]); invar['PARiPlante'].append([]); invar['lsA'].append([]);invar['lsAPrev'].append([]);invar['lsApexMort'].append([])
     
-    for i in range(nbplantes): invar['Hplante'].append(0.); invar['Dplante'].append(0.);invar['RLTot'].append(0.); invar['RDepth'].append(0.);invar['parap'].append(0.); invar['parip'].append(0.);invar['PARaPlanteU'].append(0.);invar['DiampivMax'].append(0.1); invar['countSh'].append(0);invar['NBsh'].append(0.);invar['NBI'].append(0.);invar['DemandN_Feuil'].append(0.);invar['DemandN_Pet'].append(0.);invar['DemandN_Stem'].append(0.);invar['DemandN_Tot'].append(0.);invar['NBD1'].append(0);invar['NBB'].append(0); invar['countShExp'].append(0);invar['NBBexp'].append(0); invar['R_DemandC_Root'].append(0);invar['RLen1'].append(0);invar['RLen2'].append(0);invar['RLen3'].append(0);invar['RLentot'].append(0);invar['SRL'].append(100.);invar['phmgPet'].append([1.]);invar['phmgEntr'].append([1.]);invar['phmgPet_m'].append([1.]);invar['phmgEntr_m'].append([1.]);invar['firstleaf'].append(float("inf"));invar['MS_aer_cumul'].append(0.); invar['NNI'].append(1.); invar['Ndfa'].append(1.); invar['TT'].append(0.);invar['TTsol'].append(0.);invar['dTT'].append(0.);invar['dTTsol'].append(0.);invar['dMSenFeuil'].append(0.);invar['dMSenTige'].append(0.);invar['R_DemandC_Shoot'].append(1.);invar['DemCp'].append(0.);invar['DemCp_lf'].append(0.);invar['DemCp_in'].append(0.);invar['DemCp_pt'].append(0.);invar['MS_pivot'].append(0.);invar['remob'].append(0.);invar['RLTotNet'].append(0); invar['MS_rac_fineNet'].append(0);invar['perteN_rac_fine'].append(0);invar['NBphyto'].append(0);invar['germination'].append(0);invar['dMSgraine'].append(0.);invar['dNgraine'].append(0.);invar['NBapexAct'].append(0); invar['NreservPiv'].append(0);invar['rgeq'].append(0);invar['cumtranspi'].append(0.);invar['aliveB'].append(0.);invar['isGelDam'].append(0);invar['dMSmortGel'].append(0.);invar['dNmortGel'].append(0.);invar['dTTphyllo'].append(0.);invar['TTphyllo'].append(0.);invar['Udev'].append(0.);invar['Udevstress'].append(0.);invar['Udevsol'].append(0.);invar['TTudev'].append(0.);
+    for i in range(nbplantes): invar['Hplante'].append(0.); invar['Dplante'].append(0.);invar['RLTot'].append(0.); invar['RDepth'].append(0.);invar['parap'].append(0.); invar['parip'].append(0.);invar['PARaPlanteU'].append(0.);invar['DiampivMax'].append(0.1); invar['countSh'].append(0);invar['NBsh'].append(0.);invar['NBI'].append(0.);invar['DemandN_Feuil'].append(0.);invar['DemandN_Pet'].append(0.);invar['DemandN_Stem'].append(0.);invar['DemandN_Tot'].append(0.);invar['NBD1'].append(0);invar['NBB'].append(0); invar['countShExp'].append(0);invar['NBBexp'].append(0); invar['R_DemandC_Root'].append(0);invar['RLen1'].append(0);invar['RLen2'].append(0);invar['RLen3'].append(0);invar['RLentot'].append(0);invar['SRL'].append(100.);invar['phmgPet'].append([1.]);invar['phmgEntr'].append([1.]);invar['phmgPet_m'].append([1.]);invar['phmgEntr_m'].append([1.]);invar['firstleaf'].append(float("inf"));invar['MS_aer_cumul'].append(0.); invar['NNI'].append(1.); invar['Ndfa'].append(1.); invar['TT'].append(0.);invar['TTsol'].append(0.);invar['dTT'].append(0.);invar['dTTsol'].append(0.);invar['dMSenFeuil'].append(0.);invar['dMSenTige'].append(0.);invar['R_DemandC_Shoot'].append(1.);invar['DemCp'].append(0.);invar['DemCp_lf'].append(0.);invar['DemCp_in'].append(0.);invar['DemCp_pt'].append(0.);invar['MS_pivot'].append(0.);invar['remob'].append(0.);invar['RLTotNet'].append(0); invar['MS_rac_fineNet'].append(0);invar['perteN_rac_fine'].append(0);invar['NBphyto'].append(0);invar['germination'].append(0);invar['dMSgraine'].append(0.);invar['dNgraine'].append(0.);invar['NBapexAct'].append(0); invar['NreservPiv'].append(0);invar['rgeq'].append(0);invar['cumtranspi'].append(0.);invar['aliveB'].append(0.);invar['isGelDam'].append(0);invar['dMSmortGel'].append(0.);invar['dNmortGel'].append(0.);invar['dTTphyllo'].append(0.);invar['TTphyllo'].append(0.);invar['Udev'].append(0.);invar['Udevstress'].append(0.);invar['Udevsol'].append(0.);invar['TTudev'].append(0.);invar['countGelD'].append(10.);
     
     PG = array(riri.get_lsparami(ParamP, 'PMG'))/1000.
     invar['MSgraine'] = PG.tolist()
@@ -640,7 +640,8 @@ def init_variables_plantes(ParamP, nbplantes):
     #5) initialisation des indices de stress par plante a 1. (devrait passer dans invar)
     ls_ftswStress = {'WaterTreshExpSurf':[], 'WaterTreshDevII':[] ,'WaterTreshDevI':[], 'WaterTreshFix':[],'WaterTreshRUE':[]}
     ls_NNIStress = {'NTreshRUE':[], 'NTreshExpSurf':[], 'NTreshDev':[], 'NTreshDevII':[]}
-    for i in range(nbplantes): ls_ftswStress['WaterTreshExpSurf'].append(1.);ls_ftswStress['WaterTreshDevII'].append(1.);ls_ftswStress['WaterTreshDevI'].append(1.);ls_ftswStress['WaterTreshFix'].append(1.);ls_ftswStress['WaterTreshRUE'].append(1.);ls_NNIStress['NTreshRUE'].append(1.);ls_NNIStress['NTreshExpSurf'].append(1.);ls_NNIStress['NTreshDev'].append(1.);ls_NNIStress['NTreshDevII'].append(1.)
+    ls_TStress = {'stressTRUE':[]}
+    for i in range(nbplantes): ls_ftswStress['WaterTreshExpSurf'].append(1.);ls_ftswStress['WaterTreshDevII'].append(1.);ls_ftswStress['WaterTreshDevI'].append(1.);ls_ftswStress['WaterTreshFix'].append(1.);ls_ftswStress['WaterTreshRUE'].append(1.);ls_NNIStress['NTreshRUE'].append(1.);ls_NNIStress['NTreshExpSurf'].append(1.);ls_NNIStress['NTreshDev'].append(1.);ls_NNIStress['NTreshDevII'].append(1.);ls_TStress['stressTRUE'].append(1.);
     
     #6) Variables de profil plante (surface/eaclairement/N)
     
@@ -671,7 +672,7 @@ def init_variables_plantes(ParamP, nbplantes):
     #for i in range(nbplantes): RLProfil.append(deepcopy(rp0)); RprospectProfil.append(deepcopy(rpp0))
     
     
-    return invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root
+    return invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root
 
 
 
@@ -680,7 +681,7 @@ def init_outputs(ParamP, nbplantes,ncouches_sol):
     
     # 1) OUTVAR
     #dico de sorties
-    outvar = {'colnames':[],'pattern':[],'TT':[],'TTsol':[], 'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'epsi':[], 'Hplante':[], 'Dplante':[],'dMSaer':[],'RLTot':[], 'RDepth':[], 'MS_aerien':[],'MS_feuil':[],'MS_tot':[], 'countSh':[], 'demandC':[], 'Leaf_Stem':[], 'NBsh':[], 'NBI':[],'time':[],'FTSW':[],'Etransp':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'Npc':[], 'NBD1':[], 'NBB':[], 'countShExp':[], 'NBBexp':[], 'R_DemandC_Root':[], 'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[], 'Naerien':[], 'Npc_aer':[], 'DemandN_Tot_Aer':[], 'Nuptake_sol':[], 'NNI':[], 'Ndfa':[], 'Qfix':[],'dMSenFeuil':[], 'dMSenTige':[],'MS_pivot':[],'MS_rac_fine':[],'R_DemandC_Shoot':[],'RUE':[],'BilanC_PARa':[], 'BilanC_RUE':[],'BilanCdMStot':[], 'BilanCdMrac_fine':[], 'BilanCdMpivot':[], 'BilanCdMaer':[],'BilanCdMSenFeuil':[],'BilanCdMSenTige':[], 'DemCp':[],'remob':[],'Npc_piv':[], 'Npc_rac_fine':[], 'dRLenSentot':[], 'dMSenRoot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'NBphyto':[], 'cutNB':[],'NBapexAct':[],'transpi':[], 'cumtranspi':[],'transpi':[], 'cumtranspi':[],'aliveB':[],'dMSmortGel':[],'dNmortGel':[],'TTphyllo':[],'dTT':[],'Udevstress':[],'Udev':[],'TTudev':[]}
+    outvar = {'colnames':[],'pattern':[],'TT':[],'TTsol':[], 'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'epsi':[], 'Hplante':[], 'Dplante':[],'dMSaer':[],'RLTot':[], 'RDepth':[], 'MS_aerien':[],'MS_feuil':[],'MS_tot':[], 'countSh':[], 'demandC':[], 'Leaf_Stem':[], 'NBsh':[], 'NBI':[],'time':[],'FTSW':[],'Etransp':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'Npc':[], 'NBD1':[], 'NBB':[], 'countShExp':[], 'NBBexp':[], 'R_DemandC_Root':[], 'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[], 'Naerien':[], 'Npc_aer':[], 'DemandN_Tot_Aer':[], 'Nuptake_sol':[], 'NNI':[], 'Ndfa':[], 'Qfix':[],'dMSenFeuil':[], 'dMSenTige':[],'MS_pivot':[],'MS_rac_fine':[],'R_DemandC_Shoot':[],'RUE':[],'BilanC_PARa':[], 'BilanC_RUE':[],'BilanCdMStot':[], 'BilanCdMrac_fine':[], 'BilanCdMpivot':[], 'BilanCdMaer':[],'BilanCdMSenFeuil':[],'BilanCdMSenTige':[], 'DemCp':[],'remob':[],'Npc_piv':[], 'Npc_rac_fine':[], 'dRLenSentot':[], 'dMSenRoot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'NBphyto':[], 'cutNB':[],'NBapexAct':[],'transpi':[], 'cumtranspi':[],'transpi':[], 'cumtranspi':[],'aliveB':[],'dMSmortGel':[],'dNmortGel':[],'TTphyllo':[],'dTT':[],'Udevstress':[],'Udev':[],'TTudev':[],'RUEpot':[]}
     outvar['pattern'].append(['pattern',0]+[surfsolref]*nbplantes)
     outvar['colnames'].append(['V1','steps']+riri.get_lsparami(ParamP, 'name')) #ajout des noms d'omglet en 1ere ligne
     
@@ -750,9 +751,9 @@ def Start():
     #print(S.m_frac_evapZ)
     
     #initialisation des variables d'etat plante
-    global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root 
+    global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress,ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root 
     
-    invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root = init_variables_plantes(ParamP, nbplantes)
+    invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root = init_variables_plantes(ParamP, nbplantes)
     
     #initialisation des sorties
     global outvar, id_out, out_HR
@@ -805,7 +806,7 @@ def StartEach():
         invar['dTTsol'][nump] = sh.dTT(vTsol, [ParamP[nump]['Tdev'], ParamP[nump]['Tmin'], ParamP[nump]['Tmax'], ParamP[nump]['q']], optT=0)#forcement journalier
         
         if opt_PP == 1:
-            stressPP = sh.linear_stress2(ParamP[nump]['PPtreshb'], ParamP[nump]['PPtreshh'], meteo_j['durjour'], opt=0)
+            stressPP = sh.linear_stress2(meteo_j['durjour'],[ParamP[nump]['PPtreshb'], ParamP[nump]['PPtreshh']], opt=0)
         else:
             stressPP = 1.
         #! gerer cas opt_ReadPP!
@@ -830,8 +831,10 @@ def StartEach():
             invar['isGelDam'][nump] = 0
             invar['dMSmortGel'][nump] = 0.
             invar['dNmortGel'][nump] = 0.
+            invar['countGelD'][nump] += 1 #count the number of days since last frost
         else:
             invar['isGelDam'][nump] = 1
+            invar['countGelD'][nump] = 0
             #MSA = outvar['MS_aerien'][-1][nump+2]-epsilon #MSA cumulee de la coupe jusqu'au jour d'avant
             #invar['dMSmortGel'][nump] = MSA
             #invar['dNmortGel'][nump] = MSA*invar['Npc_aer'][nump]/100.
@@ -973,7 +976,7 @@ def StartEach():
 def EndEach(lstring,lscene):
     
     
-    global S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_mat_res
+    global S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_TStress,ls_mat_res
     global lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, I_I0profilInPlant, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses
     global ParamP, par_SN, invar, invar_sc, outvar, res_trans
     global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step
@@ -986,13 +989,13 @@ def EndEach(lstring,lscene):
     # * unpacks the list of arguments
     
     #Potential plant growth
-    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
+    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
     #step soil 
     tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
     res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
     S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step #unpacks results from a list and updates global variables
     #update stress variables
-    invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress = loop.Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar)  
+    invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress, ls_TStress = loop.Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar)  
     #update soil residues
     tag_inputs_residue_updt = [ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu] #input tag
     res_residue_step = loop.update_residue_mat(*tag_inputs_residue_updt)
@@ -1164,7 +1167,7 @@ def End(lstring,lscene):
     
     if outf['outvarfile'] != 0.:
         outvarpath = os.path.join(path_out, outvarfile)#r'H:\devel\grassland\grassland\L-gume\toto.csv'
-        ls_keyvar_pot = ['colnames','pattern','TT','time','cutNB','SurfPlante', 'PARaPlante', 'PARiPlante', 'epsi', 'dMSaer', 'Hplante', 'Dplante','RLTot','RDepth','MS_aerien','MS_feuil','MS_tot','countSh','countShExp','demandC','Leaf_Stem','NBsh','NBI','NBD1','NBB','FTSW','Etransp','DemandN_Feuil','DemandN_Pet', 'DemandN_Stem','DemandN_Tot', 'DemandN_Tot_Aer', 'Npc', 'Npc_aer', 'NNI','Ndfa', 'Qfix','Naerien','Nuptake_sol','R_DemandC_Root', 'SRL','dMSenFeuil','dMSenTige', 'MS_pivot', 'MS_rac_fine','R_DemandC_Shoot','RUE','Npc_piv','Npc_rac_fine','dRLenSentot','dMSenRoot','RLTotNet','MS_rac_fineNet','perteN_rac_fine','NBphyto','NBapexAct','transpi','cumtranspi','aliveB','dMSmortGel','dNmortGel','TTphyllo','DemCp','dTT','Udev','Udevstress','TTudev']#,"phmgEntr","phmgEntr_m","phmgPet","phmgPet_m"]
+        ls_keyvar_pot = ['colnames','pattern','TT','time','cutNB','SurfPlante', 'PARaPlante', 'PARiPlante', 'epsi', 'dMSaer', 'Hplante', 'Dplante','RLTot','RDepth','MS_aerien','MS_feuil','MS_tot','countSh','countShExp','demandC','Leaf_Stem','NBsh','NBI','NBD1','NBB','FTSW','Etransp','DemandN_Feuil','DemandN_Pet', 'DemandN_Stem','DemandN_Tot', 'DemandN_Tot_Aer', 'Npc', 'Npc_aer', 'NNI','Ndfa', 'Qfix','Naerien','Nuptake_sol','R_DemandC_Root', 'SRL','dMSenFeuil','dMSenTige', 'MS_pivot', 'MS_rac_fine','R_DemandC_Shoot','RUEpot','RUE','Npc_piv','Npc_rac_fine','dRLenSentot','dMSenRoot','RLTotNet','MS_rac_fineNet','perteN_rac_fine','NBphyto','NBapexAct','transpi','cumtranspi','aliveB','dMSmortGel','dNmortGel','TTphyllo','DemCp','dTT','Udev','Udevstress','TTudev']#,"phmgEntr","phmgEntr_m","phmgPet","phmgPet_m"]
         #valide cles active via fichier d'entree
         ls_keyvar = ['colnames']
         for i in range(1, len(ls_keyvar_pot)):
@@ -1289,7 +1292,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
         retard = test_retard[nump]
     else:
         retard = 0
-        if nsh==1:#pousse initiale -> debut tallage
+        if nsh==1 and ParamP[nump]['nshoots']>1.:#pousse initiale -> debut tallage
             deldeb= ParamP[nump]['debTallage'] * phylloPot
         #else:
         #    deldeb =  ParamP[nump]['phyllochron'] / ParamP[nump]['RvitTallage']
@@ -1312,13 +1315,22 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     if opt_ReadstressW == 1.:
         stressW = mng_j['ForceFTSW']#0.2
     
+    remiseNIcoupe = 3#2# max de stade bourgeon
+    remiseNIgel = 5# max apres un gel
+    
     if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh_til'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
         ##azi = random.uniform(0,360)
         elv0 = random.uniform(ParamP[nump]['elv0b'],ParamP[nump]['elv0h'])#(0,90)
         ageref = min(phylloPot, phylloPot*ParamP[nump]['RvitTallage'])
         newageB = age%ageref - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron'] - test_retard[nump] 
         newageA = age%ageref +STEPS - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron']+STEPS - test_retard[nump] 
-        deltaBud = min(2, int(age/phylloPot))#plafonne a 2 phylloc pour B ages
+        
+        #stade bourgeon
+        if invar['countGelD'][nump]>4:
+            deltaBud = min(remiseNIcoupe, int(age/phylloPot))#plafonne a 2 phylloc pour B ages
+        else: #apres gel
+            deltaBud = remiseNIgel
+        
         #position ini
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
             #boureons sur le collet -> epend de rpiv
@@ -2064,7 +2076,7 @@ D(nump,nsh, statut,age,posi,parent):
         deltaBud = sh.MaturBud(ParamP[nump]['delaiMaturBud'], NIparent)
         
         #newage = age%ParamP[nump]['phyllochron']+STEPS
-        newage = deltaBud*ParamP[nump]['phyllochron']# + STEPS  #+age%ParamP[nump]['phyllochron'] #rajoute pas le steps car compare a zero apres
+        newage = deltaBud*ParamP[nump]['phyllochron'] + age%ParamP[nump]['phyllochron']# + STEPS  # #rajoute pas le steps car compare a zero apres
         new_nrhiz = binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#0
         newazi = random.uniform(0.,360.)
         
