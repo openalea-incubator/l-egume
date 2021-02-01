@@ -474,6 +474,23 @@ Build_EvolProportions <- function(MStot, sp_tabSD, sp, var="decile")
 
 
 
+plotMean_Div <-function (matind, xval, title="", xlab="",ylab="",ylim=c(0,100), lscol=NULL)
+{
+  # plot de la moyenne versus les valeurs par individu
+  nbplt <- dim(matind)[2]
+  moy_ <-rowMeans(matind, na.rm=T)
+  plot(xval, moy_, col="dark grey", lwd=3, main=title, xlab=xlab, ylab=ylab,ylim=ylim)
+  for (idp in 1:nbplt)
+  {
+    if (is.null(lscol))
+    {col<-idp}
+    else
+    {col <- lscol[idp]}
+    
+    points(xval, matind[,idp], col=idp, type="l")
+  }
+  
+}
 
 
 

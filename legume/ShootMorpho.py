@@ -802,7 +802,7 @@ def update_shoot_params(ParamP, rankmax=51):
         #print('profilLeafI_Rlarg', ParamP[nump]['profilLeafI_Rlarg'])
         for rank in range(1, rankmax):  # !limite a 50 noeuds! (rankmax)
             Norml_leaf = min(ParamP[nump]['profilLeafI_Rlens1'] * rank + ParamP[nump]['profilLeafI_Rleni1'], ParamP[nump]['profilLeafI_Rlens2'] * rank + ParamP[nump]['profilLeafI_Rleni2'])
-            Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlargs1'] * rank + ParamP[nump]['profilLeafI_Rlargi1'],ParamP[nump]['profilLeafI_Rlargs2'] * rank + ParamP[nump]['profilLeafI_Rlargi2'])
+            Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlarg'][0] * rank + ParamP[nump]['profilLeafI_Rlarg'][1], ParamP[nump]['profilLeafI_Rlarg'][2] * rank + ParamP[nump]['profilLeafI_Rlarg'][3])
             Norml_In = min(ParamP[nump]['profilNodeIs1'] * rank + ParamP[nump]['profilNodeIi1'],ParamP[nump]['profilNodeIs2'] * rank + ParamP[nump]['profilNodeIi2'])
             Norm_pet = min(ParamP[nump]['profilPetIs1'] * rank + ParamP[nump]['profilPetIi1'],ParamP[nump]['profilPetIs2'] * rank + ParamP[nump]['profilPetIi2'])
             Norml_Stp = min(ParamP[nump]['profilStpI_ls1'] * rank + ParamP[nump]['profilStpI_li1'],ParamP[nump]['profilStpI_ls2'] * rank + ParamP[nump]['profilStpI_li2'])

@@ -18,6 +18,7 @@ source(paste(dir, "fonctions_mef.r",sep="\\"))
 #dir0 <- paste(dir, "control_v1.0",sep="\\")
 dir0 <- paste(dir, "previouscheck",sep="\\")
 dirlast <-  paste(dir, "lastcheck",sep="\\")
+#dirlast <-  paste("C:\\outputs", "lastcheck",sep="\\")
 #dirlast <- paste(dir, "test2",sep="\\")
 
 
