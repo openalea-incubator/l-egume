@@ -306,6 +306,10 @@ def calc_extinc_allray_multi_reduced(ls_mlai, ls_triplets_dir, ls_distf, I0, opt
 
     # expand matrices de sortie de nb0-1 couches sans faire les calculs
     shpnew = np.shape(res_abs_i_form_red)
+
+    if nb0<=0:
+        print("shoot canopy too high : m_lai out of voxels!")
+
     # zz = zeros((shpnew[0], (nb0-1), shpnew[2], shpnew[3]))
     # oo = ones(((nb0-1), shpnew[2], shpnew[3]))*res_trans_form_red[0,0,0]
     res_trans_form = np.concatenate((ones(((nb0 - 1), shpnew[2], shpnew[3])) * res_trans_form_red[0, 0, 0], res_trans_form_red), axis=0)
