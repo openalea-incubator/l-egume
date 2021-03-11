@@ -140,6 +140,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     #mise a jour des options de simulation
     testsim[name].opt_residu = int(dic_opt['opt_residu'])  # si 0, pas activation de mineralisation
     testsim[name].opt_sd = int(dic_opt['opt_sd'])  # 1 #genere distribution des valeurs de parametres
+    testsim[name].opt_covar = int(dic_opt['opt_covar'])  #definie matrice de cavariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
     testsim[name].opt_stressN = int(dic_opt['opt_stressN'])  # Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
     testsim[name].opt_stressW = int(dic_opt['opt_stressW'])  # Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
     testsim[name].opt_ReadstressN = int(dic_opt['opt_ReadstressN'])  # Force stress N to read input values - for debugging/calibration
