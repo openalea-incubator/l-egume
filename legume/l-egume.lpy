@@ -3,8 +3,8 @@ import os
 
 try:
     import legume
-    #path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
-    path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\luzerne' #r'C:\devel\grassland'#
+    path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
+    #path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\luzerne' #r'C:\devel\grassland'#
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\luzerne' #r'C:\devel\grassland'#
 path_leg = os.path.join(path_, 'input')#r'C:\devel\l-egume\l-egume\input'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\L-gume' #r'C:\devel\grassland'
