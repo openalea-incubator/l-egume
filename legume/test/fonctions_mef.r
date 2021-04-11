@@ -18,8 +18,13 @@ read_ltoto <- function(ls_toto)
 }
 
 
-read_lsSD_MStot <- function(ltoto, ls_paramSD)
+
+read_lsSD_MStot <- function(ltoto, ls_paramSD, param_name = "Len")
 {
+  
+  #recuperation par paquet des fichiers de base (pas de stockage de l'ensemble des fichiers en memoire)
+  #ltoto <- read_ltoto(ls_toto_paquet)
+  
   #lit la liste des fichier Sd et les MStot pour une liste de ltoto
   
   ls_MStot <- vector("list",length(ltoto))
@@ -38,11 +43,12 @@ read_lsSD_MStot <- function(ltoto, ls_paramSD)
     graine <- strsplit(nomfichier, '_')[[1]][8]
     secenarSD <- strsplit(nomfichier, '_')[[1]][10]
     esps <- strsplit(nomfichier, '_')[[1]][4]
+    damier <- strsplit(nomfichier, '_')[[1]][5]
     titre <- paste(num_usm, scenar, secenarSD,  damier, graine)#esps, 
     
     #lecture fichier paramSD de l'USM dans tabSD
-    nomSD <- ls_paramSD[grepl(num_usm, ls_paramSD)]
-    param_name <- "Len"
+    nomSD <- ls_paramSD[grepl(paste("paramSD_",num_usm,"_",sep=""), ls_paramSD)] 
+    #param_name <- "Len"
     tabSD <- read.table(nomSD, header=T, sep=';')
     
     nb <- dim(dat)[2]-2
@@ -479,6 +485,8 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
   MRac2 <- NULL
   MGini1 <- NULL
   MGini2 <- NULL
+  MAlive1 <- NULL
+  MAlive2 <- NULL
 
   for (i in 1:length(ls_toto_paquet))#(ls_toto))
   {
@@ -536,7 +544,14 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
       Gini1 <- NULL
       for (k in 1:length(DOYScoupe))
       { Gini1 <- cbind(Gini1, ineq(MS1[k,], type="Gini"))}
-
+      
+      #survie
+      matSV1 <- as.matrix(dat1[dat1$V1 == "aliveB" & dat1$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb1)
+      matSV1[matSV1>0] <- 1
+      aliveP1 <-  as.numeric(nbplt)-as.matrix(rowSums(matSV1))
+      aliveDens1 <- t(aliveP1 / s)
+      #MortDens1 <-  as.matrix(rowSums(matSV1)) / s
+      
 
     } else
     {
@@ -548,6 +563,7 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
       jMRac1 <- 0
       jMPiv1 <- 0
       Gini1 <- c(NA,NA,NA,NA)
+      aliveDens1 <- c(0,0,0,0)
     }
     YEsp1 <- cbind(YEsp1, sum(ProdIaer1))#cumul des 5 coupes
     QNuptleg <- cbind(QNuptleg, sum(Nuptake_sol_leg))
@@ -556,6 +572,7 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
     LRac1 <- cbind(LRac1, max(jLRac1))
     MRac1 <- cbind(MRac1, max(jMRac1)+max(jMPiv1))
     MGini1 <- rbind(MGini1, Gini1)
+    MAlive1 <- rbind(MAlive1, aliveDens1)
 
     #YEsp2
     #if (esp==esp2 & grep('damier', damier)==1)#si deux fois le meme nom d'espece, mais mixture damier
@@ -583,6 +600,13 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
       Gini2 <- NULL
       for (k in 1:length(DOYScoupe))
       { Gini2 <- cbind(Gini2, ineq(MS2[k,], type="Gini"))}
+      
+      #survie
+      matSV2 <- as.matrix(dat2[dat2$V1 == "aliveB" & dat2$steps %in% DOYScoupe,3:(3+nb1-1)], ncol=nb2)
+      matSV2[matSV2>0] <- 1
+      aliveP2 <-  as.numeric(nbplt)-as.matrix(rowSums(matSV2))
+      aliveDens2 <- t(aliveP2 / s)
+      #MortDens2 <-  as.matrix(rowSums(matSV2)) / s
     }
     else
     {
@@ -593,6 +617,7 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
       jMRac2 <- 0
       jMPiv2 <- 0
       Gini2 <- c(NA,NA,NA,NA)
+      aliveDens2 <- c(0,0,0,0)
     }
     YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
     #YEsp2 <- cbind(YEsp2, sum(ProdIaer2))#cumul des 5 coupes
@@ -601,7 +626,7 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
     LRac2 <- cbind(LRac2, max(jLRac2))
     MRac2 <- cbind(MRac2, max(jMRac2)+max(jMPiv2))
     MGini2 <- rbind(MGini2, Gini2)
-
+    MAlive2 <- rbind(MAlive2, aliveDens2)
   }
 
   dtoto$surfsolref <- as.numeric(surfsolref)
@@ -641,7 +666,9 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
   dtoto$UptNMass2 <- as.numeric(QNuptleg) / (as.numeric(MRac2) + 10e-12)
   dtoto$gini1 <- rowMeans(MGini1) #moyenne des gini de ttes les dates (sans retirer pltes mortes)
   dtoto$gini2 <- rowMeans(MGini2)
-
+  dtoto$alive1 <- as.numeric(MAlive1[,dim(MAlive1)[2]]) #survie derniere date coupe
+  dtoto$alive2 <- as.numeric(MAlive2[,dim(MAlive2)[2]]) #survie derniere date coupe
+  
   dtoto
 
 }
@@ -650,6 +677,17 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
 
 
 
+tab <- ltoto[[id]]
+#unique(tab$V1)
+
+nbplt <- dim(tab)[2] - 2
+matSV <- as.matrix(tab[tab$V1 == "aliveB",3:(nbplt+2)])
+matSV[matSV>0] <- 1
+surfsol <- dtoto$surfsolref[id]
+
+DOYs <- tab[tab$V1 == "aliveB",2]
+aliveP <- nbplt - rowSums(matSV)
+aliveDens <- aliveP / surfsol
 
 
 

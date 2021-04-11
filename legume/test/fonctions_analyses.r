@@ -474,6 +474,34 @@ Build_EvolProportions <- function(MStot, sp_tabSD, sp, var="decile")
 
 
 
+BuildResDecil <- function(MStot, sp_tabSD)
+{
+  #fonction pour calculer les decile /sp et a partir des tabSP (avec decile pour 1 parametre donne)
+  
+  #sp_tabSD <- split(resread[["ls_tabSD"]][[1]], resread[["ls_tabSD"]][[1]]$name)
+  #MStot <- resread[["ls_MStot"]][[1]]
+  
+  sp <- names(sp_tabSD)[1]#"Fix0"
+  x1 <- Build_EvolProportions(MStot, sp_tabSD, sp)
+  IDlastday <- dim(x1)[1]
+  #dec1 <- sum(x1[IDlastday,c(3)])
+  dec3_1 <- sum(x1[IDlastday,c(3:5)])
+  dec5_1 <- sum(x1[IDlastday,c(3:7)])
+  
+  sp <- names(sp_tabSD)[2]#"Fix1"
+  x2 <- Build_EvolProportions(MStot, sp_tabSD, sp)
+  IDlastday <- dim(x2)[1]
+  dec3_2 <- sum(x2[IDlastday,c(3:5)])
+  dec5_2 <- sum(x2[IDlastday,c(3:7)])
+  
+  res <- data.frame(dec3_1, dec5_1, dec3_2, dec5_2)
+  names(res) <- paste(c("dec3", "dec5", "dec3", "dec5"), param_name, c(names(sp_tabSD)[1], names(sp_tabSD)[1], names(sp_tabSD)[2], names(sp_tabSD)[2]),  sep="_")
+  
+  res
+  #
+}
+
+
 plotMean_Div <-function (matind, xval, title="", xlab="",ylab="",ylim=c(0,100), lscol=NULL)
 {
   # plot de la moyenne versus les valeurs par individu
