@@ -677,17 +677,17 @@ build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
 
 
 
-tab <- ltoto[[id]]
+#tab <- ltoto[[id]]
 #unique(tab$V1)
 
-nbplt <- dim(tab)[2] - 2
-matSV <- as.matrix(tab[tab$V1 == "aliveB",3:(nbplt+2)])
-matSV[matSV>0] <- 1
-surfsol <- dtoto$surfsolref[id]
+#nbplt <- dim(tab)[2] - 2
+#matSV <- as.matrix(tab[tab$V1 == "aliveB",3:(nbplt+2)])
+#matSV[matSV>0] <- 1
+#surfsol <- dtoto$surfsolref[id]
 
-DOYs <- tab[tab$V1 == "aliveB",2]
-aliveP <- nbplt - rowSums(matSV)
-aliveDens <- aliveP / surfsol
+#DOYs <- tab[tab$V1 == "aliveB",2]
+#aliveP <- nbplt - rowSums(matSV)
+#aliveDens <- aliveP / surfsol
 
 
 
@@ -770,4 +770,36 @@ build_simmoy1 <- function(ltoto, lsusm)
 #simmoy <- build_simmoy(ltoto, lsusm=names(ltoto))
 
 
+#pour gestion des couleur: vecteur 100
+col100 <- function(valrel100, lscols)
+{
+  # fonction pour definir un vecteur de couleur a partir de valeur relative et d'une liste de 101 couleur
+  #lscols = vecteur de 100 couleurs
+  # valrel100 = position dans ce vecteur (% du max)
+  
+  #lscols[rdtrel]#pas bon!
+  cols_ <- NULL
+  for(i in valrel100)
+  {
+    cols_ <- rbind(cols_, lscols[i+1])
+  }
+  cols_ <- as.vector(cols_)
+  #en faire une fonction
+  cols_
+}
 
+
+
+#fonction des exemple de pairs
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+#df <- data.frame(retard,Val_param,ParaMvois,PARivois,MScumvois, MStot_ini, MStot_fin, MStot_coupe1, MStot_coupe2, MStot_coupe3, MStot_coupe4, MStot_coupe5)
+#pairs(df, lower.panel = panel.smooth, upper.panel = panel.cor,gap=0, row1attop=FALSE, main=key)

@@ -754,6 +754,34 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     #prevoir nbprow different par esp... et melange on row...
 
 
+def ls_idvois_ordre1(n, cote, nblignes):
+    """ pour une plante n, dans un dispocitif regulier arrange en colonnes croissantes de cote indiv"""
+    nbindiv = cote * nblignes
+    ls_defaut = [n - (cote + 1), n - cote, n - (cote - 1), n - 1, n + 1, n + (cote - 1), n + cote, n + (cote + 1)]
+
+    if n % cote == 0:  # bord haut
+        ls_defaut[0] = ls_defaut[0] + cote
+        ls_defaut[3] = ls_defaut[3] + cote
+        ls_defaut[5] = ls_defaut[5] + cote
+
+    if (n + 1) % cote == 0:  # bord bas
+        ls_defaut[2] = ls_defaut[2] - cote
+        ls_defaut[4] = ls_defaut[4] - cote
+        ls_defaut[7] = ls_defaut[7] - cote
+
+    for i in range(len(ls_defaut)):
+        if ls_defaut[i] < 0:  # bord gauche
+            ls_defaut[i] = ls_defaut[i] + nbindiv
+
+        if ls_defaut[i] >= nbindiv:  # bord droit
+            ls_defaut[i] = ls_defaut[i] - nbindiv
+
+    return ls_defaut
+    # pour les voisin de 2e ordre = suffit de faire les voisin de 1er ordre de chasue voisin + unique!
+    # a faire dans R #11 et 23 plante / 0 marche
+    # print("id vois", ls_idvois_ordre1(4,6,4)) #OK!
+#pour pour nump python, pas pour id R!
+
 def updateLargProfile(Lmax, Largmax, profilLeafI_Rlen, profilLeafI_Rlarg):
     """ A function to modify The relative LArg profile given Largmax for the Longest leaf - old parametrization way"""
     # change the intercept of the second line b2

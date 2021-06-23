@@ -194,6 +194,7 @@ opt_verbose =1 #0, remove print in the console
 #meme apres rayonnement 5 direc, peetites feuilles et PARtresh a 0.99 -> rayonnement local a l'air bon????
 # par tresh dans l'autre sens 0.33 marche 0.01 OK
 
+
 def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     
     ## station
@@ -762,6 +763,7 @@ def Start():
     
     carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, station,type=typearrangement)
     
+    
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr, vCC
     S, Tsol, Uval, stateEV, b_ = init_sol(inis, meteo_j, par_sol, par_SN, Lsol, discret_solXY, dz_sol,  pattern8, opt_residu, obstarac_)
@@ -1187,6 +1189,14 @@ def End(lstring,lscene):
         res_sd['retard'] = test_retard[0:nbp]
         for p in ls_parname:
             res_sd[p] = riri.get_lsparami(ParamP, p)
+        
+        #ajout des coord x,y des plantes
+        xcarto, ycarto = [],[]
+        for i in range(len(carto)):
+            xcarto.append(carto[i][0]); ycarto.append(carto[i][1])
+        
+        res_sd['x'] = xcarto
+        res_sd['y'] = ycarto
         
         IOtable.write_dict(res_sd, path_out, outsdfile)
         ls_fileOUT.append(os.path.join(path_out, outsdfile))

@@ -961,3 +961,350 @@ Plot_resCE_SE <- function(resCE_SE, titre="")
 }
 #Plot_resCE_SE(resCE_SE, titre="")
 
+
+
+
+#fonction pour determiner l'id des voisins d'ordre 1
+ls_idvois_ordre1 <- function(n, cote, nblignes)
+{
+  # pour une plante n, dans un dispocitif regulier arrange en colonnes croissantes de cote indiv
+  nbindiv <- cote * nblignes
+  ls_defaut <- c(n - (cote + 1), n - cote, n - (cote - 1), n - 1, n + 1, n + (cote - 1), n + cote, n + (cote + 1))
+  
+  if (n %% cote == 0)  # bord haut
+  {
+    ls_defaut[1] <- ls_defaut[1] + cote
+    ls_defaut[4] <- ls_defaut[4] + cote
+    ls_defaut[6] <- ls_defaut[6] + cote
+  }
+  
+  if ((n + 1) %% cote == 0)  # bord bas
+  {
+    ls_defaut[3] <- ls_defaut[3] - cote
+    ls_defaut[5] <- ls_defaut[5] - cote
+    ls_defaut[8] <- ls_defaut[8] - cote
+  }
+   
+  
+  for (i in 1:length(ls_defaut))
+  {
+    if (ls_defaut[i] < 0)  # bord gauche
+    {ls_defaut[i] <- ls_defaut[i] + nbindiv}
+  
+    if (ls_defaut[i] >= nbindiv)  # bord droit
+    {ls_defaut[i] <- ls_defaut[i] - nbindiv}
+  }
+  
+  ls_defaut
+}
+#ls_idvois_ordre1(9,6,4)#marche pas pour zero
+#pour ordre 2: voisin d'ordre 1 de tous tes voisins!
+#!! prevu pour id python commencant a zero
+
+
+
+
+calc_norm_par <- function(tabpar,lspar, plot_=F)
+{
+  # fonction pour Calcul des valeur normalisee (par la moyenne) des parametresSD et la moyenne des valeurs normalisee
+  # avec plot_ a True et les coord x,y,  fait un graph de visu
+  
+  nbpar <- length(lspar)
+  ls_resNorm <- vector("list", length=(nbpar+1))
+  names(ls_resNorm) <- c(lspar, "mean_norm_par")
+  
+  ls_col_ <- 1:nbpar #a passer en argument eventuellement
+  
+  
+  Val_par <- tabpar[,c(lspar[1])]
+  #normalise par la moyenne (de ce qui est donne en entree: communaute ou population)
+  norm_par <- Val_par/mean(Val_par) 
+  ls_resNorm[[lspar[1]]] <- norm_par
+  mean_norm_par <- norm_par
+  
+  if (plot_ == T)
+  {plot(tabpar$x, tabpar$y, cex=1.5*norm_par,col="blue", main="params")}
+  
+  for (i in 2:nbpar)
+  {
+    Val_par <- tabpar[,c(lspar[i])]
+    norm_par <- Val_par/mean(Val_par)
+    ls_resNorm[[lspar[i]]] <- norm_par
+    mean_norm_par <- mean_norm_par+norm_par
+    
+    if (plot_ == T)
+    {points(tabpar$x, tabpar$y, cex=1.5*norm_par,col=ls_col_[i])}
+    
+  }
+  ls_resNorm[["mean_norm_par"]] <- mean_norm_par/nbpar
+  names(ls_resNorm)[1:nbpar] <- paste(lspar,"Norm", sep="")
+  ls_resNorm <- as.data.frame(ls_resNorm)
+  ls_resNorm
+}
+
+#ls_resNorm <- calc_norm_par(x ,lspar, plot_=F)
+#ParamNorm <- calc_norm_par(temptab[,lspar] ,lspar, plot_=F)$mean_norm_par
+
+
+
+def_indice_vois5050 <- function(cote, nblignes)
+{
+  #id des voisins pour un damier a 50/50 (1 sur 2 est un Kin/nonKin)
+  
+  #cote <- 16
+  #nblignes <- 16
+  
+  ls_idvois <- vector("list", length=(cote*nblignes))
+  names(ls_idvois) <- 1:(cote*nblignes)
+  ls_idKin <- vector("list", length=(cote*nblignes))
+  names(ls_idKin) <- 1:(cote*nblignes)
+  ls_idnonKin <- vector("list", length=(cote*nblignes))
+  names(ls_idnonKin) <- 1:(cote*nblignes)
+  
+  for (i in 1:(cote*nblignes))
+  {
+    idvois <- ls_idvois_ordre1(i-1, cote, nblignes) +1 # appel avec i-1 (pour comme nump python) # ajout 1 a sortie pour rang R
+    ls_idvois[[i]] <- idvois 
+    ls_idKin[[i]] <- idvois[c(1,3,6,8)]
+    ls_idnonKin[[i]] <- idvois[c(2,4,5,7)]
+  }
+  
+  list(ls_idvois, ls_idKin, ls_idnonKin)
+}
+#ls_idv <- def_indice_vois5050(cote=16, nblignes=16)
+#ls_idvois <- ls_idv[[1]]
+#ls_idKin <- ls_idv[[2]]
+#ls_idnonKin <- ls_idv[[3]]
+
+#a generaliser pour autres configuations (ou a lire qqs part!)
+
+
+
+
+calc_neighb_param <- function(tabpar,lspar, ls_idvois, ls_idKin, ls_idnonKin)
+{
+  #calculate average parameter value of order 1 neighbours, with kin and non kin in a binary mixture
+  #can be used for any vector and any list of lspar (not only parameters)
+  
+  nbpar <- length(lspar)
+  ls_res <- vector("list", length=nbpar)
+  names(ls_res) <- c(lspar)
+  
+  for (param_name in lspar)
+  {
+    
+    #param_name <- lspar[1]
+    Val_param <- tabpar[,c(param_name)]
+    
+    
+    ParaMvois <- NULL
+    ParaMKin <- NULL
+    ParaMnonKin <- NULL
+    for (i in 1:(cote*nblignes))
+    {
+      #ALL ordre 1
+      ParaMvois <- cbind(ParaMvois, mean(Val_param[ls_idvois[[i]]]))
+      #Kin/NonKin
+      ParaMKin <- cbind(ParaMKin, mean(Val_param[ls_idKin[[i]]]) )
+      ParaMnonKin <- cbind(ParaMnonKin, mean(Val_param[ls_idnonKin[[i]]]) )
+    }
+    ParaMvois <- as.numeric(ParaMvois)
+    ParaMKin <- as.numeric(ParaMKin)
+    ParaMnonKin <- as.numeric(ParaMnonKin)
+    
+    res <- data.frame(ParaMvois, ParaMKin, ParaMnonKin)
+    names(res) <- paste(param_name, c("Mvois", "MKin", "MnonKin"), sep="")
+    
+    
+    ls_res[[param_name]] <- res
+    
+  }
+  
+  res <- as.data.frame(ls_res)
+  names(res) <- as.character(as.data.frame(t(as.data.frame(strsplit(names(res),"\\."))))$V2)
+  
+  res
+}
+#pourrait prevoir de mettre ls_idvois, ls_idKin, ls_idnonKin dans la table d'entree au prelablable
+#calc_neighb_param(x,lspar, ls_idvois, ls_idKin, ls_idnonKin)
+
+
+
+Calc_MSindiv_Corr <- function(ltoto, ls_toto_paquet, ls_paramSD, lspar=c("Len","Lfeuille","phyllochron", "Vmax2", "ELmax", "PPtreshh"))
+{
+  ## fonction pour mettre en forme valeurs de parametres normalise, valeur d'effet de voisinnage, et calculer les correlations entre indices
+  
+  #key <- names(sp_dtoto)[260]#[330]#[16]#[3]#[31]#[19]#
+  #ls_toto_paquet <- sp_dtoto[[key]]$name
+  #ltoto <- read_ltoto(ls_toto_paquet)
+  #names(ltoto[[ls_toto_paquet]])
+  #ltoto[[ls_toto_paquet]]$V1
+  dat <- ltoto[[ls_toto_paquet]]
+  nb <- dim(dat)[2]-2
+  
+  #lspar <-  c("Len","Lfeuille","phyllochron", "Vmax2", "ELmax", "PPtreshh")
+  param_name <- "phyllochron"#"Len"#ls_par[1] #pour exemple, pas utilise
+  resread <- read_lsSD_MStot(ltoto, ls_paramSD, param_name)
+  sp_tabSD <- split(resread[["ls_tabSD"]][[1]], resread[["ls_tabSD"]][[1]]$name)
+  MStot <- resread[["ls_MStot"]][[1]]
+  #res <- BuildResDecil(MStot, sp_tabSD)
+  
+  #c(187,229,282,334) #dates de coupes fixes
+  MStot_ini <- as.numeric(MStot[60,])#30
+  MStot_coupe1 <- as.numeric(MStot[127,])#65
+  MStot_coupe2 <- as.numeric(MStot[169,])#100
+  MStot_coupe3 <- as.numeric(MStot[222,])#150
+  MStot_fin <- as.numeric(MStot[dim(MStot)[1],])
+  #MStot_coupe4 <- as.numeric(MStot[200,])
+  #MStot_coupe5 <- as.numeric(MStot[250,])
+  #hist(MStot_fin, main=key)
+  #hist(MStot_coupe1, main=key)
+  
+  #temptab <- resread[["ls_tabSD"]][[1]][, c("nump","name","x","y","retard","Len","Vmax2","ELmax","Lfeuille","phyllochron","PPtreshh")]
+  temptab <- resread[["ls_tabSD"]][[1]][, c("nump","name","retard","Len","Vmax2","ELmax","Lfeuille","phyllochron","PPtreshh")]
+  
+  
+  #ordonne dans l'ordre des nump!!
+  temptab <- temptab[order(temptab$nump),]
+  
+  
+  #Val_param <- temptab[,c(param_name)]#temptab$phyllochron
+  #Val_param <- temptab$Len
+  #hist(Val_param, main=key)
+  
+  #calcul de la valeur normalisee des parametres (multi-trait)
+  temptab$phyllochron[temptab$phyllochron<8] <- 8 #pour les valeur <0 mise a 10-10!
+  temptab$phyllochron <- 1/(temptab$phyllochron)
+  temptab$PPtreshh <- 24-temptab$PPtreshh
+  ParamAllNorm <- calc_norm_par(temptab[,lspar] ,lspar, plot_=F)$mean_norm_par
+  temptab$ParamAllNorm <- ParamAllNorm 
+  
+  #agrege par Light / N (specifique papier beatrice)
+  lightPar <- c("Len","Lfeuille","phyllochron")
+  ParamLightNorm <- calc_norm_par(temptab[,lightPar] ,lightPar, plot_=F)$mean_norm_par
+  temptab$ParamLightNorm <- ParamLightNorm
+  NPar <- c("Vmax2", "ELmax", "PPtreshh")
+  ParamNNorm <- calc_norm_par(temptab[,NPar] ,NPar, plot_=F)$mean_norm_par
+  temptab$ParamNNorm <- ParamNNorm
+  
+  
+  
+  #calcul des moyenne des voisins
+  x <- temptab[,c(lspar,"ParamAllNorm","ParamLightNorm","ParamNNorm")]
+  #transforme param phyllochrone et PPtreshh pour avoir effet positif pour valeur croissante
+  
+  
+  resN <- calc_neighb_param(x,c(lspar,"ParamAllNorm","ParamLightNorm","ParamNNorm"), ls_idvois, ls_idKin, ls_idnonKin)
+  temptab <- cbind(temptab, resN)
+  #caluler les difference pour sp1 et sp2
+  temptab$diffMvoisNorm <- temptab$ParamAllNormMvois - temptab$ParamAllNorm
+  temptab$diffMKinNorm <- temptab$ParamAllNormMKin - temptab$ParamAllNorm
+  temptab$diffMnonKinNorm <- temptab$ParamAllNormMnonKin - temptab$ParamAllNorm
+  temptab$diffMvoisLightNorm <- temptab$ParamLightNormMvois - temptab$ParamLightNorm
+  temptab$diffMvoisNNorm <- temptab$ParamNNormMvois - temptab$ParamNNorm
+  
+  
+  #recup PARiPlante et N uptake plante et faire cumul
+  PARi <- dat[dat$V1=='PARiPlante',3:(3+nb-1)] #
+  for (i in 1:nb) {PARi[,i] <- cumsum(PARi[,i])}
+  Nuptake <- dat[dat$V1=='Nuptake_sol',3:(3+nb-1)] #sans fixation!!!
+  for (i in 1:nb) {Nuptake[,i] <- cumsum(Nuptake[,i])}
+  PARi_fin <- as.numeric(PARi[dim(PARi)[1],])
+  Nuptake_fin <- as.numeric(Nuptake[dim(Nuptake)[1],])
+  
+  
+  #calcul du cumul de biomasse, note moyenne, uptake des voisins
+  MScumvois <- NULL
+  MScumKin <- NULL
+  MScumnonKin <- NULL
+  PARivois <- NULL
+  PARiKin <- NULL
+  PARinonKin <- NULL
+  Nuptakevois <- NULL
+  NuptakeKin <- NULL
+  NuptakenonKin <- NULL
+  for (i in 1:(cote*nblignes))
+  {
+    #ALL ordre 1
+    MSvois <- sum(MStot_fin[ls_idvois[[i]]])
+    MScumvois <- cbind(MScumvois, MSvois)
+    PARivois <- cbind(PARivois, sum(PARi_fin[ls_idvois[[i]]]) )
+    Nuptakevois <- cbind(Nuptakevois, sum(Nuptake_fin[ls_idvois[[i]]]) )
+    
+    #Kin/NonKin
+    MScumKin <- cbind(MScumKin, sum(MStot_fin[ls_idKin[[i]]]))
+    MScumnonKin <- cbind(MScumnonKin, sum(MStot_fin[ls_idnonKin[[i]]]))
+    PARiKin <- cbind(PARiKin, sum(PARi_fin[ls_idKin[[i]]]) )
+    NuptakeKin <- cbind(NuptakeKin, sum(Nuptake_fin[ls_idKin[[i]]]) )
+    PARinonKin <- cbind(PARinonKin, sum(PARi_fin[ls_idnonKin[[i]]]) )
+    NuptakenonKin <- cbind(NuptakenonKin, sum(Nuptake_fin[ls_idnonKin[[i]]]) )
+    
+  }
+  MScumvois <- as.numeric(MScumvois)
+  PARivois <- as.numeric(PARivois)
+  Nuptakevois <- as.numeric(Nuptakevois)
+  MScumKin <- as.numeric(MScumKin)
+  MScumnonKin <- as.numeric(MScumnonKin)
+  PARiKin <- as.numeric(PARiKin)
+  NuptakeKin <- as.numeric(PARiKin)
+  PARinonKin <- as.numeric(PARinonKin)
+  NuptakenonKin <- as.numeric(PARinonKin)
+  
+  
+  dfMS <- data.frame(nump=temptab$nump, MStot_fin, MStot_ini, MStot_coupe1,MStot_coupe2,MStot_coupe3,PARi=PARi_fin, Nuptake=Nuptake_fin, MScumvois, MScumKin, MScumnonKin, PARivois, PARiKin, PARinonKin, Nuptakevois, NuptakeKin, NuptakenonKin)
+  #ratio de capture des ressources avec voisins
+  dfMS$ratioLight <- PARi_fin/PARivois
+  dfMS$ratioNupt <- Nuptake_fin/Nuptakevois
+  #EcardPotentiel <-  MStot_fin/mean(MStot_fin) - ParamAllNorm #pas tres logique en multitrait / simple trait
+  
+  
+  temptab <- merge(temptab, dfMS, by="nump")
+  
+  
+  #correlation MSindiv avec valeur des parametres / valeur des voisins / ecart des voisins / ressources / ressources des voisins
+  #subx <- temptab[,5:dim(temptab)[2]]#new: avec x,y
+  subx <- temptab[,3:dim(temptab)[2]]#old: sans x,y
+  rescor <- as.data.frame(cor(subx))
+  valcorAll <- rescor$MStot_fin
+  #barplot(valcorAll, names.arg =row.names(rescor), las=3,cex.names=0.6,main=key)
+  
+  #faire un data.frame de ca
+  res <- data.frame(t(valcorAll))
+  names(res) <- paste("Cor_", row.names(rescor),sep="")
+  
+  #Corr par espece
+  s_temp <- split(temptab, temptab$name)
+  sp <- names(s_temp)[1]#"Fix0"
+  #subx <- s_temp[[sp]][,5:dim(temptab)[2]]#new: avec x,y
+  subx <- s_temp[[sp]][,3:dim(temptab)[2]]#old: sans x,y
+  rescor <- as.data.frame(cor(subx))
+  valcorSp1 <- rescor$MStot_fin
+  res1 <- data.frame(t(valcorSp1))
+  names(res1) <- paste(sp,"_Cor_", row.names(rescor),sep="")
+  
+  sp <- names(s_temp)[2]#"Fix1"
+  #subx <- s_temp[[sp]][,5:dim(temptab)[2]]#new: avec x,y
+  subx <- s_temp[[sp]][,3:dim(temptab)[2]]#old: sans x,y
+  rescor <- as.data.frame(cor(subx))
+  valcorSp2 <- rescor$MStot_fin
+  res2 <- data.frame(t(valcorSp2))
+  names(res2) <- paste(sp,"_Cor_", row.names(rescor),sep="")
+  ##barplot(valcorSp2, names.arg =row.names(rescor), las=3,cex.names=0.6,main=key)
+  
+  res <- cbind(res,res1,res2)
+  res$key <- key
+  
+  res
+  
+  #renvoie aussi du tableau des donnees : temptab
+  ls_resOK <- list(res, temptab)
+  names(ls_resOK) <- c("tabCorMSindiv", "datIndices")
+  ls_resOK
+  
+}
+#distinguer 2 fonctions? voir 3?: mef et calcul des correlations?
+#ls_res_cor_i <- Calc_MSindiv_Corr(ltoto, ls_toto_paquet, ls_paramSD, lspar=c("Len","Lfeuille","phyllochron", "Vmax2", "ELmax", "PPtreshh"))
+#ls_res_cor_i[["tabCorMSindiv"]]
+#ls_res_cor_i[["datIndices"]]
+
+
