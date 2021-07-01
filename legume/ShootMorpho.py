@@ -50,7 +50,20 @@ def dTT(vT, p, optT=0):
         return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
 
 
+def Calc_Daily_vT(meteo_j, opt_optT):
+    # extract dily vector of temperature depending on TT calculation option
+    if opt_optT ==0 or opt_optT==2 or opt_optT==3: #betaD ou lineaire ou old debug
+        vT = [meteo_j['TmoyDay']]
+        vTsol = [meteo_j['Tsol']]
+    elif opt_optT ==1: #betaH
+        #calcul vecteur des temperatures horaires air
+        vT = []
+        for h in range(24):
+            vT.append(sh.TempHoraire(h, Tmin=meteo_j['Tmin'], Tmax=meteo_j['Tmax']))
+        vTsol = [meteo_j['Tsol']]
 
+    return vT, vTsol
+    #vT, vTsol = Calc_Daily_vT(meteo_j, opt_optT)
 
 #Light response functions
 def DecliSun(DOY):

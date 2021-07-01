@@ -13,17 +13,6 @@ path_out = os.path.join(path_, 'output')#r'C:\devel\grassland'#r'H:\devel\grassl
 sys.path.insert(0, path_)
 sys.path.insert(0, path_leg)
 
-#from rpy_options import set_options
-#set_options(RHOME='c:/progra~1/R/R-2.12.1')
-#from rpy import r
-#import rpy2.rpy_classic as rpy
-#rpy.set_default_mode(rpy.NO_CONVERSION)
-#rpy.r.source(os.path.join(path_, 'dist_tetaf.r'))#'dist_tetaf.r') #r.source('C:/devel/grassland/dist_tetaf.r') #in L-egume folder
-#rpy.r.source(os.path.join(path_, 'calc_root_tropism.r'))#r.source('C:/devel/grassland/calc_root_tropism.r') #in L-egume folder
-#rpy.set_default_mode(rpy.BASIC_CONVERSION)
-#r.source('dist_tetaf.r') #in L-gume folder
-#r.source('calc_root_tropism.r') #in L-gume folder
-
 
 from numpy.random import binomial, seed
 from scipy import * 
@@ -48,11 +37,64 @@ import RootDistrib as rtd
 import RootMorpho2 as rt
 import ShootMorpho as sh
 import daily_loop as loop
+import management_auto as mna
 import IOtable
 import IOxls
 import random
 import pandas as pd
 import zipfile
+
+
+
+
+#options de simulation
+opt_residu = 1 #si 0, pas activation de mineralisation
+opt_sd = 0 #1 #genere distribution des valeurs de parametres
+opt_covar = 0# #definie matrice de cavariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
+opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
+opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
+opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
+opt_ReadstressW = 0 # Force stress FTSW to read input values - for debugging/calibration
+opt_photomorph = 1 #1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
+opt_stressGel = 1 #Active gel stress option below Tgel
+opt_optT = 0 #option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
+opt_PP = 1 #0 #Active photoperiodic effects (1 active; 0 inactive)
+opt_Mng = 0 # type of management file to be read: 0: default observed file ; 1: automatic management file #must be consistent with the management file!
+opt_ReadPP = 0 # Force photoperiod to read input values in management - for indoor experiment
+visu_root=1 #1# pour visualisation/interpretation root
+visu_shoot=1 #1# pour visualisation/interpretation shoot
+visu_sol=0 #1# pour visualisation/interpretation sol
+visu_solsurf=1 #0 pour visualisation du pattern
+frDisplay = 0 #1 #sauvegarde de la derniere vue
+movDisplay =0 # #sauvegarde toutes les vues pour faire un film
+opt_zip = 0 #if 1, zip and delete the output csv files 
+opt_verbose =1 #0, remove print in the console
+
+
+
+#initialisation des variables globale de simulation
+DOYdeb = 60#100#49#159#124#
+DOYend = 150#335#180#202#231#335#610#120#250#244#282#
+Rseed = 0#2#0 #random seed
+deltalevmoy = 30 #degre.jours
+deltalevsd = 15
+
+
+cote = 40.#80.#100.#100#25.#25.#cm
+nbcote = 8#1#10
+optdamier = 4
+typearrangement='damier8'#'homogeneous'#'random8'#'damier16'#'random16'
+idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
+idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
+idscenar1_sd = 1
+idscenar2_sd = 1
+
+
+tresh_LA = 0.0015 # 0.0010=10cm2 #seuil de surface des feuilles pour separer les folioles dans la grille 3D
+obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transpose() #matice 2D de valeurs de profondeur d'obstacle en m #None #
+
+
+
 
 ## lecture fichier meteo
 #faire une fonction??
@@ -60,10 +102,6 @@ meteo_path = os.path.join(path_leg,'meteo_exemple.xls')#'meteo_exemple_debugL_gl
 ongletM = 'Lusignan30'#'DigitLuz10'#'Lusignan30'#'Lusignan302ans'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
 meteo = IOxls.read_met_file(meteo_path, ongletM)
 
-## lecture fichier management
-mn_path = os.path.join(path_leg,'management_exemple.xls')#'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
-ongletMn = 'Lusignan30IrrN2'#'DigitLuz10'#'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
-mng = IOxls.read_met_file(mn_path, ongletMn)
 
 ## lecture fichier initialisation
 inis_path = os.path.join(path_leg, 'Init_sol_exemple.xls')#'Initialisation_sol_exemple.xls')
@@ -75,6 +113,19 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 ongletP = 'Fix2'#'Orca'#'Fet'#'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
 ongletPvois = 'nonFixSimTest'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+
+
+## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
+mn_path = os.path.join(path_leg,'management_exemple.xls')#'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
+ongletMn = 'Lusignan30IrrN2'#'DigitLuz10'#'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
+#mn_path = os.path.join(path_leg,'management_auto_exemple.xls')# exemple pour auto
+#ongletMn = 'exemple'
+if opt_Mng == 0:
+    mng = IOxls.read_met_file(mn_path, ongletMn)
+elif opt_Mng == 1: #Automatic management file
+    mng_auto = IOxls.read_plant_param(mn_path, ongletMn)
+    mng = mna.Build_mng_auto(meteo, mng_auto, path_plante, ongletP, DOYdeb, opt_optT)
+
 
 #lecture des parametres du sol
 path_sol = os.path.join(path_leg,'Parametres_sol_exemple.xls')#'Parametres_sol_exemple2_debugL_glbis.xls')#
@@ -119,35 +170,7 @@ outHRfile = 'outHR.csv'#r'H:\devel\grassland\grassland\L-gume\outHR.csv'
 outBilanNfile = 'BilanN.csv'#r'H:\devel\grassland\grassland\L-gume\BilanN.csv'
 resrootfile = 'newres.csv'#r'H:\devel\grassland\newres.csv'
 outsdfile = 'paramsd.csv'#file for distrubtion of parameters sd
-
-
-#initialisation des variables globale de simulation
-DOYdeb = 60#100#49#159#124#
-DOYend = 150#335#180#202#231#335#610#120#250#244#282#
-Rseed = 0#2#0 #random seed
-deltalevmoy = 30 #degre.jours
-deltalevsd = 15
-
-
-cote = 40.#80.#100.#100#25.#25.#cm
-nbcote = 8#1#10
-optdamier = 4
-typearrangement='damier8'#'homogeneous'#'random8'#'damier16'#'random16'
-idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
-idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
-idscenar1_sd = 1
-idscenar2_sd = 1
-
-
-
-#latitude = 46.43 #Lusignan (degre) -> a passer dans le fichier inis
-#sky = 'VXpXmYpYm'#'V'#
-#dz_aerien = 2.#2.#2.5#5.#7.5#10.#7.#cm dz vise
-#Hmaxcouv = 150.#150.# 200. #cm
-tresh_LA = 0.0015 # 0.0010=10cm2 #seuil de surface des feuilles pour separer les folioles dans la grille 3D
-
-obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transpose() #matice 2D de valeurs de profondeur d'obstacle en m #None #
-
+outMngfile ='MngAuto.csv'#file for recording automatic management actions
 
 
 
@@ -165,28 +188,6 @@ obstarac_ = None#array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transp
 #vNmires = [0.00197]*nb_res# fraction de poids frais residu en azote mineral (equivalent de Nminres(%)/100)
 
 
-
-#options de simulation
-opt_residu = 1 #si 0, pas activation de mineralisation
-opt_sd = 0 #1 #genere distribution des valeurs de parametres
-opt_covar = 0# #definie matrice de cavariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
-opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
-opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
-opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
-opt_ReadstressW = 0 # Force stress FTSW to read input values - for debugging/calibration
-opt_photomorph = 1 #1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
-opt_stressGel = 1 #Active gel stress option below Tgel
-opt_optT = 0 #option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
-opt_PP = 1 #0 #Active photoperiodic effects (1 active; 0 inactive)
-opt_ReadPP = 0 # Force photoperiod to read input values in management - for indoor experiment
-visu_root=1 #1# pour visualisation/interpretation root
-visu_shoot=1 #1# pour visualisation/interpretation shoot
-visu_sol=0 #1# pour visualisation/interpretation sol
-visu_solsurf=1 #0 pour visualisation du pattern
-frDisplay = 0 #1 #sauvegarde de la derniere vue
-movDisplay =0 # #sauvegarde toutes les vues pour faire un film
-opt_zip = 0 #if 1, zip and delete the output csv files 
-opt_verbose =1 #0, remove print in the console
 
 
 #1 seul axe en developpemnt? -> arret
@@ -809,17 +810,7 @@ def StartEach():
     global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr, station    
     
     #calcul TT
-    if opt_optT ==0 or opt_optT==2 or opt_optT==3: #betaD ou lineaire ou old debug
-        vT = [meteo_j['TmoyDay']]
-        vTsol = [meteo_j['Tsol']]
-    elif opt_optT ==1: #betaH
-        #calcul vecteur des temperatures horaires air
-        vT = []
-        for h in range(24):
-            vT.append(sh.TempHoraire(h, Tmin=meteo_j['Tmin'], Tmax=meteo_j['Tmax'])) 
-        vTsol = [meteo_j['Tsol']]
-        #devrait aussi passer Tsol en H
-    
+    vT, vTsol = sh.Calc_Daily_vT(meteo_j, opt_optT) #daily temperature vector
     
     STEPS_ = sh.dTT(vT, [ParamP[0]['Tdev'], ParamP[0]['Tmin'], ParamP[0]['Tmax'], ParamP[0]['q']], optT=opt_optT) #prend valeur de nump=0 -> reference pour la simulation!
     TT = TT+STEPS_
@@ -1221,6 +1212,11 @@ def End(lstring,lscene):
         IOtable.ecriture_csv(out_HR, f)#ls_systrac[0]
         f.close()
         ls_fileOUT.append(outHRpath)
+    
+    ##############!!!!!!!!!!!!
+    if outf['outMngfile'] != 0.:
+        IOtable.write_dict(mng, path_out, outMngfile)
+        ls_fileOUT.append(os.path.join(path_out, outMngfile))
     
     #pour gerer la vue de la sortie finale - lucas
     outimagepath = os.path.join(path_out, outimagefile)#r'H:\devel\grassland\grassland\L-gume\scene.bmp'

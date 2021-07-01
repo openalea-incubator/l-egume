@@ -147,8 +147,9 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_ReadstressW = int(dic_opt['opt_ReadstressW'])  # Force stress FTSW to read input values - for debugging/calibration
     testsim[name].opt_photomorph = int(dic_opt['opt_photomorph'])  # 1 #Activate photomorphogenetic effects on organ growth; 1 Actif (0= calcule, mais pas applique)
     testsim[name].opt_optT = int(dic_opt['opt_optT']) # option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
-    testsim[name].opt_stressGel = int(dic_opt['opt_stressGel'])
+    testsim[name].opt_stressGel = int(dic_opt['opt_stressGel']) #Active gel stress option below Tgel
     testsim[name].opt_PP = int(dic_opt['opt_PP']) # Active photoperiodic effects (1 active; 0 inactive)
+    testsim[name].opt_Mng = int(dic_opt['opt_Mng'])  # type of management file to be read: 0: default observed file ; 1: automatic management file #must be consistent with the management file!
     testsim[name].opt_ReadPP = int(dic_opt['opt_ReadPP'])  # Force photoperiod to read input values in management - for indoor experiment
     testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
     testsim[name].visu_shoot = int(dic_opt['visu_shoot'])  # 1# pour visualisation/interpretation shoot
@@ -188,6 +189,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].outBilanNfile = 'BilanN_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + sdname + '_' + '.csv'
     testsim[name].outimagefile = 'scene_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + sdname + '_' + '.bmp'  # 'scene.bmp'
     testsim[name].outsdfile = 'paramSD_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + '_' + sdname + '_' + '.csv'
+    testsim[name].outMngfile = 'MngAuto_' + name + nommix + '_' + str(ls_usms['ongletMn'][i]) + '_' + str(seednb) + '_' + str(ls_usms['ongletM'][i]) + '_' + sdname + '_' + '.csv'
 
     # plante si dossier out pas cree
     # pourrait faire la lecture les ls_usm directement dans le l-system pour faciliter...+

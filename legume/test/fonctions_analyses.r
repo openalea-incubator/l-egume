@@ -1004,7 +1004,7 @@ ls_idvois_ordre1 <- function(n, cote, nblignes)
 
 
 
-calc_norm_par <- function(tabpar,lspar, plot_=F)
+calc_norm_par <- function(tabpar,lspar, plot_=F, main_="")
 {
   # fonction pour Calcul des valeur normalisee (par la moyenne) des parametresSD et la moyenne des valeurs normalisee
   # avec plot_ a True et les coord x,y,  fait un graph de visu
@@ -1023,7 +1023,7 @@ calc_norm_par <- function(tabpar,lspar, plot_=F)
   mean_norm_par <- norm_par
   
   if (plot_ == T)
-  {plot(tabpar$x, tabpar$y, cex=1.5*norm_par,col="blue", main="params")}
+  {plot(tabpar$x, tabpar$y, cex=1.5*norm_par,col="blue", main=main_,xlab="",ylab="")}
   
   for (i in 2:nbpar)
   {
