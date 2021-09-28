@@ -24,7 +24,7 @@ import run_legume_usm as runl
 
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
-opttest = 'exemple'#'sdBea'#'OATbea'#1#2#'Histor'#1#4 ##2#1#  5#4#2#'autre'#0#13#'exemple_BA'#
+opttest = 'mayssa'#'exemple'#'sdBea'#'OATbea'#1#2#'Histor'#1#4 ##2#1#  5#4#2#'autre'#0#13#'exemple_BA'#
 if opttest == 1 or opttest == 2 or opttest == 3 or opttest == 4 or opttest == 5:  # si multisim des test de non regression (1 or 2)
     # global foldin, fxls, ongletBatch, fscenar
     foldin =  os.path.join(path_, 'input')#'test\inputs'
@@ -57,6 +57,13 @@ elif opttest == 'exemple_BA':
     fxls = 'liste_usms_exemple_BA.xls'
     ongletBatch = 'exemple'
     foldout = os.path.join(path_, 'test', 'test2')
+elif opttest == 'mayssa':
+    # global foldin, fxls, ongletBatch, fscenar
+    # to be manually updated
+    foldin =  'C:\inputs\inputs mayssa\DIGITLUZ'#r'C:\inputs\inputs test variance BLW'#os.path.join(path_, 'input')#'input'  # 'multisim'
+    fxls = 'liste_usms_eval.xls'#'liste_usms_exemple.xls'#'liste_usms_essais.xls'  # 'liste_usms_mix.xls'
+    ongletBatch = 'valid'#'Param1GL'#'OATbea'#'Histor'#'Champs'  # 'SimTest'#
+    foldout = os.path.join(path_, 'output')
 else:  # to personalize - other multisimulation to be defined (0)
     # global foldin, fxls, ongletBatch, fscenar
     # to be manually updated
@@ -64,7 +71,6 @@ else:  # to personalize - other multisimulation to be defined (0)
     fxls = 'liste_usms_exemple.xls'#'liste_usms_essais.xls'  # 'liste_usms_mix.xls'
     ongletBatch = 'Param1GL'#'OATbea'#'Histor'#'Champs'  # 'SimTest'#
     foldout = os.path.join(path_, 'output')
-
 
 #scenar et fsd definis en dur dans la fonction lsystemInputOutput_usm
 #fscenar = 'liste_scenarios.xls'
