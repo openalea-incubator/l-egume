@@ -1,4 +1,6 @@
 from os.path import join
+import os
+import zipfile
 
 def N_lignes (fichier) :
     """compte le nombre de lignes d'un fichier (compte le nombre d'elements de la liste readlines()"""
@@ -266,4 +268,27 @@ def write_dicttables(path_file, dic, keys_):
             f = open(path_file, 'a')#file (path_file, 'a')
             ecriture_csv(dic[keys_[i]], f)
             f.close()
+
+
+
+def Outzip(path_out, outzipfile, ls_names):
+    """ zip a list of output files """
+    pathzip = os.path.join(path_out, outzipfile)
+    # create a ZipFile object
+    zipObj = zipfile.ZipFile(pathzip, 'w', zipfile.ZIP_DEFLATED)
+    # Add multiple files to the zip
+    for namef in ls_names:
+        abs_src = os.path.abspath(path_out)
+        absname = os.path.abspath(namef)
+        arcname = absname[len(abs_src) + 1:]
+        zipObj.write(namef,arcname)
+    # close the Zip File
+    zipObj.close()
+
+def Outdel(ls_names):
+    """ delete a list of output files """
+    for namef in ls_names:
+        #zipObj.write(namef)
+        os.remove(namef)
+        #pass
 

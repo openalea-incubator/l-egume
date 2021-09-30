@@ -1,6 +1,10 @@
 
+#determiner le path du fichier actuel et le recuper 
+dir <- dirname(rstudioapi::getSourceEditorContext()$path)
+#marche pas hors de rstudio/ligne de commande? (https://stackoverflow.com/questions/47044068/get-the-path-of-current-script)
 
-dir <- choose.dir()
+
+#dir <- choose.dir()
 #"C:\\devel\\l-egume\\legume\\test"
 
 
@@ -9,8 +13,8 @@ source(paste(dir, "fonctions_analyses.r",sep="\\"))
 source(paste(dir, "fonctions_mef.r",sep="\\"))
 
 
-
-dirlast <-  paste(dir, "lastvalid",sep="\\")
+dirlast <-  paste(dir, "lastvalidBis",sep="\\")
+#dirlast <-  paste(dir, "lastvalid",sep="\\")
 #dirlast <-  paste(dir, "test_champ",sep="\\") #pour visu dossier sorties champ
 setwd(dirlast)#(dir0)#
 pathobs <- paste(dir, "obs", sep="\\")
@@ -25,20 +29,30 @@ ls_files <- list.files(dirlast)#(dir0)#
 #recupere la liste des toto file names du dossier de travail
 ls_toto <- ls_files[grepl('toto', ls_files)]
 
-#creation du dataFrame dtoto et recup des info fichier
-dtoto <- as.data.frame(t(as.data.frame(strsplit(ls_toto, '_'))))#[,c(2,3,6,7,8,9,10)]
+
+
+#11 col (avec sd)
+cols_ <- strsplit(ls_toto, '_')
+test_long <- as.numeric(lapply(cols_, length)) #pour separer selon nb de champs (avec sd)
+
+dtoto <- as.data.frame(t(as.data.frame(cols_[test_long==11])))#as.data.frame(t(as.data.frame(strsplit(ls_toto, '_'))))#
 row.names(dtoto) <- 1: length(dtoto[,1])
-dtoto <- dtoto[,c(2,3,4,5,6,7,8,9)]
-names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed','meteo')
-dtoto$name <- ls_toto
-dtoto$seed <- substr(as.character(dtoto$seed), 1, 1)
+dtoto <- dtoto[,c(2,3,4,5,6,7,8,10)]
+names(dtoto) <- c('usm','lsystem','mix','damier','scenario','Mng', 'seed','sd')
+dtoto$name <- ls_toto[test_long==11]
+dtoto$seed <- as.numeric(as.character(dtoto$seed))#substr(as.character(dtoto$seed), 1, 1)
 dtoto$scenario <- substr(as.character(dtoto$scenario), 9, nchar(as.character(dtoto$scenario)))
-dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng, dtoto$meteo, dtoto$damier)# ajout d'une cle unique par scenario
+
+#dtoto <- rbind(temp, dtoto) #merge des 2
+dtoto$keysc <- paste(dtoto$scenario, dtoto$mix, dtoto$Mng, dtoto$sd)# ajout d'une cle unique par scenario
 #dtoto$damier <- as.numeric(substr(as.character(dtoto$damier), 7, 7))
+
+
+
 
 #split de dtoto et stockage dans une liste de scenatios
 sp_dtoto <- split(dtoto, dtoto$keysc)
-#names(sp_dtoto)
+
 
 
 
@@ -51,7 +65,7 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 for (key in names(sp_dtoto))#
 {
   #analyse par usm
-  #key <- names(sp_dtoto)[20]#dileg luz
+  #key <- names(sp_dtoto)[4]#dileg luz
 
 
   ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -71,6 +85,7 @@ for (key in names(sp_dtoto))#
   #recup des obs correspondant
   namexl <- paste0(meteo, "_obs.xls")#"morpholeg14_obs.xls"
   trait <- if (esp == esp2 & damier=="homogeneous0") "ISO" else "HD-M2" #sera a adapter selon les melanges ou a renommer "timbale-krasno"
+  trait <- if (esp == esp2 & damier=="homogeneous0" & meteo == "DigitLuz10") "LD" else trait
   if (meteo == "DivLeg15" | meteo == "LusignanDivLeg" | meteo == "LusignanAsso16")
   {
     trait <- "HD"
@@ -125,6 +140,7 @@ ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("homogeneous0", 
 #ls_expe <- names(sp_dtoto)[grepl(esp_, names(sp_dtoto)) & grepl("damier4", names(sp_dtoto))]#cle comportant le bon geno
 ls_var <- c('NBI','nb_phyto_tot','surf_tot','Hmax','MSaerien')#,'long_pivot')
 ls_varsim <- c('NBI','NBphyto','LAI', 'Hmax','MSA')#, 'RDepth')
+#plante car ls_expe pas bon!
 
 
 ls_dobssim <- build_ls_dobssim(esp_, ls_expe, ls_var, ls_varsim)
@@ -136,6 +152,7 @@ ls_dobssim <- build_ls_dobssim(esp_, ls_expe, ls_var, ls_varsim)
 layout(matrix(1:6,2,3, byrow=T))
 for (var in ls_varsim) #var <- "NBI"#"MSA"#"LAI"#"NBphyto"#
 {
+  #var <- "NBI"
   mobssim <- merge_dobssim(ls_dobssim[[var]])
   plot_obssim(mobssim, name=paste(esp_, "ISO/LD", var), displayusm=T)
 }

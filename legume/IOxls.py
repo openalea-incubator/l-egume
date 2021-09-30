@@ -1,4 +1,8 @@
 import xlrd
+from copy import deepcopy
+import random
+import numpy as np
+import pandas as pd
 #from rpy_options import set_options
 #set_options(RHOME='c:/progra~1/R/R-2.12.1')
 #from rpy import r
@@ -192,6 +196,83 @@ def modif_param(gx, ongletP, ongletScenar, idscenar, idlist=1, mn_sc=None):
                         gx[k][idlist] == ls_sc[k][idok]
     return gx
 
+
+
+def modif_ParamP_sd(ParamP, g4, ls_parname, ls_sdpar):
+    """ modif paramP tirages 1 a 1 independents : loi normale monovariee """
+    #ls_sdpar = [0.5]  # ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
+    #ls_parname = ['Len']  # liste a recuperer via un fichier d'entree
+    name1 = g4['name']
+    for nump in range(len(ParamP)):
+        if ParamP[nump]['name'] == name1:  # issu du bon onglet
+            g = deepcopy(g4)
+            for j in range(len(ls_parname)):
+                parname = ls_parname[j]
+                if parname in ['Largfeuille']: #liste param qui peuvent etre negatifs -> pas de contrainte de positivite
+                    g[parname] = random.gauss(ParamP[nump][parname], ls_sdpar[j])
+                else:
+                    g[parname] = max(0.0000000001, random.gauss(ParamP[nump][parname], ls_sdpar[j]))  # seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
+                #!! ici a revoir car certain parametre pruvent etre negatifs + peut vouloir rirer dans differentes lois de distrib!
+
+            ParamP[nump] = g
+
+    return ParamP
+    # modif_ParamP_sd(ParamP, g4, ls_parname= ['Len'], ls_sdpar= [0.5])
+
+def modif_ParamP_sdMulti(ParamP, g4, ls_parname, ls_sdpar, corrmatrix=None):
+    """ modif paramP loi normale multivariee """
+    name1 = g4['name'] #nom de la bonne pop/sp
+    nbp = len(ParamP) #nb de plantes max a resimule
+    nbpar = len(ls_parname)
+
+    # calul d'une matrice produits sigmax,sigmay
+    res = []
+    for i in ls_sdpar:
+        res.append(i * np.array(ls_sdpar))
+
+    sigmaproduct = np.array(res)
+
+    #matrice de correlation
+    if corrmatrix is None:
+        correl_matrix = np.ones((nbpar, nbpar)) * 0. #covariances seront a zero par defaut
+        np.fill_diagonal(correl_matrix, 1.)
+    else:#matrice fournie en entree
+        correl_matrix = np.array(corrmatrix) #sinon, matrice de correlation a fournir en entree
+        if correl_matrix.shape[0] != nbpar or correl_matrix.shape[1] != nbpar:
+            print('matrice de correlation pas a la bonne dimension!')
+
+    #definition de la matrice de covariance
+    matcov = sigmaproduct * correl_matrix
+
+    # construction du vecteur des valeurs moyennes
+    idpOK = 0 #id premiere plante bonne pop
+    for nump in range(len(ParamP)):
+        if ParamP[nump]['name'] == name1:  # issu du bon onglet
+            idpOK = nump
+            break
+
+    mean_ = []
+    for param in ls_parname:
+        mean_.append(ParamP[idpOK][param])
+
+    #tirage multivarie
+    x = np.random.multivariate_normal(np.array(mean_), matcov, nbp)
+    df = pd.DataFrame(x, columns=ls_parname)
+
+    #boucle pour reaffecter les valeurs tirees dans g, puis ParamP
+    for nump in range(len(ParamP)):
+        if ParamP[nump]['name'] == name1:  # issu du bon onglet
+            g = deepcopy(g4)
+            for j in range(len(ls_parname)):
+                parname = ls_parname[j]
+                if parname in ['Largfeuille']:  # liste param qui peuvent etre negatifs -> pas de contrainte de positivite
+                    g[parname] = df[parname][nump]
+                else:
+                    g[parname] = max(0.0000000001, df[parname][nump]) # seulement pour paramtere scalaie (pas liste) et positif (valeur >0)
+
+            ParamP[nump] = g
+
+    return ParamP, df
 
 
 def dic2vec(nbplantes, dic):

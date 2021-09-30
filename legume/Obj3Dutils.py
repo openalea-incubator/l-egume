@@ -227,11 +227,11 @@ def leg_grass(Lmax, largmax, gamma=0., angfol=10., nfol=8, anginit=45., geom=Tru
                     opt=2)  # prends pas alpha en compte
     leaf = transformation(leaf, largmax, ecfol, 1., 0, 0, 0, 0, 0, 0)
     bottom = transformation(leaf, 1, 1, 1, 0, 0, 3.14 / 2 - anginit, 0, 0, 0)
+    listfol = [bottom]
 
     # ajout points 2 premiers points debuts + 1er segments
     ls_pts.append(array([0, 0, 0]))
     ls_pts.append(array([0, sin(anginit) * ecfol, cos(anginit) * ecfol]))
-    listfol = [bottom]
 
     for i in range(1, nfol):  # nombre de segment restants
         ang = anginit - (angfol * -i)  # (angfol * -i) - 3.14 - anginit
@@ -245,3 +245,43 @@ def leg_grass(Lmax, largmax, gamma=0., angfol=10., nfol=8, anginit=45., geom=Tru
         return Group(listfol)  # groupe les differents geom
     else:
         return ls_pts[1:]  # retire premier point -> surface attribuee aux extremite de segment
+
+#pourrait reconstruire avec liste des points et liste des angles fournie
+#ou pour visu seulement mettre un objet feuille groupe? (pas tous les segments?)
+
+
+def leg_grass_withoutgeom(Lmax, largmax, gamma=0., angfol=10., nfol=8, anginit=45.):
+    #fonction simplifiee de leg_grass qui renvoie que les points (aucun calcul de geometrie)
+    anginit = anginit * 3.14 / 180
+    angfol = angfol * 3.14 / 180
+    ecfol = Lmax / nfol  # longueur de segment de feuille
+
+    ls_pts = []
+    ls_cos = []
+    ls_sin = []
+
+    # ajout points 2 premiers points debuts + 1er segments
+    ls_pts.append(array([0, 0, 0]))
+    cosi = cos(anginit)
+    sini = sin(anginit)
+    ls_pts.append(array([0, sini * ecfol, cosi * ecfol]))
+    ls_cos.append(cosi)
+    ls_sin.append(sini)
+
+    for i in range(1, nfol):  # nombre de segment restants
+        ang = anginit - (angfol * -i)  # (angfol * -i) - 3.14 - anginit
+        cosi = cos(ang)
+        sini = sin(ang)
+        z = ls_pts[-1][2] + cosi * ecfol
+        y = ls_pts[-1][1] + sini * ecfol
+        ls_pts.append(array([0, y, z]))
+        ls_cos.append(cosi)
+        ls_sin.append(sini)
+
+        # print i, ecfol, angfol, ang, distance(ls_pts[-1], ls_pts[-2])
+
+    pointes = ls_pts[1:] #ce qui est renvoue par leg_grass # retire premier point -> surface attribuee aux extremite de segment
+
+    return pointes, ls_pts , ls_cos, ls_sin
+    #avec ecfol=1. , renvoie directe les sinus et cosinus
+

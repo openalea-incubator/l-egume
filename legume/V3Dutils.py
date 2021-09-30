@@ -5,7 +5,8 @@ import scipy
 def XyzToPol (coordxy) :
     """ converti les coordonnees carthesiennes d'un point (x,y,z) en coordonnees polaires (r,azi,incli)"""
     x,y,z = coordxy[0], coordxy[1], coordxy[2]
-    r = scipy.sqrt(x*x+y*y+z*z)
+    xy2 = x*x+y*y
+    r = scipy.sqrt(xy2+z*z)
     if r==0 :
         incli =0
     else :
@@ -13,9 +14,9 @@ def XyzToPol (coordxy) :
     if (x==0 and y==0):
         azi = 0
     elif (y>=0) :
-        azi = scipy.arccos(x/scipy.sqrt(x*x+y*y))
+        azi = scipy.arccos(x/scipy.sqrt(xy2))
     else :
-        azi = -scipy.arccos(x/scipy.sqrt(x*x+y*y))
+        azi = -scipy.arccos(x/scipy.sqrt(xy2))
     return scipy.array([r,azi,incli])
 
 

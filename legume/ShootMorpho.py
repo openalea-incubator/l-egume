@@ -9,7 +9,6 @@ except:
     import RIRI5 as riri
 
 
-
 #Temperature response funtions
 def betaT(Tmin, Tmax, q, T):
     """ beta de Graux (2011)"""
@@ -21,11 +20,50 @@ def betaT(Tmin, Tmax, q, T):
 
     return max(fT, 0.)
 
-def dTT(T, p):
+def TempHoraire(h, Tmin, Tmax):
+    """ interpolation cos des temperatures horaires"""
+    """ Eq S33a - Evers et al 2010"""
+    """ Temperature moyenne journaliere = (Tmin+Tmax/2)"""
+    Ta = 0.5*((Tmax+Tmin)+(Tmax+Tmin)*cos(pi*(h+8.)/12.))
+    return Ta
+
+
+def dTT(vT, p, optT=0):
     """ fonction de cumul du temp thermique; integre reponse non lineaire"""
-    return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
+    """ 3 options: 0=betaD journalier ; 1=betaH Horaire; 2=Tbase lineaire ; vT liste des temperatures"""
+    Tref = 20. #reference temperature = 20 degreC
+    if optT==0: #betaD
+        T = mean(vT)
+        return max((Tref - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
+    elif optT==1: #betaH
+        ls_betaH = []
+        for T in vT:
+            ls_betaH.append(betaT(p[1], p[2], p[3], T))
+
+        return max((Tref - p[0]) * mean(ls_betaH), 0.)
+    elif optT==2:#Tbase lineaire
+        T = mean(vT)
+        return max((T - p[0]), 0.)
+    elif optT==3:#olg bug
+        #just for debuging and testing conformity with oler model verions!!! do not use
+        T = mean(vT)
+        return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
 
 
+def Calc_Daily_vT(meteo_j, opt_optT):
+    # extract dily vector of temperature depending on TT calculation option
+    if opt_optT ==0 or opt_optT==2 or opt_optT==3: #betaD ou lineaire ou old debug
+        vT = [meteo_j['TmoyDay']]
+        vTsol = [meteo_j['Tsol']]
+    elif opt_optT ==1: #betaH
+        #calcul vecteur des temperatures horaires air
+        vT = []
+        for h in range(24):
+            vT.append(sh.TempHoraire(h, Tmin=meteo_j['Tmin'], Tmax=meteo_j['Tmax']))
+        vTsol = [meteo_j['Tsol']]
+
+    return vT, vTsol
+    #vT, vTsol = Calc_Daily_vT(meteo_j, opt_optT)
 
 #Light response functions
 def DecliSun(DOY):
@@ -50,6 +88,10 @@ def trilineaire(x, ratio0, ratiomax, parmaxeff, parnoeff):
     orlindesc = -(parnoeff * pentfin) + 1
     return min(pentor * x + ratio0, max(1, pentfin * x + orlindesc))
 
+def monomoleculaire(x, Amax, k):
+    #reponse saturante type mononmoleculaire
+    rate = Amax * (1- exp(-k*x))
+    return rate
 
 #general growth functions
 def expansion(t, a, delai):
@@ -59,6 +101,33 @@ def expansion(t, a, delai):
 def sigmo_stress(v,delai,x):
     "reponse sigmo a stress - FTSW ou INN"
     return 1-1/(1+exp(v*(x-delai)))
+
+def linear_stress(tresh, x):
+    "linear response between 0 and tresh - 1 above - FTSW ou INN"
+    if x>=tresh:
+        resp = 1.
+    else:
+        resp = (1/tresh)*x
+    return resp
+    #e.g. response of tranpsiration below FTSW=0.6
+
+def linear_stress2(x, par, opt=0):#treshbas, treshhaut,
+    "linear response between 0 and 1, from tresh bas to treshhaut; opt 0: monte; opt 1: baisse"
+    treshbas, treshhaut = par[0], par[1]
+    if x<=treshbas:
+        resp = 0.
+    elif x>=treshhaut:
+        resp = 1.
+    else:
+        resp = (1/(treshhaut - treshbas ))* (x-treshbas)
+
+    if opt==1: #reponse descendante
+        resp = 1. - resp
+
+    return resp
+    #e.g. response to photoperiod
+    #linear_stress2(8, 13, 10, opt=0)
+    #linear_stress2( 10,[8, 13], opt=0)
 
 
 # N response functions
@@ -323,27 +392,27 @@ def germinate(invar, ParamP, nump):
     # creation des cotyledons
     frac_coty_ini = ParamP['frac_coty_ini']
     invar['Mcoty'][nump] = invar['MSgraine'][nump] * frac_coty_ini
-    # invar['Mfeuil'][nump] = invar['MSgraine'][nump] * frac_coty_ini
-    # invar['Naerien'][nump] = invar['Mfeuil'][nump] * ParamP['Npc_ini']/100.
+    #invar['Mfeuil'][nump] = invar['MSgraine'][nump] * frac_coty_ini
+    #invar['Naerien'][nump] = invar['Mfeuil'][nump] * ParamP['Npc_ini']/100.
     # met a jour graine qui a germe et defini pools de reserve (ce qui reste dans MSgraine et N graine = reserve pour soutenir croissance ini)
     invar['MSgraine'][nump] -= invar['Mcoty'][nump]
     invar['Ngraine'][nump] -= invar['Mcoty'][nump] * ParamP['Npc_ini'] / 100.
-    invar['dMSgraine'][nump] = invar['MSgraine'][nump] / ParamP[
-        'DurGraine']  # delta MS fourni par degrejour par graine pendant DurGraine
-    invar['dNgraine'][nump] = invar['Ngraine'][nump] / ParamP[
-        'DurGraine']  # delta QN fourni par degrejour par graine pendant DurGraine
+    invar['dMSgraine'][nump] = invar['MSgraine'][nump] / ParamP['DurGraine']  # delta MS fourni par degrejour par graine pendant DurGraine
+    invar['dNgraine'][nump] = invar['Ngraine'][nump] / ParamP['DurGraine']  # delta QN fourni par degrejour par graine pendant DurGraine
 
     # cotyledons meurent quand DurGraine atteint -> cf calc_surfcoty
     # en toute logique pas besoin de mettre a jour Mfeuil?
 
 def reserves_graine(invar, ParamP):
     """ calcul des reserves de graine """
+
     graineC, graineN = [], []
     for nump in range(len(ParamP)):
-        if invar['TT'][nump] < ParamP[nump]['DurGraine'] and invar['TT'][nump] > 0.:
+        dTT = invar['Udev'][nump]  #invar['dTT'][nump]
+        if invar['TTudev'][nump] < ParamP[nump]['DurGraine'] and invar['TTudev'][nump] > 0.:
             # suppose consommation reguliere pendant DurGraine
-            dMSgraine = invar['dMSgraine'][nump] * invar['dTT'][nump]
-            dNgraine = invar['dNgraine'][nump] * invar['dTT'][nump]
+            dMSgraine = invar['dMSgraine'][nump] * dTT
+            dNgraine = invar['dNgraine'][nump] * dTT
         else:
             dMSgraine = 0.
             dNgraine = 0.
@@ -356,16 +425,16 @@ def reserves_graine(invar, ParamP):
 
 
 # Carbon allocation
-def rootalloc(params, SB):
+def rootalloc(parB, parA, SB):
     """ calcule fraction d'alloc racine/shoots en fonction du cumule shoots - Eq. 8 draft article V Migault"""
     """ puis concerti en fraction d'allocation de biomasse totale produite au racine dRB/dMStot a partir du ratio SRB/dSB"""
+    #params = [parB, parA]
     nbplantes = len(SB)
     res = [0] * nbplantes
     for nump in range(nbplantes):
-        bet = params[nump][0]
-        alph = params[nump][1]
-        res[nump] = min(bet, bet * alph * max(SB[nump], 0.00000000001) ** (
-                    alph - 1))  # epsilon evitant de calculer un 0 avec puissance negative (cause erreur). Le maximum possible est pour alpha=1, donc beta*1*SB**(1-1) = beta * 1 * 1 = beta.
+        bet = parB[nump]
+        alph = parA[nump]
+        res[nump] = min(bet, bet * alph * max(SB[nump], 0.00000000001) ** (alph - 1))  # epsilon evitant de calculer un 0 avec puissance negative (cause erreur). Le maximum possible est pour alpha=1, donc beta*1*SB**(1-1) = beta * 1 * 1 = beta.
 
     dRB_dSB = array(res)
     return dRB_dSB / (1 + dRB_dSB)
@@ -396,11 +465,15 @@ def calcOffreC(ParamP, tab, scale):
     # pas utilise dans version actuelle
     # approche RUE limite a echelle feuille! ; garder aussi 'sen'?
 
-def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
+def calcDemandeC(ParamP, tab, scale, udev, ls_ftswStress, ls_NNIStress):
     """ calcul de demande pour assurer croissance potentielle minimale des Lf(), In() et Pet()en phase d'expansion """
     # distingue les Lf et Stp! car pas meme calcul de surface!
     dp = {}  # dictionnaire a l'echelle choisie: plante/shoot/axe #-> demande tot
     dplf = {}  # demande des feuilles
+    dpin = {} #demande des En
+    dppt = {} #demande pet
+    dTT = udev #temps themique efficace (avec PP)
+
     for i in range(len(tab['nump'])):
         if scale == 'plt':
             idp = str(tab['nump'][i])
@@ -451,6 +524,7 @@ def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
                               dl)  # m, delta longueur potentiel (sans limitation C mais avec stress hydrique)
             dMin = dLpot / ParamP[nump]['SNLmin']  # delta masse min En
             IOxls.append_dic(dp, idp, dMin)
+            IOxls.append_dic(dpin, idp, dMin)
 
         if tab['organ'][i] == 'Pet' and tab['statut'][i] == 'exp':
             pot = expansion(age + dTT[nump], ParamP[nump]['aP'], ParamP[nump]['delaiP']) - expansion(age,
@@ -461,12 +535,15 @@ def calcDemandeC(ParamP, tab, scale, dTT, ls_ftswStress, ls_NNIStress):
             dLpot = calc_Lpet(ParamP[nump], rank, rankp, ordre, dl)  # m
             dMin = dLpot / ParamP[nump]['SPLmin']  # delta masse min En
             IOxls.append_dic(dp, idp, dMin)
+            IOxls.append_dic(dppt, idp, dMin)
 
     IOxls.sum_ls_dic(dp)
     IOxls.sum_ls_dic(dplf)
+    IOxls.sum_ls_dic(dpin)
+    IOxls.sum_ls_dic(dppt)
 
-    return dp, dplf
-    # pourrait decliner demande globale en demande par organe?
+    return dp, dplf, dpin, dppt
+    # pourrait decliner en demande pot sans et avec stress?
 
 def Cremob(DemCp, R_DemandC_Shoot, MSPiv, frac_remob=0.1):
     """ remobilisation of C from the taproot to the shoot to ensure minimal growth """
@@ -516,7 +593,7 @@ def calcNB_NI(tab, nbplantes, seuilcountTige=0.5, seuilNItige=0.75):
             resNI[idp].append(float(tab[i][2]))
 
     for i in range(nbplantes):
-        resNB[i] = len(resNB[i]);
+        resNB[i] = len(resNB[i])
         resNI[i] = mean(resNI[i])
 
     return resNB, resI
@@ -596,6 +673,10 @@ def damier8(p, vois, opt=4):
         motif = [p, vois, vois, vois, vois, vois, vois, vois]
     elif opt == 7:  # 7/8
         motif = [vois, p, p, p, p, p, p, p]
+    elif opt == 3:  # 5/8
+        motif = [vois, p, p, vois, p, vois, p, p]
+    elif opt == 5:  # 3/8
+        motif = [p, vois, vois, p, vois, p, vois,vois]
 
     res = []
     for i in range(8):
@@ -603,6 +684,59 @@ def damier8(p, vois, opt=4):
 
     return res
     #dans un fichier d'initialiation?
+
+
+def damier16(p, vois, opt=4):
+    # cree un melange binaire homogene de 256 plantes avec differentes options de proportions
+    if opt == 4:  # 50/50
+        motif = [p, vois, p, vois, p, vois, p, vois]+[p, vois, p, vois, p, vois, p, vois]
+    elif opt == 0:  # 0/100
+        motif = [vois, vois, vois, vois, vois, vois, vois, vois]+[vois, vois, vois, vois, vois, vois, vois, vois]
+    elif opt == 8:  # 100/0
+        motif = [p, p, p, p, p, p, p, p]+[p, p, p, p, p, p, p, p]
+    elif opt == 2:  # 25/75
+        motif = [p, vois, vois, vois, p, vois, vois, vois]+[p, vois, vois, vois, p, vois, vois, vois]
+    elif opt == 6:  # 75/25
+        motif = [vois, p, p, p, vois, p, p, p]+[vois, p, p, p, vois, p, p, p]
+    elif opt == 1:  # 1/8
+        motif = [p, vois, vois, vois, vois, vois, vois, vois]+[p, vois, vois, vois, vois, vois, vois, vois]
+    elif opt == 7:  # 7/8
+        motif = [vois, p, p, p, p, p, p, p]+[vois, p, p, p, p, p, p, p]
+    elif opt == 3:  # 5/8
+        motif = [vois, p, p, vois, p, vois, p, p]+[vois, p, p, vois, p, vois, p, p]
+    elif opt == 5:  # 3/8
+        motif = [p, vois, vois, p, vois, p, vois,vois]+[p, vois, vois, p, vois, p, vois,vois]
+
+    res = []
+    for i in range(16):
+        res = res + motif[i:16] + motif[0:i]
+
+    return res
+    #dans un fichier d'initialiation?
+
+
+def regular_square_planter(nbcote, distplantes):
+    "regular square planter - used with damier8 / homogeneous "
+    yyy = [distplantes / 2.]
+    for i in range(1, nbcote): yyy.append(yyy[-1] + distplantes)
+    xxx = yyy
+
+    carto = []
+    for i in range(len(xxx)):
+        for j in range(len(yyy)):
+            carto.append(array([xxx[i], yyy[j], 0.]))
+
+    return carto
+
+
+def random_planter(nbplt, cotex, cotey):
+    """ random plant position with scene defined by cotex and cotey"""
+    carto=[]
+    for i in range(nbplt):
+        carto.append(array([random.uniform(0., cotex), random.uniform(0., cotey), 0.]))
+
+    return carto
+
 
 def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     """ cree un melange 50/50 alterne ou pur sur 4 rangs distance interow chanmp"""
@@ -631,6 +765,113 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     #res ,carto=row4(1, 2, Lrow=50., nbprow=125,  opt=0)
     # dans un fichier d'initialiation?
     #prevoir nbprow different par esp... et melange on row...
+
+
+def ls_idvois_ordre1(n, cote, nblignes):
+    """ pour une plante n, dans un dispocitif regulier arrange en colonnes croissantes de cote indiv"""
+    nbindiv = cote * nblignes
+    ls_defaut = [n - (cote + 1), n - cote, n - (cote - 1), n - 1, n + 1, n + (cote - 1), n + cote, n + (cote + 1)]
+
+    if n % cote == 0:  # bord haut
+        ls_defaut[0] = ls_defaut[0] + cote
+        ls_defaut[3] = ls_defaut[3] + cote
+        ls_defaut[5] = ls_defaut[5] + cote
+
+    if (n + 1) % cote == 0:  # bord bas
+        ls_defaut[2] = ls_defaut[2] - cote
+        ls_defaut[4] = ls_defaut[4] - cote
+        ls_defaut[7] = ls_defaut[7] - cote
+
+    for i in range(len(ls_defaut)):
+        if ls_defaut[i] < 0:  # bord gauche
+            ls_defaut[i] = ls_defaut[i] + nbindiv
+
+        if ls_defaut[i] >= nbindiv:  # bord droit
+            ls_defaut[i] = ls_defaut[i] - nbindiv
+
+    return ls_defaut
+    # pour les voisin de 2e ordre = suffit de faire les voisin de 1er ordre de chasue voisin + unique!
+    # a faire dans R #11 et 23 plante / 0 marche
+    # print("id vois", ls_idvois_ordre1(4,6,4)) #OK!
+#pour pour nump python, pas pour id R!
+
+def updateLargProfile(Lmax, Largmax, profilLeafI_Rlen, profilLeafI_Rlarg):
+    """ A function to modify The relative LArg profile given Largmax for the Longest leaf - old parametrization way"""
+    # change the intercept of the second line b2
+    if Largmax > 0.: #negative values are not condidered for update of the intercept
+        ratioM = Largmax/Lmax
+        peak = (profilLeafI_Rlen[3] - profilLeafI_Rlen[1]) / (profilLeafI_Rlen[0] - profilLeafI_Rlen[2])
+        newb2 = ratioM - (peak * profilLeafI_Rlarg[2])#same slope but pass by Largmax at peak
+        newb1 = newb2*(profilLeafI_Rlarg[1]/profilLeafI_Rlarg[3])#same ratio of intercept
+        return [profilLeafI_Rlarg[0], newb1, profilLeafI_Rlarg[2], newb2]
+    else:
+        return profilLeafI_Rlarg #unchanged
+
+
+def update_shoot_params(ParamP, rankmax=51):
+    """ add readable rank profiles in paramP """
+    for nump in range(len(ParamP)):
+
+        if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # feuille legumineuse
+            cor_lF = sqrt(ParamP[nump]['leafshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+        elif int(ParamP[nump]['type']) == 3:  # graminee
+            cor_lF = ParamP[nump]['leafshape']  # pour afficher feuille avec surface reelle et corriger effet recangle (pas sqrt car appliquer que a largeur
+
+        cor_lstp = sqrt(
+            ParamP[nump]['stipshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+
+        ParamP[nump]['profilLeafI_l'] = []
+        ParamP[nump]['profilLeafI_larg'] = []
+        ParamP[nump]['profilNodeI_l'] = []
+        ParamP[nump]['profilPetI_l'] = []
+        ParamP[nump]['profilStipI_l'] = []
+        ParamP[nump]['profilStipI_larg'] = []
+        ParamP[nump]['profilPetI_l'] = []
+        ParamP[nump]['profilLeafI_nfol'] = []
+        if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # legumineuse
+            ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD'])  # proportion de feuille par        classe d'incli pour calcul des k_teta
+        elif int(ParamP[nump]['type']) == 3:  # graminee avec courbure
+            nfol = 8
+            courbure = -5
+            angle_moyen = 0.5 * (ParamP[nump]['gammaFeuil'] + (nfol * courbure) + ParamP[nump]['gammaFeuil'])  # marche pour nb fixe de rectangles (??coupe)
+            ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(angle_moyen), abs(2 * courbure))
+            # passer courbure en parametre?? dans 'gammaFeuilSD'??
+
+        ParamP[nump]['profilLeafI_Rlen'] = [ParamP[nump]['profilLeafI_Rlens1'], ParamP[nump]['profilLeafI_Rleni1'], ParamP[nump]['profilLeafI_Rlens2'] , ParamP[nump]['profilLeafI_Rleni2']]
+        ParamP[nump]['profilLeafI_Rlarg'] = [ParamP[nump]['profilLeafI_Rlargs1'] , ParamP[nump]['profilLeafI_Rlargi1'], ParamP[nump]['profilLeafI_Rlargs2'] , ParamP[nump]['profilLeafI_Rlargi2']]
+        ParamP[nump]['profilLeafI_Rlarg'] = updateLargProfile(ParamP[nump]['Lfeuille'], ParamP[nump]['Largfeuille'], ParamP[nump]['profilLeafI_Rlen'], ParamP[nump]['profilLeafI_Rlarg'])# to consider Largmax as a direct input forcing the relative profile
+        #print('profilLeafI_Rlarg', ParamP[nump]['profilLeafI_Rlarg'])
+        for rank in range(1, rankmax):  # !limite a 50 noeuds! (rankmax)
+            Norml_leaf = min(ParamP[nump]['profilLeafI_Rlens1'] * rank + ParamP[nump]['profilLeafI_Rleni1'], ParamP[nump]['profilLeafI_Rlens2'] * rank + ParamP[nump]['profilLeafI_Rleni2'])
+            Normlarg_leaf = max(ParamP[nump]['profilLeafI_Rlarg'][0] * rank + ParamP[nump]['profilLeafI_Rlarg'][1], ParamP[nump]['profilLeafI_Rlarg'][2] * rank + ParamP[nump]['profilLeafI_Rlarg'][3])
+            Norml_In = min(ParamP[nump]['profilNodeIs1'] * rank + ParamP[nump]['profilNodeIi1'],ParamP[nump]['profilNodeIs2'] * rank + ParamP[nump]['profilNodeIi2'])
+            Norm_pet = min(ParamP[nump]['profilPetIs1'] * rank + ParamP[nump]['profilPetIi1'],ParamP[nump]['profilPetIs2'] * rank + ParamP[nump]['profilPetIi2'])
+            Norml_Stp = min(ParamP[nump]['profilStpI_ls1'] * rank + ParamP[nump]['profilStpI_li1'],ParamP[nump]['profilStpI_ls2'] * rank + ParamP[nump]['profilStpI_li2'])
+            Normlarg_Stp = min(ParamP[nump]['profilStpI_Rlargs1'] * rank + ParamP[nump]['profilStpI_Rlargi1'],ParamP[nump]['profilStpI_Rlargs2'] * rank + ParamP[nump]['profilStpI_Rlargi2'])
+            Normnfol = min(ParamP[nump]['profilLeafI_Rnfols'] * rank + ParamP[nump]['profilLeafI_Rnfoli'],1.)  # nfol est le maximum number of folioles
+
+            if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # feuille legumineuse
+                ParamP[nump]['profilLeafI_l'].append(max(0.001, Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
+                ParamP[nump]['profilLeafI_larg'].append(max(0.001, Normlarg_leaf * Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
+            elif int(ParamP[nump]['type']) == 3:  # graminee (applique slmt largeur)
+                ParamP[nump]['profilLeafI_l'].append(max(0.001, Norml_leaf * 1. * ParamP[nump]['Lfeuille']))
+                ParamP[nump]['profilLeafI_larg'].append(max(0.001, Normlarg_leaf * Norml_leaf * cor_lF * ParamP[nump]['Lfeuille']))
+
+            ParamP[nump]['profilNodeI_l'].append(max(0.001, Norml_In * ParamP[nump]['Len']))
+            ParamP[nump]['profilPetI_l'].append(max(0.001, Norm_pet * ParamP[nump]['Lpet']))
+            ParamP[nump]['profilStipI_l'].append(max(0.001, Norml_Stp * cor_lstp * ParamP[nump]['Lstip']))
+            ParamP[nump]['profilStipI_larg'].append(max(0.001, Normlarg_Stp * Norml_Stp * cor_lstp * ParamP[nump]['Lstip']))
+            ParamP[nump]['profilLeafI_nfol'].append(int(max(1, Normnfol * ParamP[nump]['nfol'])))  # max 1 pour interdire les feuilles sans folioles.
+
+        #MAJ param residues (old format)
+        ParamP[nump]['CC'] = [ParamP[nump]['CClf'], ParamP[nump]['CCst'],ParamP[nump]['CCr'],ParamP[nump]['CCpiv']]
+        ParamP[nump]['WC'] = [ParamP[nump]['WClf'], ParamP[nump]['WCst'], ParamP[nump]['WCr'], ParamP[nump]['WCpiv']]
+        ParamP[nump]['Nmires'] = [ParamP[nump]['Nmireslf'], ParamP[nump]['Nmiresst'], ParamP[nump]['Nmiresr'], ParamP[nump]['Nmirespiv']]
+
+    return ParamP
+
+
+
 
 
 #old - non utilise
@@ -681,3 +922,13 @@ def calcLeafStemRatio(ParamP, tab, lsapexI):
 
     return dp
 
+def PhylloPot_Grass(rgeq, phylloI, k=0.3):
+    #calcule changement de phyllochrone selon le rang
+    if rgeq>15:
+        phyllo = phylloI
+    elif rgeq<1:
+        phyllo = monomoleculaire(1., Amax=phylloI, k=k)
+    else:
+        phyllo = monomoleculaire(rgeq, Amax=phylloI, k=k)
+
+    return phyllo

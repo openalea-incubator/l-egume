@@ -876,12 +876,13 @@ def Potential_NuptakeTot(SN, parSN, paramp, ls_lrac, ls_mWaterUptakePlt):
     # assimilation de l'azote est active, via equation de Devienne (HATS, LATS)-> FLUXRACs( qui est mal nomme!)
     # transport actif peut etre limitee par le flux d'azote a la racine et mobilite de l'N ds le sol (convectif + diffusif = soilNsupply) -> prend le min des 2
     # in fine, n'est rellement preleve que l'N necessaire a la croissance (actual_N uptake) -> borne
+    epsilon = 10e-10
 
     Ntot = (SN.m_NO3 + SN.m_NH4)*SN.m_obstarac
     supNtot, ls_supNtot =  Nsoil_supply(SN, parSN, ls_lrac, ls_mWaterUptakePlt)
     fluxTot, ls_frac_fluxrac = FLUXRACs(paramp, SN, ls_lrac)
     ActUptakeN = SN.m_1*0.
-    idmin = SN.m_1*0 #code des facteur limitant uptake N (0=Ntot available, 1=passive soil supply, 2=Active root uptake)
+    idmin = SN.m_1*0 #code des facteur limitant uptake N (0=Ntot available, 1=passive soil supply, 2=Active root uptake, 3=No uptake)
 
     for z in range(len(SN.dxyz[2])):
         for x in range(len(SN.dxyz[0])):
@@ -889,8 +890,12 @@ def Potential_NuptakeTot(SN, parSN, paramp, ls_lrac, ls_mWaterUptakePlt):
                 lslim = [Ntot[z][x][y], supNtot[z][x][y], fluxTot[z][x][y]] #mini des 3 sources d'N
                 minN = min(lslim)
                 id_min = lslim.index(minN)
-                ActUptakeN[z][x][y] = minN
-                idmin[z][x][y] = id_min
+                if minN > epsilon:
+                    ActUptakeN[z][x][y] = minN
+                    idmin[z][x][y] = id_min
+                else:#no uptake below epsilon treshold
+                    ActUptakeN[z][x][y] = 0.
+                    idmin[z][x][y] = 3 #none of the three others
 
     return ActUptakeN, idmin, ls_frac_fluxrac
     # -> ajuste par voxel selon offre du sol et demande des plantes
@@ -1002,7 +1007,7 @@ def demandeNdefaut2(MSp,dMSp,Npc, surfsolref, a=4.8, b1=-0.1 ,b2=-0.33):
     PotN = (MSp + dMSp) * NcritTot/100. #gN.plant-1
     ls_demandeN = PotN-QN
     ls_demandeN[ls_demandeN<0.]=0.#gN.plant-1
-    return ls_demandeN
+    return ls_demandeN, NcritTot, MStot #renvoie aussi Ncrit et MStot
 
 
 
