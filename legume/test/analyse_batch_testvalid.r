@@ -13,21 +13,36 @@ source(paste(dir, "fonctions_analyses.r",sep="\\"))
 source(paste(dir, "fonctions_mef.r",sep="\\"))
 
 
+#le path avec les derniere simulation
 dirlast <-  paste(dir, "lastvalidBis",sep="\\")
 #dirlast <-  paste(dir, "lastvalid",sep="\\")
 #dirlast <-  paste(dir, "test_champ",sep="\\") #pour visu dossier sorties champ
+#dirlast <-  "C://inputs//inputs mayssa//output"
 setwd(dirlast)#(dir0)#
+
+#le path avec les fichier obs
 pathobs <- paste(dir, "obs", sep="\\")
 
 
 
-
-
+#liste les fichiers de simulation
 ls_files <- list.files(dirlast)#(dir0)#
 
 
+#unzip the files
+ls_zip <- ls_files[grepl('.zip', ls_files)]
+for (file_ in ls_zip)
+{unzip(file_, exdir=dirlast)}
+ls_files <- list.files(dirlast)#reliste les fichier apres dezippage
+
+
 #recupere la liste des toto file names du dossier de travail
-ls_toto <- ls_files[grepl('toto', ls_files)]
+ls_toto <- ls_files[grepl('toto', ls_files) & !grepl('.zip', ls_files)]
+ls_paramSD <- ls_files[grepl('paramSD', ls_files)]
+
+
+
+
 
 
 
@@ -57,7 +72,7 @@ sp_dtoto <- split(dtoto, dtoto$keysc)
 
 
 
-#rapport des graphs dynamiques
+#rapport des graphs dynamiques (rapport produit dans dossier du script R dans l-egume)
 nomrap <- paste( 'rapport_eval-Dyn',Sys.Date(),basename(dirlast),'.pdf', sep="_")
 pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 
@@ -125,7 +140,8 @@ dev.off()
 
 
 
-
+####################################
+# A reprendre marche pas pour derniere simuls
 
 #rapport des graphs obs-sim
 nomrap <- paste( 'rapport_eval-Obs-Sim',Sys.Date(),basename(dirlast),'.pdf', sep="_")

@@ -211,10 +211,8 @@ def animatelsystem(lsys, name):
     lsys[name].clear()
     print((''.join((name," - done"))))
 
-
-
-if __name__ == '__main__':
-
+def main():
+    # fonction main pour pouvoir l'appeler en python pour l'exemple
     path_input = path_
     usm_file = 'liste_usms_exemple.xls' #ex fxls
     IDusm = 0
@@ -254,6 +252,10 @@ if __name__ == '__main__':
     keyname = list(mylsys)[0]
     runlsystem(mylsys, keyname)
     #animatelsystem(mylsys, keyname)
+
+
+if __name__ == '__main__':
+    main()
 
 
 #finir rendre accessible en externe le fichier de gestion des sorties!
