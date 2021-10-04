@@ -1,6 +1,7 @@
 #########
 ## fonctions de lecture et de mise en forme R pour analyse des sorties de simul l-egume
 #########
+library(ggplot2)
 
 
 read_ltoto <- function(ls_toto)
@@ -82,12 +83,15 @@ read_lsSD_MStot <- function(ltoto, ls_paramSD, param_name = "Len")
 
 ## fonction de mise en formse des simule
 
-moysimval <- function(ltoto, lsusm, var,esp=NA)
+moysimval <- function(ltoto, lsusm, var,esp=NA, optSD=F)
 {
   # Fait moyenne de la somme pour toute les plantes d'une variable var pour une liste d'usm simulee
   #utilise pour construire le tableau simmoy
   #version GL adapt lucas (v4)
-  #
+  #optSD=T renvoie standard deviation de la somme des individus
+  #esp = NA pour tous le couvert
+  #esp pour definir pour une espece du couvert
+  
   res <- vector("list",length(lsusm))
   names(res) <- lsusm
   for (usm in lsusm)
@@ -108,17 +112,27 @@ moysimval <- function(ltoto, lsusm, var,esp=NA)
     xsum <- rowSums(xplt)
     res[[usm]] <- xsum
   }
-  xav <- rowSums(as.data.frame(res))/length(lsusm)
+  if (optSD==F)
+  {
+    #fait moyenne des sim
+    xav <- rowSums(as.data.frame(res))/length(lsusm)
+  }else
+  {
+    #calcule standard deviation des sim
+    xav <- apply(as.data.frame(res),MARGIN=1,sd)
+  }
+  
   xav
 }
-#LAI <- moysimval(ltoto, lsusm, var='SurfPlante')/ surfsolref
+#LAI <- moysimval(ltoto, lsusm=names(ltoto), var='SurfPlante')/ surfsolref
+#LAIsd <- moysimval(ltoto, lsusm=names(ltoto), var='SurfPlante',optSD=T)/ surfsolref
 
 
 
 
 
 
-build_simmoy <- function(ltoto, lsusm, esp=NA)
+build_simmoy <- function(ltoto, lsusm, esp=NA, optSD=F)
 {
   #moy des simul des differentes graines d'un meme usm avec moysimval (pour variables dynamiques)
   
@@ -138,29 +152,31 @@ build_simmoy <- function(ltoto, lsusm, esp=NA)
   STEPS <- dat[dat$V1=='TT',2]
   nbplt <- length(dat)-2
   surfsolref <- dat[dat$V1=='pattern',3] #m2
-  
-  LAI <- moysimval(ltoto, lsusm, var='SurfPlante', esp)/ surfsolref
-  MSA <- moysimval(ltoto,lsusm, var='MSaerien', esp)/ surfsolref
-  MSpiv <- moysimval(ltoto,lsusm, var='MS_pivot', esp)/ surfsolref
-  MSracfine <- moysimval(ltoto,lsusm, var='MS_rac_fine', esp)/ surfsolref
+
+  LAI <- moysimval(ltoto, lsusm, var='SurfPlante', esp, optSD)/ surfsolref
+  MSA <- moysimval(ltoto,lsusm, var='MSaerien', esp, optSD)/ surfsolref
+  MSpiv <- moysimval(ltoto,lsusm, var='MS_pivot', esp, optSD)/ surfsolref
+  MSracfine <- moysimval(ltoto,lsusm, var='MS_rac_fine', esp, optSD)/ surfsolref
   MSrac <- MSpiv + MSracfine
-  NBI <- moysimval(ltoto,lsusm, var='NBI', esp)/ nbplt
+  NBI <- moysimval(ltoto,lsusm, var='NBI', esp, optSD)/ nbplt
   NBI <- pmax(0, NBI - 0.75) #correction des simuls pour les comptages decimaux
   #NBIquart <- quantsimval(ltoto,lsusm, var_='NBI',esp=esp)
-  NBphyto <- moysimval(ltoto, lsusm, var='NBphyto', esp)/ surfsolref
-  Nbapex <- moysimval(ltoto, lsusm, var='NBapexAct', esp)/ surfsolref
+  NBphyto <- moysimval(ltoto, lsusm, var='NBphyto', esp, optSD)/ surfsolref
+  Nbapex <- moysimval(ltoto, lsusm, var='NBapexAct', esp, optSD)/ surfsolref
   NBphyto <- pmax(0,NBphyto - 0.5*Nbapex) #correction simuls pour les comptages decimaux
+  NBsh <- moysimval(ltoto, lsusm, var='NBsh', esp, optSD)/ surfsolref
   
-  RDepth <- moysimval(ltoto,lsusm, var='RDepth', esp)/ nbplt
-  Hmax <- moysimval(ltoto,lsusm, var='Hplante', esp)/ nbplt
-  FTSW <- moysimval(ltoto,lsusm, var='FTSW', esp)/ nbplt
-  NNI <- moysimval(ltoto,lsusm, var='NNI', esp)/ nbplt
-  R_DemandC_Root <- moysimval(ltoto,lsusm, var='R_DemandC_Root', esp)/ nbplt
-  cutNB <- moysimval(ltoto,lsusm, var='cutNB', esp)/ nbplt
-  Npc_aer <- moysimval(ltoto,lsusm, var='Npc_aer', esp)/ nbplt
-  Ndfa <- moysimval(ltoto,lsusm, var='Ndfa', esp)/ nbplt
+  RDepth <- moysimval(ltoto,lsusm, var='RDepth', esp, optSD)/ nbplt
+  Hmax <- moysimval(ltoto,lsusm, var='Hplante', esp, optSD)/ nbplt
+  FTSW <- moysimval(ltoto,lsusm, var='FTSW', esp, optSD)/ nbplt
+  NNI <- moysimval(ltoto,lsusm, var='NNI', esp, optSD)/ nbplt
+  R_DemandC_Root <- moysimval(ltoto,lsusm, var='R_DemandC_Root', esp, optSD)/ nbplt
+  cutNB <- moysimval(ltoto,lsusm, var='cutNB', esp, optSD)/ nbplt
+  Npc_aer <- moysimval(ltoto,lsusm, var='Npc_aer', esp, optSD)/ nbplt
+  Ndfa <- moysimval(ltoto,lsusm, var='Ndfa', esp, optSD)/ nbplt
+  Epsi <- moysimval(ltoto,lsusm, var='epsi', esp, optSD)
   
-  simmoy <- data.frame(STEPS, TT, NBI, NBphyto, LAI, MSA, MSpiv, MSracfine, MSrac, RDepth, Hmax, FTSW, NNI, R_DemandC_Root, cutNB, Npc_aer,Ndfa)
+  simmoy <- data.frame(STEPS, TT, NBI, NBphyto, LAI, MSA, MSpiv, MSracfine, MSrac, RDepth, Hmax, FTSW, NNI, R_DemandC_Root, cutNB, Npc_aer,Ndfa,Epsi,NBsh)
   simmoy
 }#version revue par Lucas tient cmpte du nom de l'espece dans les assos
 
@@ -252,6 +268,90 @@ dynamic_graphs <- function(simmoy, name, obs=NULL, surfsolref=NULL)
 
 
 
+#fonction graph ggplot2
+gg_plotsim <- function(varsim, simmoy, simsd, name="")
+{
+  #fait le line plot avec ecart type a partir des tableau moyen simules
+  var_ <- varsim #"FTSW"#"NBI"#"MSA"#"NNI"#"LAI"#
+  
+  min <- 0
+  max <- 1.5*max(simmoy[,var_])
+  
+  plot_var <- ggplot(data = simmoy, aes(x = STEPS)) +
+    geom_line(aes(y = simmoy[,var_]), color="blue")+
+    geom_ribbon(aes(ymin=simmoy[,var_]-simsd[,var_],ymax=simmoy[,var_]+simsd[,var_]),fill="blue",alpha=0.2)+
+    geom_hline(yintercept=0)+
+    ylim(min,max)+
+    geom_text(x=1.20*min(simmoy$STEPS), y=0.98*max, size=4, label=name)+
+    theme(axis.text.x = element_text(size=6),axis.text.y = element_text(size=6))+
+    labs(title = "obs",subtitle = "sim",x = "DOY", y = var_)+
+    theme(plot.title=element_text(size=10,color = "red"),plot.subtitle = element_text(size=10,color = "blue"))
+  
+  plot_var
+}
+#gg_plotsim("LAI", simmoy, simsd, "test")
+#titre sera a revoir...
+
+
+
+gg_addplotobs <- function(plot_var, var_, obsOK, corresp)
+{
+  # ajour a un graph simule des points observe pour variable var_
+  #obsOK : obs avec tableau meme dimension que les simul (merge)
+  #corresp: dataframe de correspondance des nom de variables obs/sim
+  nomvarobs <- as.character(corresp[corresp$sim==var_,c("obs")])
+  plot_var2 <- plot_var + {if(var_ %in% corresp$sim) geom_point(aes(obsMerge$DOY, obsMerge[,nomvarobs]), fill="red",color="red" , size=2)}
+  
+  plot_var2
+}
+#gg_addplotobs(ls_plt[["MSA"]], "MSA", obsMerge, corresp)
+
+
+
+
+gg_plotObsSim <- function(obssim, var_, name="")
+{
+  #plot obs-sim avec ggplot
+  
+  #var_ <- "NBI"#"MSA"#
+  #nomvarobs <- as.character(corresp[corresp$sim==var_,c("obs")])
+  #obssim <- na.omit(data.frame(obs=simmoy[,var_], sim=obsMerge[,nomvarobs]))
+  #name <- onglet
+  
+  
+  min <- 0
+  max <- 1.5*max(obssim$sim)
+  reg   <- lm(obs ~ sim, data = obssim)
+  coeff <- coefficients(reg)
+  eq    <- paste0("y = ", round(coeff[2],2), "x + ", round(coeff[1],2))
+  RMSE_ <- round(rmse(obssim$obs,obssim$sim), 2)
+  rmses_ <- rmsesCoucheney(obssim$obs,obssim$sim)
+  rmse_ <- rmseuCoucheney(obssim$obs,obssim$sim)
+  pRMSEs_ <- round(pRMSEs(rmse_, rmses_), 2)
+  rRMSE <- round(rrmseCoucheney(obssim$obs,obssim$sim), 2)
+  EF <- round(efficiencyCoucheney(obssim$obs,obssim$sim), 2)
+  
+  plot_ObsSim <- ggplot(obssim, aes(x = obs, y = sim)) +
+    ggtitle(name)+
+    geom_abline(intercept = 0, slope = 1, color = "black")+
+    geom_point(aes(color = "obs"))+
+    geom_smooth(method=lm, se = FALSE, color = "red")+
+    ylim(min,max)+
+    xlim(min,max)+
+    geom_text(x=0.2*max, y=0.95*max, size=3, label=eq)+
+    geom_text(x=0.2*max, y=0.9*max, size=3,label=paste("RMSE: ",RMSE_))+
+    geom_text(x=0.2*max, y=0.85*max, size=3,label=paste("rRMSE: ",rRMSE))+
+    geom_text(x=0.2*max, y=0.8*max, size=3,label=paste("pRMSEs: ",pRMSEs_))+
+    geom_text(x=0.2*max, y=0.75*max, size=3,label=paste("EF: ",EF))+
+    labs(x = paste("Obs ", var_), y = paste("Sim ", var_))
+  
+  
+  plot_ObsSim 
+}
+#plot_ObsSim <- gg_plotObsSim(obssim, "NBI", name=onglet)
+
+
+
 
 mef_dosbssim <- function(var, varsim, obs, simmoy, name='', corobs=1., cutNB=0.)
 {
@@ -317,6 +417,7 @@ merge_dobssim <- function(ls_dobssim)
 
 plot_obssim <- function(dobssim, name='', displayusm=F)
 {
+  # fonction R obs-sim
   #conversion
   #dobssim$obs <- dobssim$obs*convert #suppose conversion la meme pour tous les obs!!!
   #dobssim deja corrige maintenat!

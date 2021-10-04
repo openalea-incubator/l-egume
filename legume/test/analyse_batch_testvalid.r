@@ -1,3 +1,6 @@
+library(ggplot2)
+library(ggpubr) #to arrange ggplots
+
 
 #determiner le path du fichier actuel et le recuper 
 dir <- dirname(rstudioapi::getSourceEditorContext()$path)
@@ -80,7 +83,7 @@ pdf(paste(dir,nomrap, sep='\\'), onefile=T)
 for (key in names(sp_dtoto))#
 {
   #analyse par usm
-  #key <- names(sp_dtoto)[4]#dileg luz
+  #key <- names(sp_dtoto)[1]#dileg luz
 
 
   ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -136,6 +139,263 @@ for (key in names(sp_dtoto))#
 dev.off()
 
 #! NA dans fichier obs genere des bug de format + noms d'onglets a repredre...
+
+
+
+
+
+
+#### test nouvelle boucle avec ggplot2 (gg_plotsim, gg_addplotobs, gg_plotObsSim)
+
+
+#LAI <- moysimval(ltoto, lsusm=names(ltoto), var='SurfPlante')/ surfsolref
+#LAIsd <- moysimval(ltoto, lsusm=names(ltoto), var='SurfPlante',optSD=T)/ surfsolref
+
+
+
+#exemple analyse pour 1 usm pour usm 'key'
+key <- names(sp_dtoto)[1]#dileg luz
+
+
+ls_toto_paquet <- sp_dtoto[[key]]$name
+
+#recuperation par paquet des fichiers de base (pas de stockage de l'ensemble des fichiers en memoire)
+ltoto <- read_ltoto(ls_toto_paquet)
+#version locale du paquet de doto
+dtoto <- sp_dtoto[[key]]
+
+#recup du nom des esp et traitement
+mix <- strsplit(ls_toto_paquet[1], '_')[[1]][4] #suppose paquet fait par traitement
+esp <- strsplit(mix, '-')[[1]][1] #'Fix2'
+esp2 <- strsplit(mix, '-')[[1]][2] #'nonFixSimTest'
+meteo <- strsplit(ls_toto_paquet[1], '_')[[1]][9]
+damier <- strsplit(ls_toto_paquet[1], '_')[[1]][5]
+
+#recup des obs correspondant
+namexl <- paste0(meteo, "_obs.xls")#"morpholeg14_obs.xls"
+trait <- if (esp == esp2 & damier=="homogeneous0") "ISO" else "HD-M2" #sera a adapter selon les melanges ou a renommer "timbale-krasno"
+trait <- if (esp == esp2 & damier=="homogeneous0" & meteo == "DigitLuz10") "LD" else trait
+if (meteo == "DivLeg15" | meteo == "LusignanDivLeg" | meteo == "LusignanAsso16")
+{
+  trait <- "HD"
+}
+#trait <- if (esp == esp2 & damier=="homogeneous0" & meteo=="morpholegRGR15") "LD"
+onglet <- paste0(meteo, "_",trait,"_",esp)#"morpholeg14_ISO_timbale" #marche pour isole; a revoir pour autres
+#onglet <- "F_E1D1_B_R1" #"force!!
+obs <- read_excel(paste(pathobs,namexl,sep="\\"), sheet = onglet, col_names = TRUE, na = "")
+
+
+
+#calcul de la moyenne des simuls
+# pour l'espece 1
+simmoy <- build_simmoy(ltoto, lsusm=names(ltoto), esp)
+simsd <- build_simmoy(ltoto, lsusm=names(ltoto), esp, optSD=T)
+name <- onglet
+
+
+
+#remet obs a dimension des sim (necessaire avec ggplot)
+#garde seulement les obs dans le range des sim
+obsOK <- obs[obs$DOY %in% simmoy$STEPS,]
+obsMerge <- simmoy[,c("STEPS","TT")]
+names(obsMerge)[1] <- "DOY"
+obsMerge <- merge(obsMerge, obsOK, by="DOY",all=T)
+
+
+
+#correspondance des noms de variable sim/obs
+corresp <- data.frame(sim=c("NBI","LAI","MSA"), obs=c("NBI-quart","surf_tot","MSaerien"))
+
+
+
+#cree une liste ls_plt avec les figures/plot simule dans simmoy
+ls_plt <- vector("list", length=length(names(simmoy)))
+names(ls_plt)  <- names(simmoy)
+
+for (var_ in names(simmoy))
+{
+  ls_plt[[var_]] <- gg_plotsim(var_, simmoy, simsd, name)
+}
+#ls_plt[["NBI"]]
+
+
+
+
+#ajout des obs pour les variables dispo dans la liste des plot simule (liste dans corresp)
+for (var_ in names(ls_plt))
+{
+  if (var_ %in% corresp$sim)
+  {
+    ls_plt[[var_]] <- gg_addplotobs(ls_plt[[var_]], var_, obsMerge, corresp)
+  }
+}
+#ls_plt[["NBI"]]
+
+
+
+#arrange gg plots en pannels
+ggarrange(ls_plt[["NBI"]], ls_plt[["NBphyto"]], ls_plt[["LAI"]] + rremove("x.text"), 
+          labels = c("A", "B", "C"),
+          ncol = 1, nrow =3 )
+
+
+ggarrange(ls_plt[["RDepth"]], ls_plt[["Hmax"]], ls_plt[["MSA"]] + rremove("x.text"), 
+          labels = c("A", "B", "C"),
+          ncol = 1, nrow =3 )
+
+ggarrange(ls_plt[["FTSW"]], ls_plt[["NNI"]], ls_plt[["R_DemandC_Root"]] + rremove("x.text"), 
+          labels = c("A", "B", "C"),
+          ncol = 1, nrow =3 )
+
+
+
+
+#test les obs_sim
+
+
+#liste des plot obs_sim par variable presente dans corresp
+name <- onglet
+
+plt_obssim <- vector("list", length=length(corresp$sim))
+names(plt_obssim ) <- as.character(corresp$sim)
+
+for (var_ in as.character(corresp$sim))
+{
+  nomvarobs <- as.character(corresp[corresp$sim==var_,c("obs")])
+  obssim <- na.omit(data.frame(obs=simmoy[,var_], sim=obsMerge[,nomvarobs]))
+  plt_obssim[[var_]] <- gg_plotObsSim(obssim, var_, name=onglet)
+}
+#plt_obssim[["MSA"]]
+
+
+
+
+ggarrange(plt_obssim[["NBI"]], plt_obssim[["LAI"]], plt_obssim[["MSA"]] + rremove("x.text"), 
+          labels = c("A", "B", "C"),
+          ncol = 2, nrow =2 )
+
+
+
+# to check : decalage d'i jour des DOY sim
+# normalisation des donnees obs
+
+
+
+
+
+
+
+
+
+
+#if efface fenetre graphique de R!
+
+#http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+
+
+# to manipulate layers of existing ggplots
+
+#https://cran.r-project.org/web/packages/gginnards/vignettes/user-guide-2.html
+
+
+
+
+
+
+########################## pour tests
+
+
+#faut lui donner moyenne et ecartypeen amont!
+var_ <- "NBI"#"MSA"#"FTSW"#"NNI"#"LAI"#
+nomvarobs <- as.character(corresp[corresp$sim==var_,c("obs")])
+
+
+
+min <- 0
+max <- 1.5*max(simmoy[,var_])
+
+plot_var <- ggplot(data = simmoy, aes(x = STEPS)) +
+  geom_line(aes(y = simmoy[,var_]), color="blue")+
+  geom_ribbon(aes(ymin=simmoy[,var_]-simsd[,var_],ymax=simmoy[,var_]+simsd[,var_]),fill="blue",alpha=0.2)+
+  geom_hline(yintercept=0)+
+  ylim(min,max)+
+  geom_text(x=1.20*min(simmoy$STEPS), y=0.98*max, label=name)+
+  theme(axis.text.x = element_text(size=6),axis.text.y = element_text(size=6))+
+  labs(title = "obs",subtitle = "sim",x = "DOY", y = var_)+
+  theme(plot.title=element_text(size=10,color = "red"),plot.subtitle = element_text(size=10,color = "blue"))
+
+plot_var
+
+
+
+#ajout conditionnel des points d'obs
+#if norma fait plante ggplot?? -> syntaxe specifique avec if inclu dans construction graph
+
+plot_var2 <- plot_var + {if(var_ %in% corresp$sim) geom_point(aes(obsMerge$DOY, obsMerge[,nomvarobs]), fill="red",color="red" , size=2)}
+
+plot_var2
+
+
+#ls_plt[["NBI"]] <- plot_var
+#ls_plt[[var_]] <- plot_var2
+
+
+#plot_var3 <- gg_addplotobs(plot_var, "NBI", obsMerge, corresp)
+
+#ajouter les SD des mesures quand disponible
+#decaler les DOYsim de -1??
+
+
+
+
+
+
+
+# faire une fonction gg_plotsim
+# gg_addplotobs
+# combine_ggplots
+
+
+
+
+#obs-sim
+
+var_ <- "NBI"#"MSA"#
+nomvarobs <- as.character(corresp[corresp$sim==var_,c("obs")])
+obssim <- na.omit(data.frame(obs=simmoy[,var_], sim=obsMerge[,nomvarobs]))
+name <- onglet
+
+
+min <- 0
+max <- 25
+reg   <- lm(obs ~ sim, data = obssim)
+coeff <- coefficients(reg)
+eq    <- paste0("y = ", round(coeff[2],2), "x + ", round(coeff[1],2))
+RMSE_ <- round(rmse(obssim$obs,obssim$sim), 2)
+rmses_ <- rmsesCoucheney(obssim$obs,obssim$sim)
+rmse_ <- rmseuCoucheney(obssim$obs,obssim$sim)
+pRMSEs_ <- round(pRMSEs(rmse_, rmses_), 2)
+rRMSE <- round(rrmseCoucheney(obssim$obs,obssim$sim), 2)
+EF <- round(efficiencyCoucheney(obssim$obs,obssim$sim), 2)
+
+plot_ObsSim <- ggplot(obssim, aes(x = obs, y = sim)) +
+  ggtitle(name)+
+  geom_abline(intercept = 0, slope = 1, color = "black")+
+  geom_point(aes(color = "obs"))+
+  geom_smooth(method=lm, se = FALSE, color = "red")+
+  ylim(min,max)+
+  xlim(min,max)+
+  geom_text(x=0.2*max, y=0.95*max, label=eq)+
+  geom_text(x=0.2*max, y=0.9*max, label=paste("RMSE: ",RMSE_))+
+  geom_text(x=0.2*max, y=0.85*max, label=paste("rRMSE: ",rRMSE))+
+  geom_text(x=0.2*max, y=0.8*max, label=paste("pRMSEs: ",pRMSEs_))+
+  geom_text(x=0.2*max, y=0.75*max, label=paste("EF: ",EF))+
+  labs(x = paste("Obs ", var_), y = paste("Sim ", var_))
+
+
+plot_ObsSim 
+
+
 
 
 
