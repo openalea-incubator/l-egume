@@ -40,7 +40,7 @@ if sys.version_info < (3, 0):
 if sys.version_info >= (3, 6):
     print('WARNING: l-egume has not been tested with Python > 3.6')
 
-pkg_resources.require('numpy')#'scipy', 'xlrd', 'openalea.plantgl.all', 'openalea.lpy','multiprocessing'
+pkg_resources.require('numpy', 'scipy', 'xlrd', 'openalea.lpy')#,'openalea.plantgl.all', 'multiprocessing'
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()

@@ -23,7 +23,7 @@ To install and use *L-egume*, you need first to install the dependencies.
  
 #### 1.1.1 Install the dependencies on Windows 10 64 bit
 
-1. Install Python  3.7 using Anaconda 
+1. Install Python  3.9 using Anaconda 
 
     * go to https://www.anaconda.com/download/ 
     * click on "64-Bit Graphical Installer", 
@@ -35,33 +35,11 @@ To install and use *L-egume*, you need first to install the dependencies.
 		
 2. Create and Activate a conda environment using  'Anaconda Prompt':
 	* Open an 'Anaconda Prompt' console
-	* Create a new environment (e.g. py37_64) using the following command lines:
-		conda create -n py37_64 -c fredboudon -c conda-forge openalea.lpy openalea.mtg openalea.plantscan3D 
-		conda install openalea.lpy -c fredboudon -c conda-forge
+	* Create a new environment (e.g. py39_64) using the following command lines:
+		conda create -n py39_64 xlrd scipy openalea.lpy openalea.mtg alinea.caribu -c conda-forge -c fredboudon
 	* Activate the new environment using the following command line:
-		activate py37_64
+		activate py39_64
 
-
-3. Install scipy package (v1.1.0):  
-    * in your acivated conda environment, install successively : 
-		conda install -c anaconda scipy
-		
-4. Install xlrd package (v1.2.0):  
-    * in your acivated conda environment, install successively : 
-		conda install -c conda-forge xlrd
-
-
-5. Install OpenAlea L-py:  
-
-    * go to https://github.com/openalea/lpy to check latest install recommendations for PlantGL
-
-		
-	* To correct lpy console display bug:
-		- go to envs\nom_environnement\library\bin
-		- create a new file 'mylpy.bat'
-		- write inside the following command line:
-			python -c "from openalea.lpy.gui.lpystudio import main ; main()"
-		- you can now launch lpy studio from your acivated conda environment using  “mylpy”
 
 
 	
@@ -101,7 +79,12 @@ To run a simulation example, two options:
 * 1. open Lpy platform,
 	 load l-egume.lpy file from legume folder,
 	 Use Run or animate button to launch a simulation
-  2. Run l-egume from a python script (see l-egume_batch_mixture8.py in multisim folder for an example; require mutiprocessing)
+  2. Run l-egume from the command line: 
+		- python run_legume_usm.py (default example)
+		- python run_legume_usm.py -f 'usm_xlsfile' -i 'inputs_folder' -b 'usm_spreasheet_name' -u 'usmID' -o 'outputs_folder'
+		
+  
+  3. Run multiple simulations: see l-egume_batch.py in multisim folder for an example (require mutiprocessing)
 
 See the user guide for a step by step explanation of how to set and run model *L-egume*.
 
@@ -159,7 +142,7 @@ Then,
 
 ## Contact
 
-For any question, send an email to <lgrass-request@groupes.renater.fr>.
+For any question, send an email to <gaetan.louarn @ inrae.fr>.
 
 ## Versioning
 
