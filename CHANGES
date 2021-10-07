@@ -1,3 +1,12 @@
+L-egume 1.3
+--------------------
+- Version compatible with python 3 (tested 3.9), win10 64bit and linux
+- New version including intra-population variability (opt_sd)
+- Add run_legume_usm.py to easily lauch the model from command line and distant servers (singularity container / Docker)
+- Correction of Temperature response calculation and introduction of the optGel and optPP options -> Udev concept to drive the model 
+- improved features to visualize model outputs (individual variability...)
+
+
 L-egume 1.2
 --------------------
 - Version compatible with python 3 (tested 3.7), win10 64bit

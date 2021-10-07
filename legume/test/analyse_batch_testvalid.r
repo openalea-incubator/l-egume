@@ -297,8 +297,8 @@ ggarrange(plt_obssim[["NBI"]], plt_obssim[["LAI"]], plt_obssim[["MSA"]] + rremov
 
 #https://cran.r-project.org/web/packages/gginnards/vignettes/user-guide-2.html
 
-
-
+# to manipulate multifacet multi plots
+#http://zevross.com/blog/2019/04/02/easy-multi-panel-plots-in-r-using-facet_wrap-and-facet_grid-from-ggplot2/
 
 
 

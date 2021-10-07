@@ -24,7 +24,7 @@ import run_legume_usm as runl
 
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
-opttest = 'mayssa'#'exemple'#'sdBea'#'OATbea'#1#2#'Histor'#1#4 ##2#1#  5#4#2#'autre'#0#13#'exemple_BA'#
+opttest = 'exemple'#'mayssa'#'sdBea'#'OATbea'#1#2#'Histor'#1#4 ##2#1#  5#4#2#'autre'#0#13#'exemple_BA'#
 if opttest == 1 or opttest == 2 or opttest == 3 or opttest == 4 or opttest == 5:  # si multisim des test de non regression (1 or 2)
     # global foldin, fxls, ongletBatch, fscenar
     foldin =  os.path.join(path_, 'input')#'test\inputs'
