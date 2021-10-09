@@ -244,7 +244,7 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
 
 def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default',idscenar1=1, idscenar2=1, mn_sc=None):
     
-    #1) cree liste des paramtres plante (1dico par plante)
+    #1) cree liste des paramtres plante (1 dico par plante)
     #nbcote = nombre de plante sur un cote en supposant repartition homogene
     g4 = IOxls.read_plant_param(path_plante, ongletP)
     g4 = IOxls.modif_param(g4, ongletP, ongletScenar1, idscenar1, mn_sc=mn_sc)
@@ -252,15 +252,15 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     g5 = IOxls.modif_param(g5, ongletPvois, ongletScenar2, idscenar2, mn_sc=mn_sc)
     if type == 'homogeneous': #cas d'un couvert monospe homogene
         ParamP = [g4]*nbcote*nbcote
-    elif type == 'damier8' or type == 'random8':#damier binaire 64 plantes
+    elif type == 'damier8' or type == 'random8' or type == 'damier8_sp1' or type == 'damier8_sp2':#damier binaire 64 plantes
         ParamP = sh.damier8(g4,g5,opt=opt)
         if nbcote!=8 and opt_verbose==1:
             print('Warning! : damier8 option is for a 64 plant design')
-    elif type == 'damier16' or type == 'random16':#damier binaire 256 plantes
+    elif type == 'damier16' or type == 'random16' or type == 'damier16_sp1' or type == 'damier16_sp2':#damier binaire 256 plantes
         ParamP = sh.damier16(g4,g5,opt=opt)
         if nbcote!=16 and opt_verbose==1:
             print('Warning! : damier16 option is for a 256 plant design')
-    elif type == 'row4':#4 rangs - 500pl.m-2
+    elif type == 'row4' or 'row4_sp1' or 'row4_sp2':#4 rangs - 500pl.m-2
         ParamP, cart_ = sh.row4(g4,g5,nbprow= nbcote, opt=opt)
     else:#defautl= force nb plante comme nbcote
         ParamP = [g4]*nbcote
@@ -342,13 +342,21 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     #shoot profiles
     ParamP = sh.update_shoot_params(ParamP)
     
+    
+    #4) reduit a une espece si veut simul separee
+    lsidP = range(len(ParamP)) #default value = all
+    if type == 'damier8_sp1' or type == 'damier16_sp1' or type =='row4_sp1':
+      ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletP) 
+    elif type == 'damier8_sp2' or type == 'damier16_sp2' or type =='row4_sp2':
+      ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletPvois)
+    
     nbplantes = len(ParamP)
-    return ParamP, nbplantes
+    return ParamP, nbplantes, lsidP
 
 
 
 
-def init_scene(ParamP, inis, cote, nbcote, station, type='damier8'):
+def init_scene(ParamP, inis, cote, nbcote, station, lsidP, type='damier8'):
     #initialoise la scene: arrangement des plantes (carto), discretisation souterraine, discretisation aerienne
     # 1) CARTO
     distplantes = cote/nbcote#1. #cm
@@ -385,7 +393,12 @@ def init_scene(ParamP, inis, cote, nbcote, station, type='damier8'):
     else:
         #pour carre distance homogene
         carto = sh.regular_square_planter(nbcote, distplantes)
-        
+    
+    #reduit a une espece si veut simul separee
+    if type == 'damier8_sp1' or type == 'damier8_sp2' or type == 'damier16_sp1' or type == 'damier16_sp2' or 'row4_sp1' or 'row4_sp2':
+      carto = sh.reduce_carto(carto, lsidP)
+    
+    
     
     
     # 2) definition du pattern et discretisation sol
@@ -416,6 +429,7 @@ def init_scene(ParamP, inis, cote, nbcote, station, type='damier8'):
     
     na, dxyz, lims_aer, origin_grid, surf_refVOX = riri.def_na_lims(pattern8, station['dz_aerien'], station['Hmaxcouv'],opt= station['opt1D3D'])#'1D' 
     #na, dxyz, lims_aer, origin_grid, surf_refVOX = riri.def_na_lims(pattern8, dz_aerien, Hmaxcouv,opt='1D') #version 1D, comme avant
+       
     m_lais = zeros([n_gamagroup, na[2], na[1], na[0]]) #ngamma, Z,Y,,X
     m_lais_construct = deepcopy(m_lais) #pour contsruction du m_lais a t+1
     triplets = riri.get_ls_triplets(m_lais[0], opt=station['sky'])#'VXpXmYpYm')#opt='V')#
@@ -760,7 +774,7 @@ def Start():
     #ongletPvois = 'nonFix2'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
     #optdamier = 4
     #typearrangement='damier8'    
-    ParamP, nbplantes = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
+    ParamP, nbplantes, lsidP = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
     
     #print 'Len ', riri.get_lsparami(ParamP, 'Len')
     #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
@@ -776,7 +790,8 @@ def Start():
     #initialisation de la scene
     global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
     
-    carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, station,type=typearrangement)
+    carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr = init_scene(ParamP, inis, cote, nbcote, station, lsidP, type=typearrangement)
+    
     
     
     #initialisation du sol
@@ -1021,8 +1036,11 @@ def EndEach(lstring,lscene):
     #tag variables to facilitate outside coupling and data exchange with third party application
     # * unpacks the list of arguments
     
+    #ls_epsi
+    ls_epsi, invar = loop.step_epsi(invar, res_trans, meteo_j, surfsolref)
+    
     #Potential plant growth
-    invar, outvar, ls_epsi, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
+    invar, outvar, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
     #step soil 
     tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
     res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)

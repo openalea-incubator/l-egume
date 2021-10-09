@@ -19,7 +19,7 @@ except:
 #daily loop
 # decoupe daily_growth_loop initial en 4 fonctions pour donner acces au calcul du sol depuis l'exterieur
 
-def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW=1, opt_stressN=1, opt_stressGel=0):
+def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW=1, opt_stressN=1, opt_stressGel=0):
     """ daily potential growth loop (computes epsi, DM production / allocation / Ndemand) """
 
     epsilon = 10e-10  #
@@ -40,16 +40,17 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplante
             #print("gel ???")
 
     # calcul de ls_epsi
-    invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
-    invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
-    # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
-    # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
-    # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif
-    # transmi_sol = 1-sum(ls_epsi)
-    # epsi = 1-transmi_sol #a reprendre pour differencier cible et vois #
-    transmi_sol = sum(res_trans[-1][:][:]) / (meteo_j['I0'] * surfsolref)  # bon
-    epsi = 1. - transmi_sol  # bon
-    ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
+    # invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
+    # invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
+    # # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
+    # # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
+    # # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif
+    # # transmi_sol = 1-sum(ls_epsi)
+    # # epsi = 1-transmi_sol #a reprendre pour differencier cible et vois #
+    # transmi_sol = sum(res_trans[-1][:][:]) / (meteo_j['I0'] * surfsolref)  # bon
+    # epsi = 1. - transmi_sol  # bon
+    # ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
+    #ls_epsi = step_epsi(invar, res_trans, meteo_j, surfsolref)
 
     #print('graine', graineC, graineN, invar['NBI'], riri.get_lsparami(ParamP, 'DurGraine'),invar['TT'])
 
@@ -192,9 +193,22 @@ def daily_growth_loop(ParamP, invar, outvar, res_trans, meteo_j, mng_j, nbplante
     #test des 3 autres fonctions en interne au sein d'une fonction globale
     temps = [aer, rac_fine, pivot, graineN, fracNaer, fracNpiv, fracNrac_fine, MS_aerien_tm1, isTTcut,NcritTot_,epsilon,meteo_j] #variable temporaires pour passer entre fonctions (passer ds invar?)
 
-    return invar, outvar, ls_epsi, ls_demandeN_bis, temps
+    return invar, outvar, ls_demandeN_bis, temps
 
 
+def step_epsi(invar, res_trans, meteo_j, surfsolref):
+    """ calculate ls_epsi from res_trans and invar"""
+    invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
+    invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
+    # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
+    # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
+    # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif
+    # transmi_sol = 1-sum(ls_epsi)
+    # epsi = 1-transmi_sol #a reprendre pour differencier cible et vois #
+    transmi_sol = sum(res_trans[-1][:][:]) / (meteo_j['I0'] * surfsolref)  # bon
+    epsi = 1. - transmi_sol  # bon
+    ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
+    return ls_epsi, invar
 
 def step_bilanWN_sol(S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu):
     """ daily step for soil W and N balance from meteo, management and lsystem inputs"""
@@ -459,10 +473,19 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     Npc = (array(invar['DemandN_Feuil']) + array(invar['DemandN_Pet']) + array(invar['DemandN_Stem'])) * 100. / array(invar['MS_aerien'])
 
+    # sorties
+    outvar = increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, aer, ls_ftsw, ls_transp, Npc, cutNB)
+    # to do: passer ls_epsi, aer, ls_ftsw, ls_transp, Npc dans invar!
+
+    return invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress, ls_TStress
+
+
+
+def increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, aer, ls_ftsw, ls_transp, Npc, cutNB):
+    """ add daily invar values into outvar """
+
     # temps de calcul
     past_time = time.time() - start_time
-
-
 
     # sorties
     outvar['TT'].append(['TT', DOY] + invar['TT'])
@@ -474,8 +497,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     outvar['time'].append(['time', DOY] + [past_time] * nbplantes)
     outvar['cutNB'].append(['cutNB', DOY] + [cutNB] * nbplantes)
     outvar['SurfPlante'].append(['SurfPlante', DOY] + list(map(sum, invar['SurfPlante'])))
-    outvar['PARaPlante'].append(
-        ['PARaPlante', DOY] + invar['PARaPlanteU'].tolist())  # append(['PARaPlante',DOY]+invar['parap'].tolist())
+    outvar['PARaPlante'].append(['PARaPlante', DOY] + invar['PARaPlanteU'].tolist())  # append(['PARaPlante',DOY]+invar['parap'].tolist())
     outvar['PARiPlante'].append(['PARiPlante', DOY] + invar['parip'].tolist())
     outvar['epsi'].append(['epsi', DOY] + ls_epsi.tolist())
     outvar['dMSaer'].append(['dMSaer', DOY] + aer.tolist())
@@ -529,23 +551,20 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     outvar['perteN_rac_fine'].append(['perteN_rac_fine', DOY] + invar['perteN_rac_fine'].tolist())
     outvar['NBphyto'].append(['NBphyto', DOY] + invar['NBphyto'])
     outvar['aliveB'].append(['aliveB', DOY] + invar['aliveB'])
-    outvar['NBapexAct'].append(
-        ['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
+    outvar['NBapexAct'].append(['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
     outvar['transpi'].append(['transpi', DOY] + invar['transpi'])
     outvar['cumtranspi'].append(['cumtranspi', DOY] + invar['cumtranspi'].tolist())
     outvar['dMSmortGel'].append(['dMSmortGel', DOY] + invar['dMSmortGel'])
     outvar['dNmortGel'].append(['dNmortGel', DOY] + invar['dNmortGel'])
 
-
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
-    outvar['phmgPet'].append(['phmgPet', DOY] + list(map(max, invar['phmgPet'])))
-    outvar['phmgEntr'].append(['phmgEntr', DOY] + list(map(max, invar['phmgEntr'])))
-    outvar['phmgPet_m'].append(['phmgPet_m', DOY] + list(map(min, invar['phmgPet_m'])))
-    outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + list(map(min, invar['phmgEntr_m'])))
+    #outvar['phmgPet'].append(['phmgPet', DOY] + list(map(max, invar['phmgPet'])))
+    #outvar['phmgEntr'].append(['phmgEntr', DOY] + list(map(max, invar['phmgEntr'])))
+    #outvar['phmgPet_m'].append(['phmgPet_m', DOY] + list(map(min, invar['phmgPet_m'])))
+    #outvar['phmgEntr_m'].append(['phmgEntr_m', DOY] + list(map(min, invar['phmgEntr_m'])))
 
-
-    return invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress, ls_TStress
-
+    return outvar
+    # to do: passer ls_epsi, aer, ls_ftsw, ls_transp, Npc dans invar!
 
 
 def update_residue_mat(ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu):

@@ -767,6 +767,29 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     #prevoir nbprow different par esp... et melange on row...
 
 
+def reduce_ParamP(ParamP, nom):
+    """ pour extraire une espece du ParamP """
+    ls_name = riri.get_lsparami(ParamP, 'name')
+    newParamP, lsid_reduce = [], []
+    for i in range(len(ls_name)):
+        if ParamP[i]['name']==nom:
+            newParamP.append(ParamP[i])
+            lsid_reduce.append(i)
+
+    return newParamP, lsid_reduce
+
+def reduce_carto(carto, lsid_reduce):
+    """ pour extraire une espece de carto a partir des id_reduce du ParamP """
+    newcarto = []
+    for i in range(len(carto)):
+        if i in lsid_reduce:
+            newcarto.append(carto[i])
+
+    return newcarto
+
+
+
+
 def ls_idvois_ordre1(n, cote, nblignes):
     """ pour une plante n, dans un dispocitif regulier arrange en colonnes croissantes de cote indiv"""
     nbindiv = cote * nblignes
