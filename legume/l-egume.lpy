@@ -49,7 +49,7 @@ import zipfile
 
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
-opt_sd = 1 #1 #genere distribution des valeurs de parametres
+opt_sd = 0 #1 #genere distribution des valeurs de parametres
 opt_covar = 1# #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
@@ -69,7 +69,7 @@ frDisplay = 0 #1 #sauvegarde de la derniere vue
 movDisplay =0 # #sauvegarde toutes les vues pour faire un film
 opt_zip = 0 #if 1, zip and delete the output csv files 
 opt_verbose =1 #0, remove print in the console
-
+opt_external_coupling = 0 # 1 for environmental coupling out of lpy; 0 for internal coupling in l-py
 
 
 #initialisation des variables globale de simulation
@@ -83,7 +83,7 @@ deltalevsd = 15
 cote = 40.#80.#100.#100#25.#25.#cm
 nbcote = 8#1#10
 optdamier = 4
-typearrangement='damier8'#'homogeneous'#'random8'#'damier16'#'random16'
+typearrangement='damier8'#'damier8_sp2'#'homogeneous'#'random8'#'damier16'#'random16'
 idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar1_sd = 1
@@ -112,7 +112,7 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 ongletP = 'Fix2'#'Orca'#'Fet'#'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletPvois = 'Fet'#'nonFixSimTest'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
@@ -136,7 +136,7 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'scenarios_planMorris.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
 ongletScenar1 = 'Fix2'#'Orca'#'default'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'nonFixSimTest'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
+ongletScenar2 = 'Fet'#'nonFixSimTest'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
@@ -232,17 +232,19 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     #distribution des retard a levee
     #deltalevmoy = 30 #degre.jours
     #deltalevsd = 15
-    test_retard = []#pour gerer un decalage a la levee/reprise
+    #pour gerer un decalage a la levee/reprise
+    tir1, tir2 = [], []
+    for i in range(1000): 
+      tir1.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
+      tir2.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
     
-    for i in range(510): test_retard.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
-    #for i in range(138): test_retard.append(0)#pas de retard.
-    # a affectr a ['TT']!!
+    test_retard = [tir1, tir2] #pour gerer deux especes
     
     return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station
 
 
 
-def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default',idscenar1=1, idscenar2=1, mn_sc=None):
+def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, test_retard, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default',idscenar1=1, idscenar2=1, mn_sc=None):
     
     #1) cree liste des paramtres plante (1 dico par plante)
     #nbcote = nombre de plante sur un cote en supposant repartition homogene
@@ -334,24 +336,39 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type='homogeneous', o
     #3) ajout de parametre 'recalcule'
     #roots
     for nump in range(len(ParamP)):
-      #update des parametre racinaire
-      rt.update_root_params(ParamP[nump]) #'lsDrac', 'nb_ordre_rac', 'lsVrac', 'lsDemanDRac', 'LDs'
-      #print 'LDs', ParamP[nump]['LDs2'], ParamP[nump]['LDs3'], ParamP[nump]['lsDrac'], ParamP[nump]['GDs2'], ParamP[nump]['GDs3']
-      ParamP[nump]['profilRoot'] = rt.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)
+        #update des parametre racinaire
+        rt.update_root_params(ParamP[nump]) #'lsDrac', 'nb_ordre_rac', 'lsVrac', 'lsDemanDRac', 'LDs'
+        #print 'LDs', ParamP[nump]['LDs2'], ParamP[nump]['LDs3'], ParamP[nump]['lsDrac'], ParamP[nump]['GDs2'], ParamP[nump]['GDs3']
+        ParamP[nump]['profilRoot'] = rt.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)
     
     #shoot profiles
     ParamP = sh.update_shoot_params(ParamP)
     
     
+    #remise en 1 vecteur du test_retard de deux especes
+    v = []
+    for nump in range(len(ParamP)):
+        if (nump % 2) == 0:#pair
+            v.append(test_retard[1][nump])
+        else:
+            v.append(test_retard[0][nump])
+    v = array(v)
+    
+    
     #4) reduit a une espece si veut simul separee
     lsidP = range(len(ParamP)) #default value = all
     if type == 'damier8_sp1' or type == 'damier16_sp1' or type =='row4_sp1':
-      ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletP) 
+      ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletP)
+      v = array(v)[lsidP]
     elif type == 'damier8_sp2' or type == 'damier16_sp2' or type =='row4_sp2':
       ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletPvois)
+      v = array(v)[lsidP]
+    
+    
+    test_retard = v.tolist()
     
     nbplantes = len(ParamP)
-    return ParamP, nbplantes, lsidP
+    return ParamP, nbplantes, lsidP, test_retard
 
 
 
@@ -440,6 +457,9 @@ def init_scene(ParamP, inis, cote, nbcote, station, lsidP, type='damier8'):
     for i in setp:
         nump = ls_gammagroup.index(i) #retrouve numero de plante de premiere occurence de gammagroup
         ls_dif.append(ParamP[nump]['k_teta_distf'])
+    
+    #print('triplets', len(triplets))
+    #print('ls_dif', len(ls_dif), ls_dif)
     
     res_trans, res_abs_i = [],[]
     res_rfr = []
@@ -774,7 +794,7 @@ def Start():
     #ongletPvois = 'nonFix2'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
     #optdamier = 4
     #typearrangement='damier8'    
-    ParamP, nbplantes, lsidP = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
+    ParamP, nbplantes, lsidP, test_retard = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, test_retard, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
     
     #print 'Len ', riri.get_lsparami(ParamP, 'Len')
     #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
@@ -786,6 +806,7 @@ def Start():
             pointes1 = [array(pointes)]
         ls_pointes1.append(pointes1)
     
+    print('ici', riri.get_lsparami(ParamP, 'name'))
     
     #initialisation de la scene
     global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
@@ -813,12 +834,24 @@ def Start():
     
     invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root = init_variables_plantes(ParamP, nbplantes)
     
+    
+    #initialisation des variables d'echange avec exterieur pour couplages sol/rayonnement
+    global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr, tag_light_inputs, tag_loop_inputs
+    
+    
+    #init grille rayonnement
+    m_lais = sh.calc_surfcoty(invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #init avec surface des cotyledons
+    
+    tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
+    local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi_reduced(*tag_light_inputs, optsky=station['optsky'], opt=station['sky'])
+    res_trans, res_abs_i = local_res_trans, local_res_abs_i #mise a jour variables globales
+    
+    
     #initialisation des sorties
     global outvar, id_out, out_HR
     outvar, id_out, out_HR = init_outputs(ParamP, nbplantes, ncouches_sol)
     
-    #initialisation des variables d'echange avec exterieur pour couplages sol/rayonnement
-    global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step, tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr
+    
     
     ##seed nombre aleatoires
     #global Rseed
@@ -834,9 +867,10 @@ def Start():
 
 
 def StartEach():
-    global TT,TTsol, STEPS_, STEPSsol_, isTTcut,wasTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB, epsilon #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
+    global TT,TTsol, STEPS_,DOY, STEPSsol_, isTTcut,wasTTcut, TT_repousse,  SurfprofilPlant, nbplantes, lsAxes, lsApex,lsApexAll, lsApexStop,lsOrgans, m_lais, res_trans, res_abs_i, res_rfr, m_lais_construct, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, invar, ls_systrac, Hcut, cutNB, epsilon #utilise dz, I0, k (global pas mis a jour)#Hmaxcouv, LAIvois, PARt,
     
     global tag_light_inputs, local_res_trans, local_res_abs_i, tag_light_inputs2, local_res_rfr, station    
+    
     
     #calcul TT
     vT, vTsol = sh.Calc_Daily_vT(meteo_j, opt_optT) #daily temperature vector
@@ -894,29 +928,6 @@ def StartEach():
             invar['TT'][nump] = invar['TT'][nump] + invar['dTT'][nump]#juste effet Tair
             invar['TTsol'][nump] = invar['TTsol'][nump] + invar['Udevsol'][nump]#+ invar['dTTsol'][nump]
             invar['TTudev'][nump] = invar['TTudev'][nump] + invar['Udev'][nump]
-    
-    
-    ############
-    # step light transfer coupling
-    ############
-    
-    #calcul profil surface couvert 
-    
-    mlaicot = sh.calc_surfcoty(invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #ajoute surface des cotyledons
-    m_lais = deepcopy(m_lais_construct) + mlaicot
-    
-    
-    #PAR / Blue voxel
-    tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
-    #local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi(*tag_light_inputs, optsky='soc')#(m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX, optsky='soc')
-    local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi_reduced(*tag_light_inputs, optsky=station['optsky'], opt=station['sky'])
-    res_trans, res_abs_i = local_res_trans, local_res_abs_i #mise a jour variables globales
-    
-    #R_FR voxel (calcul de zeta)
-    tag_light_inputs2 = [res_trans/(meteo_j['I0']*surf_refVOX)] #input tag
-    local_res_rfr = riri.rfr_calc_relatif(*tag_light_inputs2)#(res_trans/(meteo_j['I0']*surf_refVOX))
-    res_rfr = local_res_rfr #mise a jour variables globales
-    
     
     
     
@@ -982,7 +993,7 @@ def StartEach():
     
     #calcul offre/demandeC sur la base des tableaux precedent avant leur remise a zero
     tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
-    OffCp = sh.calcOffreC (ParamP, tab, 'plt')#pas utilise??!
+    #OffCp = sh.calcOffreC (ParamP, tab, 'plt')#pas utilise??!
     #invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['dTT'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
     #print('DemCp',invar['DemCp'])
     
@@ -1027,40 +1038,96 @@ def EndEach(lstring,lscene):
     global S, Uval, stateEV, DOY, meteo_j, mng_j, PP, res_root, nbplantes, surfsolref, ls_ftswStress, past_time, lsOrgans, ls_NNIStress, ls_TStress,ls_mat_res
     global lsApex, lsApexAll, ls_systrac, lims_sol, b_, opt_residu, vCC, carto, start_time, cutNB, I_I0profilInPlant, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses
     global ParamP, par_SN, invar, invar_sc, outvar, res_trans
-    global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step
+    global tag_inputs_soil_step, res_soil_step, tag_inputs_residue_updt, res_residue_step, tag_loop_inputs
+    global local_res_trans, local_res_abs_i, res_trans, res_abs_i, res_rfr , local_res_rfr 
     
     
     #################
     #  daily loop 
     #################
     #tag variables to facilitate outside coupling and data exchange with third party application
-    # * unpacks the list of arguments
+    # * unpacks the list of arguments    
     
-    #ls_epsi
-    ls_epsi, invar = loop.step_epsi(invar, res_trans, meteo_j, surfsolref)
+    #calcul grille surface couvert (m_lais) 
+    mlaicot = sh.calc_surfcoty(invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #ajoute surface des cotyledons
+    m_lais = deepcopy(m_lais_construct) + mlaicot
     
-    #Potential plant growth
-    invar, outvar, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
-    #step soil 
-    tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
-    res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
-    S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step #unpacks results from a list and updates global variables
-    #update stress variables
-    invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress, ls_TStress = loop.Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar)  
-    #update soil residues
-    tag_inputs_residue_updt = [ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu] #input tag
-    res_residue_step = loop.update_residue_mat(*tag_inputs_residue_updt)
-    ls_mat_res, S = res_residue_step #unpacks results from a list and updates global variables
     
-    #pourquoi ls_res_mat remis a zero juste apres????
+    
+    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_systrac, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, lsOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu]
+    
+    
+    # update internal to the loop: ls_epsi, ls_demandeN_bis, temps, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, 
+    
+    if opt_external_coupling==0:
+        
+        ############
+        # step light transfer coupling
+        ############
+        
+        #PAR / Blue voxel
+        tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
+        
+        #mise a jour de res_trans, res_abs_i, res_rfr, ls_epsi
+        local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi_reduced(*tag_light_inputs, optsky=station['optsky'], opt=station['sky'])
+        
+        res_trans, res_abs_i = local_res_trans, local_res_abs_i #mise a jour variables globales
+        
+        
+        #R_FR voxel (calcul de zeta)
+        tag_light_inputs2 = [res_trans/(meteo_j['I0']*surf_refVOX)] #input tag
+        local_res_rfr = riri.rfr_calc_relatif(*tag_light_inputs2)#(res_trans/(meteo_j['I0']*surf_refVOX))
+        
+        res_rfr = local_res_rfr #mise a jour variables globales
+        
+        #ls_epsi
+        ls_epsi, invar = loop.step_epsi(invar, res_trans, meteo_j, surfsolref)
+        
+        
+        ##########
+        # Step Potential plant growth
+        ##########
+        
+        invar, outvar, ls_demandeN_bis, temps = loop.daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes, surfsolref, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, opt_stressW, opt_stressN, opt_stressGel)
+        
+        
+        ##########
+        #step soil
+        ##########
+        
+        tag_inputs_soil_step = [S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu] #input tag
+        
+        res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
+        S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step #unpacks results from a list and updates global variables
+        
+        ##########
+        #setp update plant stress variables
+        ##########
+        
+        tag_inputs_stress = [ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar]
+        
+        invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress, ls_TStress = loop.Update_stress_loop(*tag_inputs_stress)  
+        
+        ##########
+        #step update soil residues senescence
+        ##########
+        tag_inputs_residue_updt = [ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu] #input tag
+        
+        res_residue_step = loop.update_residue_mat(*tag_inputs_residue_updt)
+        ls_mat_res, S = res_residue_step #unpacks results from a list and updates global variables
+        
+        
+        #pourquoi ls_res_mat remis a zero juste apres????
     
     
     
     #################
-    # fin des mises a jour variables (meteo...) pour step suivant
+    # mises a jour variables (meteo...) pour step suivant
     #################
+    # a ne pas bouger dans starteach -> change les bilans C/N et demande N!!!
     
     DOY+=1
+    
     meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','RG','Et0','Precip','Tmin','Tmax','Tsol'], 'DOY', val=DOY)
     meteo_j['I0'] = [0.48*meteo_j['RG'][0]*10000/(3600*24)]#flux PAR journalier moyen en W.m-2 / RG en j.cm-2
     mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
@@ -1073,6 +1140,11 @@ def EndEach(lstring,lscene):
     mng_j['ForceNNI'] = 1.#0.2 #to force NNI value (could read in management file)
     
     #print invar['rgeq']
+    
+    ###########
+    # MAJ journaliere lsOrgans  outHR
+    ###########
+    
     
     #archivage de lsOrgans
     savelsOrgans.append(lsOrgans)
@@ -1120,7 +1192,6 @@ def EndEach(lstring,lscene):
     #################
     #global DOY, path_out
     
-    
     outimagepathtemp = os.path.join(path_out, 'scene_'+str(DOY)+'.bmp')#r'H:\devel\grassland\grassland\L-gume\scene.bmp'
     if movDisplay == 1:
         ## fait pour simul depuis L-py reglee manuellement
@@ -1132,6 +1203,8 @@ def EndEach(lstring,lscene):
         Viewer.frameGL.setSize(600,500)
         Viewer.frameGL.saveImage(outimagepathtemp)
         #Viewer.stop()
+
+
 
 
 

@@ -163,10 +163,16 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     # mise a jour derivartionLength & axiom
     testsim[name].derivationLength = int(ls_usms['DOYend'][i]) - int(ls_usms['DOYdeb'][i])  # derivationLength variable predefinie dans L-py
-    if str(ls_usms['arrangement'][i]) == 'row4':  # carre rang heterogene
+    arr = str(ls_usms['arrangement'][i])
+    if arr == 'row4':  # carre rang heterogene
         nbplantes = nbcote * 4
-    else:  # carre homogene
+    elif arr == 'damier8' or arr == 'damier16' or arr == 'homogeneous' or arr == 'random8' :  # carre homogene
         nbplantes = nbcote * nbcote
+    elif arr == 'damier8_sp1' or arr == 'damier8_sp2' or arr == 'damier16_sp1' or arr == 'damier16_sp2':
+        #prends pour le moment que le cas 4 (50/50)
+        nbplantes = int(nbcote * nbcote / 2)
+    else:
+        print('unknown arrangement and nbplant')
 
     a = AxialTree()
     a.append(testsim[name].attente(1))

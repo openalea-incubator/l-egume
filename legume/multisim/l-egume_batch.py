@@ -134,8 +134,8 @@ if __name__ == '__main__':
     print('nb CPU: '+str(CPUnb))
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(int(nb_usms)):
-        #pool.apply_async(runlsystem, args=(i,)) #marche
-        runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        pool.apply_async(runlsystem, args=(i,)) #marche
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
 
         #pool.apply_async(runlsystem_name, args=(names[i],)) #marche aussi
         #pool.apply_async(runlsystem_obj, args=(testsim[names[i]],)) #marche pas!
