@@ -15,6 +15,7 @@ sys.path.insert(0, path_leg)
 
 
 from numpy.random import binomial, seed
+import numpy as np
 from scipy import * 
 from copy import deepcopy
 import string
@@ -40,7 +41,7 @@ import daily_loop as loop
 import management_auto as mna
 import IOtable
 import IOxls
-import random
+#import random
 import pandas as pd
 import zipfile
 
@@ -50,7 +51,7 @@ import zipfile
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres
-opt_covar = 1# #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
+opt_covar = 0# #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
 opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
@@ -66,7 +67,7 @@ visu_shoot=1 #1# pour visualisation/interpretation shoot
 visu_sol=0 #1# pour visualisation/interpretation sol
 visu_solsurf=1 #0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
-movDisplay =0 # #sauvegarde toutes les vues pour faire un film
+movDisplay =1 # #sauvegarde toutes les vues pour faire un film
 opt_zip = 0 #if 1, zip and delete the output csv files 
 opt_verbose =1 #0, remove print in the console
 opt_external_coupling = 0 # 1 for environmental coupling out of lpy; 0 for internal coupling in l-py
@@ -112,7 +113,7 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 ongletP = 'Fix2'#'Orca'#'Fet'#'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'Fet'#'nonFixSimTest'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletPvois = 'nonFixSimTest'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
@@ -136,7 +137,7 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'scenarios_planMorris.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
 ongletScenar1 = 'Fix2'#'Orca'#'default'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'Fet'#'nonFixSimTest'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
+ongletScenar2 = 'nonFixSimTest'#'Fet'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
@@ -196,7 +197,14 @@ outMngfile ='MngAuto.csv'#file for recording automatic management actions
 # par tresh dans l'autre sens 0.33 marche 0.01 OK
 
 
-def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
+class Plt_seed(object):
+    """ creates a random generator for a given plant"""
+    def __init__(self, seed):
+        #self.randgen = random.Random(seed) #avec random module
+        self.randgen = np.random.RandomState(seed)
+
+
+def init_glob_variables_sim(meteo, mng, DOYdeb):
     
     ## station
     station = IOxls.read_plant_param(path_station, ongletSta) #ou lire ds fichier inis
@@ -233,18 +241,18 @@ def init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd):
     #deltalevmoy = 30 #degre.jours
     #deltalevsd = 15
     #pour gerer un decalage a la levee/reprise
-    tir1, tir2 = [], []
-    for i in range(1000): 
-      tir1.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
-      tir2.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
+    #tir1, tir2 = [], []
+    #for i in range(1000): 
+    #  tir1.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
+    #  tir2.append(max(0,random.gauss(deltalevmoy,deltalevsd)))#test_retard.append(random.uniform(0,60))
     
-    test_retard = [tir1, tir2] #pour gerer deux especes
+    #test_retard = [tir1, tir2] #pour gerer deux especes
     
-    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station
+    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station
 
 
 
-def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, test_retard, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default',idscenar1=1, idscenar2=1, mn_sc=None):
+def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, seed_=0, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default',idscenar1=1, idscenar2=1, mn_sc=None):
     
     #1) cree liste des paramtres plante (1 dico par plante)
     #nbcote = nombre de plante sur un cote en supposant repartition homogene
@@ -345,30 +353,38 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, test_retard, type='ho
     ParamP = sh.update_shoot_params(ParamP)
     
     
-    #remise en 1 vecteur du test_retard de deux especes
-    v = []
+    
+    #4) random number generators per plant and test_retard vector
+    #seed_=1
+    #creation d'une liste d'objet random pour chaque plante (tirage random par plante et plus pour toutes les plantes)
+    ls_seeds = []
     for nump in range(len(ParamP)):
-        if (nump % 2) == 0:#pair
-            v.append(test_retard[1][nump])
-        else:
-            v.append(test_retard[0][nump])
-    v = array(v)
+        ls_seeds.append(Plt_seed(nump+seed_))
+        #ls_seeds.append(Plt_seed(seed_))
+    
+    test_retard = []
+    for nump in range(len(ParamP)):
+        test_retard.append(max(0,ls_seeds[nump].randgen.normal(deltalevmoy,deltalevsd)))
+        #max(0,random.gauss(deltalevmoy,deltalevsd))
+    
+    #!! ls_seeds pas passe pour tirage multivarie opt_sd? -> non, tirage multivarie avec Rssed pour ttes les plantes ensemble
     
     
-    #4) reduit a une espece si veut simul separee
+    #5) reduit a une espece si veut simul separee
     lsidP = range(len(ParamP)) #default value = all
     if type == 'damier8_sp1' or type == 'damier16_sp1' or type =='row4_sp1':
-      ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletP)
-      v = array(v)[lsidP]
+        ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletP)
+        test_retard = sh.reduce_carto(test_retard, lsidP)
+        ls_seeds = sh.reduce_carto(ls_seeds, lsidP)
     elif type == 'damier8_sp2' or type == 'damier16_sp2' or type =='row4_sp2':
-      ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletPvois)
-      v = array(v)[lsidP]
+        ParamP , lsidP = sh.reduce_ParamP(ParamP, ongletPvois)
+        test_retard = sh.reduce_carto(test_retard, lsidP)
+        ls_seeds = sh.reduce_carto(ls_seeds, lsidP)
     
-    
-    test_retard = v.tolist()
+    #print('test_retard', test_retard)
     
     nbplantes = len(ParamP)
-    return ParamP, nbplantes, lsidP, test_retard
+    return ParamP, nbplantes, ls_seeds, lsidP, test_retard
 
 
 
@@ -781,11 +797,11 @@ def Start():
     global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, mn_sc, station
     
     ##seed nombre aleatoires
-    global Rseed
+    global Rseed, ls_seeds
     random.seed(Rseed)
-    seed(Rseed)
+    #seed(Rseed)
     
-    DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, station = init_glob_variables_sim(meteo, mng, DOYdeb, deltalevmoy, deltalevsd)
+    DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station = init_glob_variables_sim(meteo, mng, DOYdeb)
     
     # initialisation des parametres plante
     global ParamP, nbplantes
@@ -794,7 +810,7 @@ def Start():
     #ongletPvois = 'nonFix2'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
     #optdamier = 4
     #typearrangement='damier8'    
-    ParamP, nbplantes, lsidP, test_retard = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, test_retard, type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
+    ParamP, nbplantes, ls_seeds, lsidP, test_retard = init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, seed_=Rseed ,type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc)
     
     #print 'Len ', riri.get_lsparami(ParamP, 'Len')
     #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
@@ -806,7 +822,7 @@ def Start():
             pointes1 = [array(pointes)]
         ls_pointes1.append(pointes1)
     
-    print('ici', riri.get_lsparami(ParamP, 'name'))
+    #print('ici', riri.get_lsparami(ParamP, 'name'))
     
     #initialisation de la scene
     global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
@@ -1401,7 +1417,7 @@ production:
 
 
 Sd(nump) :
-    produce: Coll(carto[nump])RA(nump,0,-1,0,0,0)][SetHead()/(random.uniform(0.,360.))&(90)B(nump,0,ParamP[nump]['phyllochron'],carto[nump],0,random.uniform(0.,360.),0,'exp')] #ouverture de [ racine dans le Coll
+    produce: Coll(carto[nump])RA(nump,0,-1,0,0,0)][SetHead()/(ls_seeds[nump].randgen.uniform(0.,360.))&(90)B(nump,0,ParamP[nump]['phyllochron'],carto[nump],0,ls_seeds[nump].randgen.uniform(0.,360.),0,'exp')] #ouverture de [ racine dans le Coll
 
 B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     global ls_ftswStress
@@ -1457,7 +1473,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     
     if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh_til'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
         ##azi = random.uniform(0,360)
-        elv0 = random.uniform(ParamP[nump]['elv0b'],ParamP[nump]['elv0h'])#(0,90)
+        elv0 = ls_seeds[nump].randgen.uniform(ParamP[nump]['elv0b'],ParamP[nump]['elv0h'])#(0,90)
         ageref = min(phylloPot, phylloPot*ParamP[nump]['RvitTallage'])
         newageB = age%ageref - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron'] - test_retard[nump] 
         newageA = age%ageref +STEPS - retard#- test_retard[nump]#age%ParamP[nump]['phyllochron']+STEPS - test_retard[nump] 
@@ -1472,17 +1488,16 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
             #boureons sur le collet -> epend de rpiv
             rpiv = invar['DiampivMax'][nump]/2.+ (invar['countShExp'][nump]/ParamP[nump]['nshoots'])*ParamP[nump]['offset_diamP']#0.5 #offset_diam atteint pour nbshoot max
-            posini = array(carto[nump]) + array([random.uniform(-rpiv,rpiv),random.uniform(-rpiv,rpiv),0.])
+            posini = array(carto[nump]) + array([ls_seeds[nump].randgen.uniform(-rpiv,rpiv),ls_seeds[nump].randgen.uniform(-rpiv,rpiv),0.])
         elif int(ParamP[nump]['type'])==3: #graminee
             rplt = (invar['countShExp'][nump]*0.0002/4)**0.5 + ParamP[nump]['offset_diamP']#5. #diamete base qui depend du nb de talle (densite de 6000 talle/m2
-            posini = array(carto[nump]) + array([random.uniform(-rplt,rplt),random.uniform(-rplt,rplt),0.])
+            posini = array(carto[nump]) + array([ls_seeds[nump].randgen.uniform(-rplt,rplt),ls_seeds[nump].randgen.uniform(-rplt,rplt),0.])
         
-        new_nrhiz = binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#5#0
-        
+        new_nrhiz = ls_seeds[nump].randgen.binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#5#0
         
         if statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1:#nsh< ParamP[nump]['nshoots'] and  : #modifie en nshoots-1, sinon la premiere tige n'est pas comptee!
             #print nump, 'B', newageA, test_retard[nump]
-            newazi = random.uniform(0.,360.)
+            newazi = ls_seeds[nump].randgen.uniform(0.,360.)
             invar['countSh'][nump] += 1
             newnsh = invar['countSh'][nump] #nsh+1
             invar['countShExp'][nump] += 1            
@@ -2214,8 +2229,8 @@ D(nump,nsh, statut,age,posi,parent):
         
         #newage = age%ParamP[nump]['phyllochron']+STEPS
         newage = deltaBud*ParamP[nump]['phyllochron'] + age%ParamP[nump]['phyllochron']# + STEPS  # #rajoute pas le steps car compare a zero apres
-        new_nrhiz = binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#0
-        newazi = random.uniform(0.,360.)
+        new_nrhiz = ls_seeds[nump].randgen.binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#0
+        newazi = ls_seeds[nump].randgen.uniform(0.,360.)
         
         #print 'D', nsh, parent, NIparent, deltaBud, newage
         
@@ -2369,7 +2384,7 @@ GetPos(X0,Y0,Z0,nump2)RLAP(nump,nsh,age,rankp,l, Horiz):
     if Z0 > ParamP[nump]['HeightTreshAdvRoots'] or allowed==0: #supprime bud si au dessus d'une hauteur seuil
         produce *
     elif age>ParamP[nump]['delai_AdvRoots'] and statut==0:
-        pb = random.uniform(0.,1.)
+        pb = ls_seeds[nump].randgen.uniform(0.,1.)
         if pb<ParamP[nump]['ProbaMaxAdvRoots'] :
             if mean(S.ftsw_t[Horiz,:,:]) > ParamP[nump]['WaterTreshAdvRoots']:
                 produce [;(0)SetHead(0,0,-1, -1,0,0)RA(nump,nsh,-1,rankp,0,0)]

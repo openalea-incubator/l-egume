@@ -257,6 +257,7 @@ def modif_ParamP_sdMulti(ParamP, g4, ls_parname, ls_sdpar, corrmatrix=None):
 
     #tirage multivarie
     x = np.random.multivariate_normal(np.array(mean_), matcov, nbp)
+
     df = pd.DataFrame(x, columns=ls_parname)
 
     #boucle pour reaffecter les valeurs tirees dans g, puis ParamP

@@ -432,13 +432,15 @@ def runl2systemLight_bystep(n, m):
         #def variables communes
         meteo_j, station, surf_refVOX, triplets, surfsolref = meteo_j1, station1, surf_refVOX1, triplets1, surfsolref1
 
+        ls_dif = ls_dif1
+        m_lais = m_lais1 + m_lais2
         #gere difference de dsitib par especes
-        if (ls_dif1[0] == ls_dif2[0]).all(): # cas ou ce sont les memes distrib d'angles
-            ls_dif = ls_dif1
-            m_lais = m_lais1 + m_lais2
-        else: #distrib differents
-            ls_dif = ls_dif1 + ls_dif2
-            m_lais = np.array([m_lais1[0], m_lais2[0]])  # matrice 4D , 1ere dim = 1 matrice 3D par distrib angles espece
+        #if (ls_dif1[0] == ls_dif2[0]).all(): # cas ou ce sont les memes distrib d'angles
+        #    ls_dif = ls_dif1
+        #    m_lais = m_lais1 + m_lais2
+        #else: #distrib differents
+        #    ls_dif = ls_dif1 + ls_dif2
+        #    m_lais = np.array([m_lais1[0], m_lais2[0]])  # matrice 4D , 1ere dim = 1 matrice 3D par distrib angles espece
 
 
         #TO DO: definir variables communes dans run couple: sol S de S1 et variables reunissant facilement les 2
@@ -569,7 +571,9 @@ def runl2systemLight_bystep(n, m):
 # sorties sont differents: !! gere pas les nump et tirages aleatoires / delaiinin -> a completer avec MAJ test_retard
 # faire 1 test_retard par esp!!? -> fait pour tirage; OK pour les timing de depart
 # mais tres vite pour la suite autres processus aleatoires donnent qd meme resultats differents pour la meme simuls
-
+# introduit generateur de nb aleatoire par plante -> OK pour le premier mais apres derive toujours??
+# utilise le generateur de numpy pour aussi capter tirage de loi binomiale ; tout avec meme seed -> ko
+#desactive tirages loi binomiale racine? -> pas ; ko tjrs different
 
 
 
@@ -610,9 +614,9 @@ if __name__ == '__main__':
     for i in range(1):#(int(nb_usms)):
         #pool.apply_async(runlsystem, args=(i,))   # Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
         #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
-        #runlsystem_bystep(i)
+        runlsystem_bystep(i)
         #runl2system_bystep(i, i+1)
-        runl2systemLight_bystep(i, i+1)
+        #runl2systemLight_bystep(i, i+1)
 
     pool.close()
     pool.join()
