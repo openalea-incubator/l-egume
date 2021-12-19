@@ -51,7 +51,7 @@ import zipfile
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres
-opt_covar = 0# #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
+opt_covar = 1# #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
 opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
@@ -113,7 +113,7 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 ongletP = 'Fix2'#'Orca'#'Fet'#'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletPvois = 'Fet'#'nonFixSimTest'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
@@ -137,7 +137,7 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'scenarios_planMorris.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
 ongletScenar1 = 'Fix2'#'Orca'#'default'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'nonFixSimTest'#'Fet'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
+ongletScenar2 = 'Fet'#'nonFixSimTest'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')

@@ -964,6 +964,81 @@ Plot_resCE_SE <- function(resCE_SE, titre="")
 
 
 
+#fonction des exemple de pairs
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+#df <- data.frame(retard,Val_param,ParaMvois,PARivois,MScumvois, MStot_ini, MStot_fin, MStot_coupe1, MStot_coupe2, MStot_coupe3, MStot_coupe4, MStot_coupe5)
+#pairs(df, lower.panel = panel.smooth, upper.panel = panel.cor,gap=0, row1attop=FALSE, main=key)
+
+
+
+plot_ranking_lines <- function(tab, id_refdec=1, decHaut=9, decBas=2, id_refline=NA, titre='', ymax=1, xlab='',ylab='')
+{
+  # plot de trajectoires d'interaction/ranking entre modalite classees en colonnes dans un tableau (tab)
+  # visualise selection de decile ou d'individus particuliers dans une population
+  
+  #id_refdec <- 3#1 #colone de ref pour les deciles
+  #id_refline <- NA#10#
+  #decHaut <- 9
+  #decBas <- 2
+  #titre <- paste(trait, sp)
+  #ymax <- 15000
+  
+  nb_dates <- dim(tab)[2]
+  plot(-10,-10, xlim=c(0,nb_dates+1), ylim=c(0, ymax),main=titre,xlab=xlab,ylab=ylab)
+  for (i in 1:dim(dd)[1])
+  {
+    points(1:nb_dates, as.numeric(tab[i,]), type="b", col="grey")
+  }
+  
+  #ajout decile de la date 'id_refdec'
+  Dec_ <- quantile(tab[,id_refdec], na.rm=T, probs = seq(0, 1, 0.1))
+  D9 <- as.numeric(Dec_[decHaut+1]) #decile 1 haut
+  D2 <- as.numeric(Dec_[decBas+1]) #decile 2 bas
+  for (i in 1:dim(tab)[1])
+  {
+    if (! is.na(tab[i,id_refdec]))
+    {
+      
+      if (tab[i,id_refdec] > D9)
+      {
+        points(1:nb_dates, as.numeric(tab[i,]), type="b", col="red")
+      }
+      
+      if (tab[i,id_refdec] < D2)
+      {
+        points(1:nb_dates, as.numeric(tab[i,]), type="b", col="blue")
+      }
+    }
+  }
+  
+  #ajout de la ligne a surligner
+  if (! is.na(id_refline))
+  {
+    points(1:nb_dates, as.numeric(tab[id_refline,]), type="b", col=1, lwd=2)
+  }
+}
+
+#decile sur base 1ere date
+#plot_ranking_lines(dd, id_refdec=1, titre=paste(trait, sp), ymax=15000)
+#decile sur base derniere date
+#plot_ranking_lines(dd, id_refdec=3, titre=paste(trait, sp), ymax=15000)
+#visu plante 50 et pas les deciles
+#nbp <- 50
+#plot_ranking_lines(dd, id_refdec=1, decHaut=10, decBas=0, id_refline=nbp, titre=paste(trait, sp, nbp), ymax=15000)
+  
+
+
+
+
 #fonction pour determiner l'id des voisins d'ordre 1
 ls_idvois_ordre1 <- function(n, cote, nblignes)
 {
