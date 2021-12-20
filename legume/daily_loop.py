@@ -141,7 +141,8 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
         Npc_rac_fine = invar['Npc_rac_fine']
         if sum(isGelDam) == 0: #jour sans gel
             #jour d'avant pour etre synchro Naerien / MSaerein
-            Npc_aer = Npc_aerien_tm1
+            #Npc_aer = Npc_aerien_tm1
+            Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100.
         else: #jour avec gel -> plante a plante
             Npc_aer = array(invar['Naerien']) / (array(invar['MS_aerien'])) * 100.  # aer deja dans MS_aerien! -> mis a jour
             for nump in range(nbplantes):
@@ -155,8 +156,10 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     invar['NreservPiv'] = array(invar['Npivot']) * (Npc_piv - array(riri.get_lsparami(ParamP, 'NminPiv'))) / Npc_piv
     invar['NreservPiv'][invar['NreservPiv'] < 0.] = 0.  # verifier que depasse pas zero!!
 
+
     ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(invar['MS_aerien'])-array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(riri.get_lsparami(ParamP, 'ADIL')), b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(riri.get_lsparami(ParamP, 'BDIL')))
     #ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(MS_aerien_tm1), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(riri.get_lsparami(ParamP, 'ADIL')), b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(riri.get_lsparami(ParamP, 'BDIL')))
+
     ls_demandeN_aer = ls_demandeN_aer * 0.001 #+ 1e-15  # en kg N.plant-1
     ls_demandN_piv = solN.demandeNroot(array(invar['MS_pivot']), pivot, Npc_piv, surfsolref,
                                        array(riri.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + epsilon #+ 1e-15  # en kg N.plant-1
@@ -331,6 +334,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # print 'Npc_piv', invar['Npc_piv'][0:2]
 
     critN_inst = NcritTot_#solN.critN(sum(aer + array(invar['MS_aerien'])) / (surfsolref * 100.))  # azote critique couvert
+    critN_inst[critN_inst > 7.] = 7. #seuil de crit pour calcul stress NNI plus bas pour petites plantes
     #print('critN' , critN_inst, invar['Npc_aer'])
     invar['NNI'] = invar['Npc_aer'] / critN_inst
 

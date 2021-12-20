@@ -551,10 +551,8 @@ def Cremob(DemCp, R_DemandC_Shoot, MSPiv, frac_remob=0.1):
     ratio_seuil = array(deepcopy(R_DemandC_Shoot))
     ratio_seuil[ratio_seuil > 1.] = 1.  # borne ratio demande a 1
     dem_non_couv = array(DemCp) * (1 - ratio_seuil)
-    dem_non_couv_dispo = frac_remob * array(
-        MSPiv) - dem_non_couv  # depend d'un fraction remobilisable du pivot par jour
-    dem_non_couv_dispo[dem_non_couv_dispo < 0] = dem_non_couv[dem_non_couv_dispo < 0] + dem_non_couv_dispo[
-        dem_non_couv_dispo < 0]  # borne remobilisation a poids du pivot
+    dem_non_couv_dispo = frac_remob * array(MSPiv) - dem_non_couv  # depend d'un fraction remobilisable du pivot par jour
+    dem_non_couv_dispo[dem_non_couv_dispo < 0] = dem_non_couv[dem_non_couv_dispo < 0] + dem_non_couv_dispo[dem_non_couv_dispo < 0]  # borne remobilisation a poids du pivot
     remob = deepcopy(dem_non_couv_dispo)
     remob[dem_non_couv <= 0.] = 0.  # met a zero si couvert
     for i in range(len(remob)):
