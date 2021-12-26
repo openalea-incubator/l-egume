@@ -155,6 +155,8 @@ build_simmoy <- function(ltoto, lsusm, esp=NA, optSD=F)
 
   LAI <- moysimval(ltoto, lsusm, var='SurfPlante', esp, optSD)/ surfsolref
   MSA <- moysimval(ltoto,lsusm, var='MSaerien', esp, optSD)/ surfsolref
+  MSArec <- moysimval(ltoto,lsusm, var='MSaerienRec', esp, optSD)/ surfsolref
+  MSAnonrec <- moysimval(ltoto,lsusm, var='MSaerienNonRec', esp, optSD)/ surfsolref
   MSpiv <- moysimval(ltoto,lsusm, var='MS_pivot', esp, optSD)/ surfsolref
   MSracfine <- moysimval(ltoto,lsusm, var='MS_rac_fine', esp, optSD)/ surfsolref
   MSrac <- MSpiv + MSracfine
@@ -176,7 +178,7 @@ build_simmoy <- function(ltoto, lsusm, esp=NA, optSD=F)
   Ndfa <- moysimval(ltoto,lsusm, var='Ndfa', esp, optSD)/ nbplt
   Epsi <- moysimval(ltoto,lsusm, var='epsi', esp, optSD)
   
-  simmoy <- data.frame(STEPS, TT, NBI, NBphyto, LAI, MSA, MSpiv, MSracfine, MSrac, RDepth, Hmax, FTSW, NNI, R_DemandC_Root, cutNB, Npc_aer,Ndfa,Epsi,NBsh)
+  simmoy <- data.frame(STEPS, TT, NBI, NBphyto, LAI, MSA, MSArec, MSAnonrec, MSpiv, MSracfine, MSrac, RDepth, Hmax, FTSW, NNI, R_DemandC_Root, cutNB, Npc_aer,Ndfa,Epsi,NBsh)
   simmoy
 }#version revue par Lucas tient cmpte du nom de l'espece dans les assos
 

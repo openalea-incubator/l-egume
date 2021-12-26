@@ -649,14 +649,14 @@ def init_variables_plantes(ParamP, nbplantes):
     #! RLentot va remplacer RLTot!
     
     
-    invar = {'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'PARaPlanteU':[],'Hplante':[], 'Dplante':[], 'RLTot':[], 'RDepth':[], 'parap':[], 'parip':[], 'Mrac_fine':[], 'Mpivot':[], 'Maerien':[], 'Mfeuil':[],'Mcoty':[],'MS_rac_fine':[], 'MS_pivot':[], 'MS_aerien':[],'MS_feuil':[],'MS_aer_cumul':[], 'Mtot':[], 'MS_tot':[], 'DiampivMax':[], 'countSh':[], 'NBsh':[], 'NBI':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'DemandN_TotAer':[], 'NBD1':[], 'NBB':[], 'countShExp':[],'lsA':[],'lsAPrev':[],'lsApexMort':[], 'NBBexp':[], 'R_DemandC_Root':[],'RLen1':[], 'RLen2':[],'RLen3':[],'RLentot':[],'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[],'firstleaf':[], 'Naerien':[], 'Npc_aer':[], 'Npc_piv':[], 'Npc_rac_fine':[],'Nuptake_sol':[],'NNI':[], 'Ndfa':[], 'Qfix':[], 'TT':[],'TTsol':[], 'dTT':[], 'dTTsol':[], 'dMSenFeuil':[],'dMSenTige':[], 'R_DemandC_Shoot':[],'RUEactu':[], 'DemCp':[],'DemCp_lf':[], 'DemCp_in':[], 'DemCp_pt':[], 'L_Sp':[],'remob':[],'Nrac_fine':[], 'Npivot':[],'dRLen2':[],'dRLen3':[],'dMSenRoot':[],'dRLenSentot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'Surfcoty':[],'NBphyto':[],'germination':[],'MSgraine':[], 'Ngraine':[],'dMSgraine':[],'dNgraine':[], 'NBapexAct':[],'NreservPiv':[],'rgeq':[], 'transpi':[], 'cumtranspi':[],'aliveB':[],'isGelDam':[],'dMSmortGel':[],'dNmortGel':[],'dTTphyllo':[],'TTphyllo':[], 'Udev':[],'Udevstress':[],'Udevsol':[],'TTudev':[],'RUEpot':[],'countGelD':[]} 
+    invar = {'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'PARaPlanteU':[],'Hplante':[], 'Dplante':[], 'RLTot':[], 'RDepth':[], 'parap':[], 'parip':[], 'Mrac_fine':[], 'Mpivot':[], 'Maerien':[], 'Mfeuil':[],'MS_coty':[],'MS_rac_fine':[], 'MS_pivot':[], 'MS_aerien':[],'MS_feuil':[],'MS_aer_cumul':[], 'Mtot':[], 'MS_tot':[], 'DiampivMax':[], 'countSh':[], 'NBsh':[], 'NBI':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'DemandN_TotAer':[], 'NBD1':[], 'NBB':[], 'countShExp':[],'lsA':[],'lsAPrev':[],'lsApexMort':[], 'NBBexp':[], 'R_DemandC_Root':[],'RLen1':[], 'RLen2':[],'RLen3':[],'RLentot':[],'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[],'firstleaf':[], 'Naerien':[], 'Npc_aer':[], 'Npc_piv':[], 'Npc_rac_fine':[],'Nuptake_sol':[],'NNI':[], 'Ndfa':[], 'Qfix':[], 'TT':[],'TTsol':[], 'dTT':[], 'dTTsol':[], 'dMSenFeuil':[],'dMSenTige':[], 'R_DemandC_Shoot':[],'RUEactu':[], 'DemCp':[],'DemCp_lf':[], 'DemCp_in':[], 'DemCp_pt':[], 'L_Sp':[],'remob':[],'Nrac_fine':[], 'Npivot':[],'dRLen2':[],'dRLen3':[],'dMSenRoot':[],'dRLenSentot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'Surfcoty':[],'NBphyto':[],'germination':[],'MS_graine':[], 'Ngraine':[],'dMSgraine':[],'dNgraine':[], 'NBapexAct':[],'NreservPiv':[],'rgeq':[], 'transpi':[], 'cumtranspi':[],'aliveB':[],'isGelDam':[],'dMSmortGel':[],'dNmortGel':[],'dTTphyllo':[],'TTphyllo':[], 'Udev':[],'Udevstress':[],'Udevsol':[],'TTudev':[],'RUEpot':[],'countGelD':[],'graineC':[],'graineN':[], 'Ncoty':[], 'Mtige':[], 'MS_tige':[], 'MS_aerienNonRec':[], 'MS_aerienRec':[], 'NaerienNonRec':[], 'NaerienRec':[],'dMSenPiv':[],'dMSenNonRec':[],'CreservPiv':[],'perteN_NonRec':[], 'perteN_Piv':[], 'perteN_aerien':[],'Npc_aerNonRec':[],'Msenaerien':[], 'MS_senaerien':[]} 
     
     for i in range(nbplantes): invar['SurfPlante'].append([]); invar['PARaPlante'].append([]); invar['PARiPlante'].append([]); invar['lsA'].append([]);invar['lsAPrev'].append([]);invar['lsApexMort'].append([])
     
-    for i in range(nbplantes): invar['Hplante'].append(0.); invar['Dplante'].append(0.);invar['RLTot'].append(0.); invar['RDepth'].append(0.);invar['parap'].append(0.); invar['parip'].append(0.);invar['PARaPlanteU'].append(0.);invar['DiampivMax'].append(0.1); invar['countSh'].append(0);invar['NBsh'].append(0.);invar['NBI'].append(0.);invar['DemandN_Feuil'].append(0.);invar['DemandN_Pet'].append(0.);invar['DemandN_Stem'].append(0.);invar['DemandN_Tot'].append(0.);invar['NBD1'].append(0);invar['NBB'].append(0); invar['countShExp'].append(0);invar['NBBexp'].append(0); invar['R_DemandC_Root'].append(0);invar['RLen1'].append(0);invar['RLen2'].append(0);invar['RLen3'].append(0);invar['RLentot'].append(0);invar['SRL'].append(100.);invar['phmgPet'].append([1.]);invar['phmgEntr'].append([1.]);invar['phmgPet_m'].append([1.]);invar['phmgEntr_m'].append([1.]);invar['firstleaf'].append(float("inf"));invar['MS_aer_cumul'].append(0.); invar['NNI'].append(1.); invar['Ndfa'].append(1.); invar['TT'].append(0.);invar['TTsol'].append(0.);invar['dTT'].append(0.);invar['dTTsol'].append(0.);invar['dMSenFeuil'].append(0.);invar['dMSenTige'].append(0.);invar['R_DemandC_Shoot'].append(1.);invar['DemCp'].append(0.);invar['DemCp_lf'].append(0.);invar['DemCp_in'].append(0.);invar['DemCp_pt'].append(0.);invar['MS_pivot'].append(0.);invar['remob'].append(0.);invar['RLTotNet'].append(0); invar['MS_rac_fineNet'].append(0);invar['perteN_rac_fine'].append(0);invar['NBphyto'].append(0);invar['germination'].append(0);invar['dMSgraine'].append(0.);invar['dNgraine'].append(0.);invar['NBapexAct'].append(0); invar['NreservPiv'].append(0);invar['rgeq'].append(0);invar['cumtranspi'].append(0.);invar['aliveB'].append(0.);invar['isGelDam'].append(0);invar['dMSmortGel'].append(0.);invar['dNmortGel'].append(0.);invar['dTTphyllo'].append(0.);invar['TTphyllo'].append(0.);invar['Udev'].append(0.);invar['Udevstress'].append(0.);invar['Udevsol'].append(0.);invar['TTudev'].append(0.);invar['countGelD'].append(10.);
+    for i in range(nbplantes): invar['Hplante'].append(0.); invar['Dplante'].append(0.);invar['RLTot'].append(0.); invar['RDepth'].append(0.);invar['parap'].append(0.); invar['parip'].append(0.);invar['PARaPlanteU'].append(0.);invar['DiampivMax'].append(0.1); invar['countSh'].append(0);invar['NBsh'].append(0.);invar['NBI'].append(0.);invar['DemandN_Feuil'].append(0.);invar['DemandN_Pet'].append(0.);invar['DemandN_Stem'].append(0.);invar['DemandN_Tot'].append(0.);invar['NBD1'].append(0);invar['NBB'].append(0); invar['countShExp'].append(0);invar['NBBexp'].append(0); invar['R_DemandC_Root'].append(0);invar['RLen1'].append(0);invar['RLen2'].append(0);invar['RLen3'].append(0);invar['RLentot'].append(0);invar['SRL'].append(100.);invar['phmgPet'].append([1.]);invar['phmgEntr'].append([1.]);invar['phmgPet_m'].append([1.]);invar['phmgEntr_m'].append([1.]);invar['firstleaf'].append(float("inf"));invar['MS_aer_cumul'].append(0.); invar['NNI'].append(1.); invar['Ndfa'].append(1.); invar['TT'].append(0.);invar['TTsol'].append(0.);invar['dTT'].append(0.);invar['dTTsol'].append(0.);invar['dMSenFeuil'].append(0.);invar['dMSenTige'].append(0.);invar['R_DemandC_Shoot'].append(1.);invar['DemCp'].append(0.);invar['DemCp_lf'].append(0.);invar['DemCp_in'].append(0.);invar['DemCp_pt'].append(0.);invar['MS_pivot'].append(0.);invar['remob'].append(0.);invar['RLTotNet'].append(0); invar['MS_rac_fineNet'].append(0);invar['perteN_rac_fine'].append(0);invar['NBphyto'].append(0);invar['germination'].append(0);invar['dMSgraine'].append(0.);invar['dNgraine'].append(0.);invar['NBapexAct'].append(0); invar['NreservPiv'].append(0);invar['rgeq'].append(0);invar['cumtranspi'].append(0.);invar['aliveB'].append(0.);invar['isGelDam'].append(0);invar['dMSmortGel'].append(0.);invar['dNmortGel'].append(0.);invar['dTTphyllo'].append(0.);invar['TTphyllo'].append(0.);invar['Udev'].append(0.);invar['Udevstress'].append(0.);invar['Udevsol'].append(0.);invar['TTudev'].append(0.);invar['countGelD'].append(10.);invar['graineC'].append(0.);invar['graineN'].append(0.);invar['MS_aerienRec'].append(0.);invar['NaerienRec'].append(0.);invar['dMSenPiv'].append(0.);invar['dMSenNonRec'].append(0.);invar['CreservPiv'].append(0);invar['perteN_NonRec'].append(0);invar['perteN_Piv'].append(0);invar['perteN_aerien'].append(0);
     
     PG = array(riri.get_lsparami(ParamP, 'PMG'))/1000.
-    invar['MSgraine'] = PG.tolist()
+    invar['MS_graine'] = PG.tolist()
     invar['Mtot'].append(PG.tolist())
     invar['Ngraine'] = array(PG)*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.
     
@@ -666,20 +666,27 @@ def init_variables_plantes(ParamP, nbplantes):
     #invar['Mfeuil'].append(array(PG)*0.)
     #invar['Mrac_fine'].append(array(PG)*0.)
     
-    #initialisation avec des epsilon pour pas que ca bug?
+    #initialisation des compartiments avec des epsilon pour pas que ca bug pas?
     epsilon = 10e-10#10e-15
     frac_coty_ini = array(riri.get_lsparami(ParamP, 'frac_coty_ini')) #0.5 ##a passer en parametre?
     PG = array(PG)*epsilon
     
     invar['Maerien'].append(array(PG)*frac_coty_ini) #4/5 va aerien
-    invar['Mcoty'] = array(PG)*frac_coty_ini #dans les cotyledons
+    invar['MS_coty'] = array(PG)*frac_coty_ini #dans les cotyledons
+    invar['Mfeuil'].append(array(PG)*frac_coty_ini*0.98) #tout aerien dans feuil
+    invar['Mtige'].append(array(PG)*frac_coty_ini*0.01) #
     invar['Mrac_fine'].append(array(PG)*(1.-frac_coty_ini)*array(riri.get_lsparami(ParamP, 'frac_rac_fine')))
     invar['Mpivot'].append(array(PG)*(1.-frac_coty_ini)*(1. - array(riri.get_lsparami(ParamP, 'frac_rac_fine'))))
+    invar['MS_aerienNonRec'] = array(PG)*frac_coty_ini*0.01
+    invar['Msenaerien'].append(array(PG)*0.)
     
-    invar['Mfeuil'].append(array(PG)*frac_coty_ini) #tout aerien dans feuil
     invar['Naerien'] = array(PG)*frac_coty_ini*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
+    invar['Ncoty'] = array(PG)*frac_coty_ini*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
     invar['Nrac_fine'] = array(PG)*(1.-frac_coty_ini)*array(riri.get_lsparami(ParamP, 'frac_rac_fine'))*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
     invar['Npivot'] = array(PG)*(1.-frac_coty_ini)*(1. - array(riri.get_lsparami(ParamP, 'frac_rac_fine')))*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
+    invar['NaerienNonRec'] = array(PG)*frac_coty_ini*0.01*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.
+    
+    
     #Mtige pas explicite pour le moment
     
     # 2) INVAR_SC: variables a autres echelle que plante (un dico par echelle des surface, surface verte, PARa cumules)
@@ -773,7 +780,8 @@ def init_outputs(ParamP, nbplantes,ncouches_sol):
     
     # 1) OUTVAR
     #dico de sorties
-    outvar = {'colnames':[],'pattern':[],'TT':[],'TTsol':[], 'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'epsi':[], 'Hplante':[], 'Dplante':[],'dMSaer':[],'RLTot':[], 'RDepth':[], 'MS_aerien':[],'MS_feuil':[],'MS_tot':[], 'countSh':[], 'demandC':[], 'Leaf_Stem':[], 'NBsh':[], 'NBI':[],'time':[],'FTSW':[],'Etransp':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'Npc':[], 'NBD1':[], 'NBB':[], 'countShExp':[], 'NBBexp':[], 'R_DemandC_Root':[], 'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[], 'Naerien':[], 'Npc_aer':[], 'DemandN_Tot_Aer':[], 'Nuptake_sol':[], 'NNI':[], 'Ndfa':[], 'Qfix':[],'dMSenFeuil':[], 'dMSenTige':[],'MS_pivot':[],'MS_rac_fine':[],'R_DemandC_Shoot':[],'RUE':[],'BilanC_PARa':[], 'BilanC_RUE':[],'BilanCdMStot':[], 'BilanCdMrac_fine':[], 'BilanCdMpivot':[], 'BilanCdMaer':[],'BilanCdMSenFeuil':[],'BilanCdMSenTige':[], 'DemCp':[],'remob':[],'Npc_piv':[], 'Npc_rac_fine':[], 'dRLenSentot':[], 'dMSenRoot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'NBphyto':[], 'cutNB':[],'NBapexAct':[],'transpi':[], 'cumtranspi':[],'transpi':[], 'cumtranspi':[],'aliveB':[],'dMSmortGel':[],'dNmortGel':[],'TTphyllo':[],'dTT':[],'Udevstress':[],'Udev':[],'TTudev':[],'RUEpot':[]}
+    outvar = {'colnames':[],'pattern':[],'TT':[],'TTsol':[], 'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'epsi':[], 'Hplante':[], 'Dplante':[],'dMSaer':[],'RLTot':[], 'RDepth':[], 'MS_aerien':[],'MS_feuil':[],'MS_tot':[], 'countSh':[], 'demandC':[], 'Leaf_Stem':[], 'NBsh':[], 'NBI':[],'time':[],'FTSW':[],'Etransp':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'Npc':[], 'NBD1':[], 'NBB':[], 'countShExp':[], 'NBBexp':[], 'R_DemandC_Root':[], 'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[], 'Naerien':[], 'Npc_aer':[], 'DemandN_Tot_Aer':[], 'Nuptake_sol':[], 'NNI':[], 'Ndfa':[], 'Qfix':[],'dMSenFeuil':[], 'dMSenTige':[],'MS_pivot':[],'MS_rac_fine':[],'R_DemandC_Shoot':[],'RUE':[],'BilanC_PARa':[], 'BilanC_RUE':[],'BilanCdMStot':[], 'BilanCdMrac_fine':[], 'BilanCdMpivot':[], 'BilanCdMaer':[],'BilanCdMSenFeuil':[],'BilanCdMSenTige':[], 'DemCp':[],'remob':[],'Npc_piv':[], 'Npc_rac_fine':[], 'dRLenSentot':[], 'dMSenRoot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'NBphyto':[], 'cutNB':[],'NBapexAct':[],'transpi':[], 'cumtranspi':[],'transpi':[], 'cumtranspi':[],'aliveB':[],'dMSmortGel':[],'dNmortGel':[],'TTphyllo':[],'dTT':[],'Udevstress':[],'Udev':[],'TTudev':[],'RUEpot':[],'MS_aerienNonRec':[], 'MS_aerienRec':[], 'NaerienNonRec':[],'NaerienRec':[],'Ncoty':[],'MS_tige':[],'graineC':[],'graineN':[],'dMSenPiv':[],'dMSenNonRec':[],'BilanCdMSenNonRec':[],'BilanCdMSenPiv':[],'CreservPiv':[],'NreservPiv':[],'perteN_NonRec':[], 'perteN_Piv':[], 'perteN_aerien':[],'Npc_aerNonRec':[],'MS_senaerien':[]}
+    
     outvar['pattern'].append(['pattern',0]+[surfsolref]*nbplantes)
     outvar['colnames'].append(['V1','steps']+riri.get_lsparami(ParamP, 'name')) #ajout des noms d'omglet en 1ere ligne
     
@@ -856,7 +864,7 @@ def Start():
     
     
     #init grille rayonnement
-    m_lais = sh.calc_surfcoty(invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #init avec surface des cotyledons
+    m_lais = sh.calc_surfcoty(invar['MS_coty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #init avec surface des cotyledons
     
     tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
     local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi_reduced(*tag_light_inputs, optsky=station['optsky'], opt=station['sky'])
@@ -898,7 +906,7 @@ def StartEach():
     
     #MAJ temps phyllochronique et udev
     invar['TTphyllo'] = array(invar['TTphyllo']) + array(invar['dTTphyllo'])
-    graineC, graineN = sh.reserves_graine(invar, ParamP)
+    invar['graineC'], invar['graineN'] = sh.reserves_graine(invar, ParamP) #mise a jour flux MS et N venant de la graine
     for nump in range(nbplantes): 
         invar['dTT'][nump] = sh.dTT(vT, [ParamP[nump]['Tdev'], ParamP[nump]['Tmin'], ParamP[nump]['Tmax'], ParamP[nump]['q']], optT=opt_optT)
         invar['dTTsol'][nump] = sh.dTT(vTsol, [ParamP[nump]['Tdev'], ParamP[nump]['Tmin'], ParamP[nump]['Tmax'], ParamP[nump]['q']], optT=0)#forcement journalier
@@ -925,7 +933,7 @@ def StartEach():
         invar['Udevsol'][nump] = invar['dTTsol'][nump] * stressPP
         
         ##update gel status par plante
-        if (meteo_j['TmoyDay'] > ParamP[nump]['Tgel'] and opt_stressGel == 1) or  opt_stressGel == 0 or graineN[nump]>0.:
+        if (meteo_j['TmoyDay'] > ParamP[nump]['Tgel'] and opt_stressGel == 1) or  opt_stressGel == 0 or invar['graineN'][nump]>0.:
             invar['isGelDam'][nump] = 0
             invar['dMSmortGel'][nump] = 0.
             invar['dNmortGel'][nump] = 0.
@@ -960,7 +968,17 @@ def StartEach():
     I_I0profilInPlant = deepcopy(I_I0profilLfPlant)
     
     #if TT%TTcutFreq <STEPS:
-    if mng_j['Coupe']==1:
+    if mng_j['Coupe']==1:        
+        
+        # MAJ compartiments recoltes/non recoltes
+        fraction_nonRec = array(riri.get_lsparami(ParamP, 'fraction_NonRec'))#0.1 # a entrer un parametre de fraction non rec / ou une methode de calcul(f de hcut/hauteur?)
+        MS_recoltable = array(invar['MS_aerien']) - array(invar['MS_senaerien']) ##! tenir compte de la senescence!! + 
+        invar['MS_aerienNonRec'] = array(invar['MS_aerienNonRec']) + fraction_nonRec*MS_recoltable #cumul de MS non recolte
+        invar['MS_aerienRec'] = (1. - fraction_nonRec)*MS_recoltable #cumul de MS recolte
+        invar['NaerienNonRec'] = array(invar['NaerienNonRec']) + fraction_nonRec*MS_recoltable*array(invar['Npc_aer'])/100. #cumul de QN non recolte
+        invar['NaerienRec'] = (1. - fraction_nonRec)*MS_recoltable*array(invar['Npc_aer'])/100.
+        
+        # remises a zero
         Hcut = mng_j['Hcut']
         isTTcut = True
         wasTTcut = True
@@ -969,6 +987,8 @@ def StartEach():
         TT_repousse = TT
         invar['Maerien'] = [array([epsilon]*nbplantes)] #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
         invar['Mfeuil'] = [array([epsilon]*nbplantes)] #tout l'aerien
+        invar['Mtige'] = [array([epsilon/10.]*nbplantes)] 
+        invar['Msenaerien'] = [array([0.]*nbplantes)]
         invar['Naerien'] = invar['Maerien'][0]*invar['Npc_aer']/100. #remet avec teneur en N conservee par rapport a avant la coupe
         if opt_verbose==1:
             print(('cut ', Hcut))
@@ -979,6 +999,7 @@ def StartEach():
         #    invar['Naerien'][nump] = 1e-15*invar['Npc_bis'][nump]/100. #remet avec teneur en N conservee par rapport a avant la coupe
     else:
         isTTcut = False
+        invar['MS_aerienRec'] = array(invar['MS_aerienRec'])*0.
     
     
     #effet gel -> va pas ! ttes les plantes meurent pas (gerer plante a plante dans daily_loop)
@@ -986,6 +1007,8 @@ def StartEach():
         #remet que derniere ligne des valeurs cumulee
         invar['Maerien'] = [invar['MS_aerien']]
         invar['Mfeuil'] = [invar['MS_feuil']]
+        invar['Mtige'] = [invar['MS_tige']]
+        invar['Msenaerien'] = [invar['MS_senaerien']]
         invar['dMSmortGel'] = [0.]*nbplantes
         invar['dNmortGel'] = [0.]*nbplantes
         for nump in range(nbplantes): 
@@ -999,6 +1022,7 @@ def StartEach():
                 invar['Maerien'][0][nump] = (1.-frac_mortGel) * invar['Maerien'][0][nump] + epsilon #mise a epsilon - discutable: biomasse residuelle peut ne pas etre negligeable! trefle..
                 invar['Mfeuil'][0][nump] = (1.-frac_mortGel) * invar['Maerien'][0][nump] + epsilon #tout l'aerien
                 invar['Naerien'][nump] = (1.-frac_mortGel) * invar['Maerien'][0][nump]*invar['Npc_aer'][nump]/100.
+                invar['Msenaerien'][0][nump] = 0.
                 
                 #ajout de residu gel - dans voxel du collet
                 voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
@@ -1036,7 +1060,7 @@ def StartEach():
     #ls_systrac[i]=[[carto[nump][0],carto[nump][1],0.,0.01,0.01]] #pour initialiser avec une racine et pas faire planter sol - pose pb seulement avant 1er step
     
     #initialisation des invar['PARiPlante'] avec ajout des PARi cotyledon:
-    sh.calc_parapcoty(invar, m_lais, res_abs_i, invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) 
+    sh.calc_parapcoty(invar, m_lais, res_abs_i, invar['MS_coty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) 
     
     #sorties photomorphogenese
     for i in range(nbplantes): invar['phmgEntr'].append([1.]);invar['phmgPet_m'].append([1.]);invar['phmgEntr_m'].append([1.])
@@ -1063,12 +1087,11 @@ def EndEach(lstring,lscene):
     # * unpacks the list of arguments    
     
     #calcul grille surface couvert (m_lais) 
-    mlaicot = sh.calc_surfcoty(invar['Mcoty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #ajoute surface des cotyledons
+    mlaicot = sh.calc_surfcoty(invar['MS_coty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #ajoute surface des cotyledons
     m_lais = deepcopy(m_lais_construct) + mlaicot
     
     
-    
-    #test move DemCp calcule invar a partir lsOrgans (en faire 1 fonction? bouger ailleurs?)
+    # DemCp calcule invar a partir lsOrgans (en faire 1 fonction? bouger ailleurs?)
     tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
     
     if isTTcut == False and wasTTcut==False:
@@ -1274,6 +1297,9 @@ def End(lstring,lscene):
     dicout['dMSaer'] = outvar['BilanCdMaer']
     dicout['dMSenFeuil'] = outvar['BilanCdMSenFeuil']
     dicout['dMSenTige'] = outvar['BilanCdMSenTige']
+    dicout['dMSenNonRec'] = outvar['BilanCdMSenNonRec']
+    dicout['dMSenPiv'] = outvar['BilanCdMSenPiv']
+    
     #WB
     dicout['cumEV'] = S.bilanW['cumEV']
     dicout['cumTransp'] = S.bilanW['cumTransp']
@@ -1323,7 +1349,9 @@ def End(lstring,lscene):
     
     if outf['outvarfile'] != 0.:
         outvarpath = os.path.join(path_out, outvarfile)#r'H:\devel\grassland\grassland\L-gume\toto.csv'
-        ls_keyvar_pot = ['colnames','pattern','TT','time','cutNB','SurfPlante', 'PARaPlante', 'PARiPlante', 'epsi', 'dMSaer', 'Hplante', 'Dplante','RLTot','RDepth','MS_aerien','MS_feuil','MS_tot','countSh','countShExp','demandC','Leaf_Stem','NBsh','NBI','NBD1','NBB','FTSW','Etransp','DemandN_Feuil','DemandN_Pet', 'DemandN_Stem','DemandN_Tot', 'DemandN_Tot_Aer', 'Npc', 'Npc_aer', 'NNI','Ndfa', 'Qfix','Naerien','Nuptake_sol','R_DemandC_Root', 'SRL','dMSenFeuil','dMSenTige', 'MS_pivot', 'MS_rac_fine','R_DemandC_Shoot','RUEpot','RUE','Npc_piv','Npc_rac_fine','dRLenSentot','dMSenRoot','RLTotNet','MS_rac_fineNet','perteN_rac_fine','NBphyto','NBapexAct','transpi','cumtranspi','aliveB','dMSmortGel','dNmortGel','TTphyllo','DemCp','dTT','Udev','Udevstress','TTudev']#,"phmgEntr","phmgEntr_m","phmgPet","phmgPet_m"]
+        ls_keyvar_pot = ['colnames','pattern','TT','time','cutNB','SurfPlante', 'PARaPlante', 'PARiPlante', 'epsi', 'dMSaer', 'Hplante', 'Dplante','RLTot','RDepth','MS_aerien','MS_feuil','MS_tot','countSh','countShExp','demandC','Leaf_Stem','NBsh','NBI','NBD1','NBB','FTSW','Etransp','DemandN_Feuil','DemandN_Pet', 'DemandN_Stem','DemandN_Tot', 'DemandN_Tot_Aer', 'Npc', 'Npc_aer', 'NNI','Ndfa', 'Qfix','Naerien','Nuptake_sol','R_DemandC_Root', 'SRL','dMSenFeuil','dMSenTige', 'MS_pivot', 'MS_rac_fine','R_DemandC_Shoot','RUEpot','RUE','Npc_piv','Npc_rac_fine','dRLenSentot','dMSenRoot','RLTotNet','MS_rac_fineNet','perteN_rac_fine','NBphyto','NBapexAct','transpi','cumtranspi','aliveB','dMSmortGel','dNmortGel','TTphyllo','DemCp','dTT','Udev','Udevstress','TTudev','MS_aerienNonRec', 'MS_aerienRec', 'NaerienNonRec','NaerienRec','Ncoty','MS_tige','graineC','graineN','CreservPiv','NreservPiv','dMSenPiv','dMSenNonRec', 'perteN_NonRec', 'perteN_Piv', 'perteN_aerien', 'Npc_aerNonRec','MS_senaerien']#,"phmgEntr","phmgEntr_m","phmgPet","phmgPet_m"]
+        
+        
         #valide cles active via fichier d'entree
         ls_keyvar = ['colnames']
         for i in range(1, len(ls_keyvar_pot)):

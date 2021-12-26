@@ -20,8 +20,9 @@ source(paste(dir, "fonctions_mef.r",sep="\\"))
 dirlast <-  paste(dir, "lastvalidBis",sep="\\")
 #dirlast <-  paste(dir, "lastvalid",sep="\\")
 #dirlast <-  paste(dir, "test_champ",sep="\\") #pour visu dossier sorties champ
-#dirlast <-  "C://inputs//inputs mayssa//output"
+#dirlast <-  "C://inputs//inputs mayssa//new tests"
 setwd(dirlast)#(dir0)#
+
 
 #le path avec les fichier obs
 pathobs <- paste(dir, "obs", sep="\\")
@@ -247,8 +248,75 @@ ggarrange(ls_plt[["FTSW"]], ls_plt[["NNI"]], ls_plt[["R_DemandC_Root"]] + rremov
           labels = c("A", "B", "C"),
           ncol = 1, nrow =3 )
 
+plot(simmoy$NNI, ylim=c(0,2), type='l')
+ls_plt[["NNI"]]
+ls_plt[["Npc_aer"]]
+ls_plt[["MSArec"]]
+ls_plt[["MSAnonrec"]]
+ls_plt[["MSA"]]
+ls_plt[["MSpiv"]]
+ls_plt[["MSracfine"]]
 
 
+#ajout d'une liste de variables optionelles a simmoy
+
+#avec ponder surfsolref
+for (var_ in c("dMSenNonRec", "dMSenPiv", "dMSenFeuil", "dMSenTige", "dMSenRoot","perteN_Piv","perteN_NonRec","NaerienNonRec", "MSsenaerien", "perteN_aerien", "dMSmortGel","dNmortGel"))#"graineC", "graineN", "CreservPiv", "NreservPiv"
+{
+  simmoy[,var_] <- moysimval(ltoto, names(ltoto), esp, var=var_)/surfsolref
+  simsd[,var_] <- moysimval(ltoto, lsusm=names(ltoto), esp, var=var_, optSD=T)/surfsolref
+  ls_plt[[var_]] <- gg_plotsim(var_, simmoy, simsd, name)
+}
+ls_plt[["dMSenNonRec"]]
+ls_plt[["dMSenPiv"]]
+ls_plt[["dMSenFeuil"]]
+ls_plt[["dMSenTige"]]
+ls_plt[["dMSenRoot"]]
+ls_plt[["MSsenaerien"]]
+ls_plt[["perteN_Piv"]]
+ls_plt[["perteN_NonRec"]]
+ls_plt[["perteN_aerien"]]
+ls_plt[["NaerienNonRec"]]
+ls_plt[["dMSmortGel"]]
+ls_plt[["dNmortGel"]]
+ls_plt[["MSArec"]]
+
+
+#sans ponder surfsolref
+var_ <- "Npc_piv"
+for (var_ in c("Npc_piv", "Npc_aerNonRec"))
+{
+  simmoy[,var_] <- moysimval(ltoto, names(ltoto), esp, var=var_)
+  simsd[,var_] <- moysimval(ltoto, lsusm=names(ltoto), esp, var=var_, optSD=T)
+  ls_plt[[var_]] <- gg_plotsim(var_, simmoy, simsd, name)
+}
+
+ls_plt[["Npc_piv"]]
+ls_plt[["Npc_aerNonRec"]]
+ls_plt[["Npc_aer"]]
+
+
+
+var_ <- "dMSenTige"#"dMSenFeuil"#"dMSenRoot"#"dMSenPiv"#"dMSenNonRec"
+x <- cumsum(simmoy[,var_])
+plot(x, ylab=var_, type="l", col=2)
+
+
+#test bilan
+var_ <- "dMSenNonRec"
+x <- cumsum(simmoy[,var_])
+x2 <- simmoy[,"MSAnonrec"]
+plot(x, ylab=var_, type="l", col=2, ylim=c(0,40))
+points(x2, col=3,type="l")
+points(x+x2, col=1, type="l")
+
+var_ <- "dMSenPiv"
+x <- cumsum(simmoy[,var_])
+x2 <- simmoy[,"MSpiv"]
+plot(x, ylab=var_, type="l", col=2, ylim=c(0,120))
+points(x2, col=3,type="l")
+points(x+x2, col=1, type="l")
+plot(x2)
 
 #test les obs_sim
 

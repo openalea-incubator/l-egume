@@ -389,22 +389,29 @@ def calcSurfLightScales(ParamP, tab):
 #germination / iitialisation funcions
 def germinate(invar, ParamP, nump):
     # mis a jour pour chaque graine a germination
-    # creation des cotyledons
+    # creation des cotyledons + reste des reserves
+
     frac_coty_ini = ParamP['frac_coty_ini']
-    invar['Mcoty'][nump] = invar['MSgraine'][nump] * frac_coty_ini
-    #invar['Mfeuil'][nump] = invar['MSgraine'][nump] * frac_coty_ini
-    #invar['Naerien'][nump] = invar['Mfeuil'][nump] * ParamP['Npc_ini']/100.
+    invar['MS_coty'][nump] = invar['MS_graine'][nump] * frac_coty_ini
+    invar['Ncoty'][nump] = invar['MS_graine'][nump] * frac_coty_ini * ParamP['Npc_ini'] / 100.
+    #tout le reste initialement dans reserve
+
     # met a jour graine qui a germe et defini pools de reserve (ce qui reste dans MSgraine et N graine = reserve pour soutenir croissance ini)
-    invar['MSgraine'][nump] -= invar['Mcoty'][nump]
-    invar['Ngraine'][nump] -= invar['Mcoty'][nump] * ParamP['Npc_ini'] / 100.
-    invar['dMSgraine'][nump] = invar['MSgraine'][nump] / ParamP['DurGraine']  # delta MS fourni par degrejour par graine pendant DurGraine
+    invar['MS_graine'][nump] -= invar['MS_coty'][nump]
+    invar['Ngraine'][nump] -= invar['MS_coty'][nump] * ParamP['Npc_ini'] / 100.
+
+    #rq: de cette facon une grosse partie des reserve N n'est pas utilisee (immobilisee ds coty)
+    #je me demande si c pas la le pb de 0???
+
+    #deux constates reutilisee ensuite
+    invar['dMSgraine'][nump] = invar['MS_graine'][nump] / ParamP['DurGraine']  # delta MS fourni par degrejour par graine pendant DurGraine
     invar['dNgraine'][nump] = invar['Ngraine'][nump] / ParamP['DurGraine']  # delta QN fourni par degrejour par graine pendant DurGraine
 
     # cotyledons meurent quand DurGraine atteint -> cf calc_surfcoty
     # en toute logique pas besoin de mettre a jour Mfeuil?
 
 def reserves_graine(invar, ParamP):
-    """ calcul des reserves de graine """
+    """ calcul des flux venant des reserves de graine et met a jour MS_graine et Ngraine """
 
     graineC, graineN = [], []
     for nump in range(len(ParamP)):
@@ -417,10 +424,60 @@ def reserves_graine(invar, ParamP):
             dMSgraine = 0.
             dNgraine = 0.
 
+        #pour eviter negatif
+        if dMSgraine > invar['MS_graine'][nump]:
+            dMSgraine = invar['MS_graine'][nump]
+
+        if dNgraine > invar['Ngraine'][nump]:
+            dNgraine = invar['Ngraine'][nump]
+
         graineC.append(dMSgraine)
-        graineN.append(dMSgraine)
+        graineN.append(dNgraine)
+
+    invar['MS_graine'] = array(invar['MS_graine']) - array(graineC)
+    invar['Ngraine'] = array(invar['Ngraine']) - array(graineN)
 
     return array(graineC), array(graineN)
+
+
+def Turnover_compart_Perenne(invar, ParamP):
+    """ calcul des flux lie a turnover des tissus d'un comaprtiment perennes """
+
+    dMSenNonRec, dMSenPiv = [], []
+    perteN_NonRec, perteN_Piv = [], []
+    for nump in range(len(ParamP)):
+        dTT = invar['Udev'][nump]  # invar['dTT'][nump]
+        delai_senperenne = ParamP[nump]['delai_senperenne']  # 500. #parametre -> rq: jouer sur ce parametre pour faire mourrir piv TV?
+        if invar['TTudev'][nump] > delai_senperenne:
+            TOrate_nonrec = ParamP[nump]['TOrate_nonrec'] #0.005 # a passer en parametre
+            TOrate_piv = ParamP[nump]['TOrate_piv'] #0.005  # a passer en parametre
+            dMS_aerienNonRec = invar['MS_aerienNonRec'][nump] * TOrate_nonrec * dTT
+            dMS_piv = invar['MS_pivot'][nump] * TOrate_piv * dTT
+            perteN_NonRec_i = invar['NaerienNonRec'][nump] * TOrate_nonrec * dTT
+            perteN_Piv_i = invar['Npivot'][nump] * TOrate_piv * dTT
+        else:
+            dMS_aerienNonRec = 0.
+            dMS_piv = 0.
+            perteN_NonRec_i = 0.
+            perteN_Piv_i = 0.
+
+        dMSenNonRec.append(dMS_aerienNonRec)
+        dMSenPiv.append(dMS_piv)
+        perteN_NonRec.append(perteN_NonRec_i)
+        perteN_Piv.append(perteN_Piv_i)
+
+    #MAJ des compartiments
+    invar['MS_aerienNonRec'] -= array(dMSenNonRec)
+    invar['MS_pivot'] = array(invar['MS_pivot'])
+    invar['MS_pivot'] -= array(dMSenPiv) #faire un MSpiv_net?
+    invar['MS_pivot'] = invar['MS_pivot'].tolist()
+
+    invar['NaerienNonRec'] -= array(perteN_NonRec)
+    invar['Npivot'] -= array(perteN_Piv)
+
+    #renvoie les flux
+    return array(dMSenNonRec), array(dMSenPiv), array(perteN_NonRec), array(perteN_Piv)
+
 
 
 
@@ -559,7 +616,7 @@ def Cremob(DemCp, R_DemandC_Shoot, MSPiv, frac_remob=0.1):
         remob[i] = min(remob[i], dem_non_couv[i])
 
     return remob
-    # frac_remob dans ParamP?
+    # frac_remob dans ParamP -> fait
 
 
 #calcul variables internes / intermediaire
