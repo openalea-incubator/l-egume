@@ -170,6 +170,53 @@ def updateRootDistrib(RLtot, syst_rac, lims):
 
     return mL
 
+def propRootDistrib(ls_roots):
+    """ proportion of plant root length in each voxel for a list of root system grids"""
+    ls_props = []
+    for nump in range(len(ls_roots)):
+        mat_ =  ls_roots[nump]/max(sum(ls_roots[nump]),10e-15)
+        ls_props.append(mat_)
+
+    return ls_props
+    #rq: inclu dans propRootDistrib_upZ
+
+def propRootDistrib_upZ(ls_roots, depth=None, dz_sol=5.):
+    """ proportion of plant root length in each voxel up to depth Z for a list of root system grids"""
+    ls_props = []
+    for nump in range(len(ls_roots)):
+        if depth is None: #pas de profondeur renseignee = prend tout le profil
+            mat_ =  ls_roots[nump]/max(sum(ls_roots[nump]), 10e-15)
+            ls_props.append(mat_)
+        elif depth <= dz_sol: #premiere couche seulement
+            mat_ini = ls_roots[nump]
+            mat_keep = mat_ini[0,:,:]
+            mat_2 = mat_ini*0.
+            mat_2[0,:,:] = mat_keep
+            mat_ = mat_2 / max(sum(mat_2), 10e-15)
+            ls_props.append(mat_)
+        else:
+            mat_ini = ls_roots[nump]
+            row_to_keep = min(int(depth / dz_sol) + 1, mat_ini.shape[0])
+            mat_keep = mat_ini[0:row_to_keep, :, :]
+            mat_2 = mat_ini * 0.
+            mat_2[0:row_to_keep, :, :] = mat_keep
+            mat_ = mat_2 / max(sum(mat_2), 10e-15)
+            ls_props.append(mat_)
+
+    return ls_props
+    #ou defaut=30 cm?
+
+
+
+def VoxWithRoots(ls_roots):
+    """ 1 in voxels with plant roots for a list of root system grids """
+    ls_ones = []
+    for nump in range(len(ls_roots)):
+        mat_1 = deepcopy(ls_roots[nump])
+        mat_1[mat_1>0] = 1
+        ls_ones.append(mat_1)
+
+    return ls_ones
 
 # def VisuRootDistrib2D(RLmap, lims, zlim=None):
 #     #carte 2D

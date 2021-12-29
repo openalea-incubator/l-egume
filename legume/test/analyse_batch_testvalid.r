@@ -261,7 +261,7 @@ ls_plt[["MSracfine"]]
 #ajout d'une liste de variables optionelles a simmoy
 
 #avec ponder surfsolref
-for (var_ in c("dMSenNonRec", "dMSenPiv", "dMSenFeuil", "dMSenTige", "dMSenRoot","perteN_Piv","perteN_NonRec","NaerienNonRec", "MSsenaerien", "perteN_aerien", "dMSmortGel","dNmortGel"))#"graineC", "graineN", "CreservPiv", "NreservPiv"
+for (var_ in c("dMSenNonRec", "dMSenPiv", "dMSenFeuil", "dMSenTige", "dMSenRoot","perteN_Piv","perteN_NonRec","NaerienNonRec", "MSsenaerien", "perteN_aerien", "dMSmortGel","dNmortGel", "dMSmortPlant_aer"))#"graineC", "graineN", "CreservPiv", "NreservPiv"
 {
   simmoy[,var_] <- moysimval(ltoto, names(ltoto), esp, var=var_)/surfsolref
   simsd[,var_] <- moysimval(ltoto, lsusm=names(ltoto), esp, var=var_, optSD=T)/surfsolref
@@ -280,9 +280,11 @@ ls_plt[["NaerienNonRec"]]
 ls_plt[["dMSmortGel"]]
 ls_plt[["dNmortGel"]]
 ls_plt[["MSArec"]]
+ls_plt[["MSA"]]
+ls_plt[["dMSmortPlant_aer"]]
 
 
-#sans ponder surfsolref
+#avec ponder nbplt
 var_ <- "Npc_piv"
 for (var_ in c("Npc_piv", "Npc_aerNonRec"))
 {
@@ -294,6 +296,8 @@ for (var_ in c("Npc_piv", "Npc_aerNonRec"))
 ls_plt[["Npc_piv"]]
 ls_plt[["Npc_aerNonRec"]]
 ls_plt[["Npc_aer"]]
+#pas bon car manque /nbplt!!! + pb nbp_piv
+
 
 
 

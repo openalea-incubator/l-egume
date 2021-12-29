@@ -240,13 +240,13 @@ def step_epsi(invar, res_trans, meteo_j, surfsolref):
     ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
     return ls_epsi, invar
 
-def step_bilanWN_sol(S, par_SN, lims_sol, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, invar, ls_epsi, ls_systrac, ls_demandeN_bis, opt_residu):
+def step_bilanWN_sol(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu):
     """ daily step for soil W and N balance from meteo, management and lsystem inputs"""
 
     # testRL = updateRootDistrib(invar['RLTot'][0], ls_systrac[0], lims_sol)
     # ls_roots = rtd.build_ls_roots_mult(invar['RLTot'], ls_systrac, lims_sol) #ancien calcul base sur SRL fixe
-    ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac,
-                                       lims_sol)  # !*100 pour passer en cm et tester absoption d'azote (normalement m) #a passer apres calcul de longuer de racine!
+    #ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et tester absoption d'azote (normalement m) #a passer apres calcul de longuer de racine!
+    # esternalise calcul de ls_roots -> wrapper prend grille en entree et plus geom
 
     # preparation des entrees eau
     Rain = meteo_j['Precip']
@@ -586,8 +586,8 @@ def increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, ae
     outvar['NBapexAct'].append(['NBapexAct', DOY] + invar['NBapexAct'])  # pour correction du nb phyto par rapport au comptage observe
     outvar['transpi'].append(['transpi', DOY] + invar['transpi'])
     outvar['cumtranspi'].append(['cumtranspi', DOY] + invar['cumtranspi'].tolist())
-    outvar['dMSmortGel'].append(['dMSmortGel', DOY] + invar['dMSmortGel'])
-    outvar['dNmortGel'].append(['dNmortGel', DOY] + invar['dNmortGel'])
+    outvar['dMSmortGel'].append(['dMSmortGel', DOY] + invar['dMSmortGel_aer'])
+    outvar['dNmortGel'].append(['dNmortGel', DOY] + invar['dNmortGel_aer'])
     outvar['MS_aerienNonRec'].append(['MSaerienNonRec', DOY] + invar['MS_aerienNonRec'].tolist())
     outvar['MS_aerienRec'].append(['MSaerienRec', DOY] + invar['MS_aerienRec'].tolist())
     outvar['NaerienNonRec'].append(['NaerienNonRec', DOY] + invar['NaerienNonRec'].tolist())
@@ -602,6 +602,12 @@ def increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, ae
     outvar['perteN_aerien'].append(['perteN_aerien', DOY] + invar['perteN_aerien'].tolist())
     outvar['Npc_aerNonRec'].append(['Npc_aerNonRec', DOY] + invar['Npc_aerNonRec'].tolist())
     outvar['MS_senaerien'].append(['MSsenaerien', DOY] + invar['MS_senaerien'])
+    outvar['dMSmortPlant_aer'].append(['dMSmortPlant_aer', DOY] + invar['dMSmortPlant_aer'].tolist())
+    outvar['dMSmortPlant_pivot'].append(['dMSmortPlant_pivot', DOY] + invar['dMSmortPlant_pivot'].tolist())
+    outvar['dMSmortPlant_racfine'].append(['dMSmortPlant_racfine', DOY] + invar['dMSmortPlant_racfine'].tolist())
+    outvar['dNmortPlant_aer'].append(['dNmortPlant_aer', DOY] + invar['dNmortPlant_aer'].tolist())
+    outvar['dNmortPlant_pivot'].append(['dNmortPlant_pivot', DOY] + invar['dNmortPlant_pivot'].tolist())
+    outvar['dNmortPlant_racfine'].append(['dNmortPlant_racfine', DOY] + invar['dNmortPlant_racfine'].tolist())
 
 
 
@@ -615,19 +621,61 @@ def increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, ae
     # to do: passer ls_epsi, aer, ls_ftsw, ls_transp, Npc dans invar!
 
 
-def update_residue_mat(ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu):
+
+def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, opt_residu, opt_stressGel):
     """ Distribute senescing tissues in ls_mat_res - After plant senescence/per residu type """
     # ajout dans la matrice des residus
-    for nump in range(len(invar['dMSenRoot'])):
-        voxsol = riri.WhichVoxel(array(carto[nump]), [0., 0., 0.],
-                                 [len(lims_sol[0]) - 1, len(lims_sol[1]) - 1, len(lims_sol[2]) - 1],
-                                 [S.dxyz[0][0] * 100., S.dxyz[1][0] * 100., S.dxyz[2][0] * 100.])
-        groupe_resid = int(ParamP[nump]['groupe_resid'])
-        ls_mat_res[groupe_resid * 4 + 2][voxsol[2]][voxsol[1]][voxsol[0]] += invar['dMSenRoot'][nump]
-        # a revoir: tenir compte du groupe_resid
-        # tout mis en surface: faire une distrib dans le sol en profondeur!
 
-    # ajout des pivots a faire avant mse a jour des cres
+    dz_sol = S.dxyz[2][0]*100. #cm
+    #couches2keep = min(int(profres / dz_sol) + 1, len(S.dxyz[2]))
+
+    root_prop0 = rtd.propRootDistrib_upZ(ls_roots, depth=dz_sol, dz_sol=dz_sol) #proportion horizon de surface
+    root_propProf = rtd.propRootDistrib_upZ(ls_roots, depth=profres, dz_sol=dz_sol) #proportion horizon de profHum
+
+    for nump in range(len(invar['dMSenRoot'])):
+        groupe_resid = int(ParamP[nump]['groupe_resid'])
+
+        ## senescence feuilles
+        mat_res = root_prop0[nump] * invar['dMSenFeuil'][nump] #en surface
+        ls_mat_res[groupe_resid * 4 + 0] += mat_res #ajout au groupe 1 = feuille
+
+        ## senescence tiges
+        mat_res = root_prop0[nump] * invar['dMSenTige'][nump]  # en surface
+        ls_mat_res[groupe_resid * 4 + 1] += mat_res  # ajout au groupe 2 = tiges
+
+        # turnover aerien non rec
+        mat_res = root_prop0[nump] * invar['dMSenNonRec'][nump] #en surface
+        ls_mat_res[groupe_resid * 4 + 0] += mat_res #ajout au groupe 1 = feuille
+
+        ## senescence racines
+        mat_res = root_propProf[nump] * invar['dMSenRoot'][nump] #sur profhum
+        ls_mat_res[groupe_resid * 4 + 2] += mat_res #ajout au groupe 3 = racine fines
+
+        ## senescence pivot
+        mat_res = root_propProf[nump] * invar['dMSenPiv'][nump]  # sur profhum
+        ls_mat_res[groupe_resid * 4 + 3] += mat_res  # ajout au groupe 4 = pivot
+
+        #si gel, ajout mort gel
+        if sum(invar['isGelDam']) != 0 and opt_stressGel == 1:
+            mat_res = root_prop0[nump] * invar['dMSmortGel_aer'][nump]  # en surface
+            ls_mat_res[groupe_resid * 4 + 0] += mat_res  # ajout au groupe 1 = feuille
+
+        #si nouvelle plante morte
+        if sum(invar['dMSmortPlant_aer']) > 0.:
+            #parties aeriennes
+            mat_res = root_prop0[nump] * invar['dMSmortPlant_aer'][nump]  # en surface
+            ls_mat_res[groupe_resid * 4 + 0] += mat_res  # ajout au groupe 1 = feuille
+
+            # parties racines
+            mat_res = root_propProf[nump] * invar['dMSmortPlant_racfine'][nump]  # sur profhum
+            ls_mat_res[groupe_resid * 4 + 2] += mat_res  # ajout au groupe 3 = racines
+
+            # parties pivot
+            mat_res = root_propProf[nump] * invar['dMSmortPlant_pivot'][nump]  # sur profhum
+            ls_mat_res[groupe_resid * 4 + 3] += mat_res  # ajout au groupe 4 = feuille
+
+
+    # inclusion dans objet sol
     if opt_residu == 1:  # option residu activee: mise a jour des cres
         if sum(list(map(sum, ls_mat_res))) > 0.:  # si de nouveaux residus (ou supeieur a un seuil
             for i in range(len(ls_mat_res)):
@@ -638,7 +686,7 @@ def update_residue_mat(ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_r
     # calcul senesc a faire a l'echelle des axes plutot? -> a priori pas necessaire
     return [ls_mat_res, S]
 
-#verif seescence des pivots?
+
 
 
 
