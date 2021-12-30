@@ -445,14 +445,20 @@ def Turnover_compart_Perenne(invar, ParamP):
 
     dMSenNonRec, dMSenPiv = [], []
     perteN_NonRec, perteN_Piv = [], []
+    minPiv = 0.001
     for nump in range(len(ParamP)):
         dTT = invar['Udev'][nump]  # invar['dTT'][nump]
         delai_senperenne = ParamP[nump]['delai_senperenne']  # 500. #parametre -> rq: jouer sur ce parametre pour faire mourrir piv TV?
-        if invar['TTudev'][nump] > delai_senperenne:
+        if invar['TTudev'][nump] > delai_senperenne and invar['aliveB'][nump] == 0: #delai passe et vivante
             TOrate_nonrec = ParamP[nump]['TOrate_nonrec'] #0.005 # a passer en parametre
             TOrate_piv = ParamP[nump]['TOrate_piv'] #0.005  # a passer en parametre
             dMS_aerienNonRec = invar['MS_aerienNonRec'][nump] * TOrate_nonrec * dTT
-            dMS_piv = invar['MS_pivot'][nump] * TOrate_piv * dTT
+            if invar['MS_pivot'][nump] > minPiv:
+                #TOpivot au dessus d'une taille mini
+                dMS_piv = invar['MS_pivot'][nump] * TOrate_piv * dTT
+            else:
+                dMS_piv = 0.
+
             perteN_NonRec_i = invar['NaerienNonRec'][nump] * TOrate_nonrec * dTT
             perteN_Piv_i = invar['Npivot'][nump] * TOrate_piv * dTT
         else:

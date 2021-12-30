@@ -975,7 +975,8 @@ def StartEach():
         
         # MAJ compartiments recoltes/non recoltes
         fraction_nonRec = array(riri.get_lsparami(ParamP, 'fraction_NonRec'))#0.1 # a entrer un parametre de fraction non rec / ou une methode de calcul(f de hcut/hauteur?)
-        MS_recoltable = array(invar['MS_aerien']) - array(invar['MS_senaerien']) ##! tenir compte de la senescence!! + 
+        MS_recoltable = array(invar['MS_aerien']) - array(invar['MS_senaerien']) ##! tenir compte de la senescence!! 
+        MS_recoltable[MS_recoltable<epsilon] = epsilon #pour eviter valeur neg
         invar['MS_aerienNonRec'] = array(invar['MS_aerienNonRec']) + fraction_nonRec*MS_recoltable #cumul de MS non recolte
         invar['MS_aerienRec'] = (1. - fraction_nonRec)*MS_recoltable #cumul de MS recolte
         invar['NaerienNonRec'] = array(invar['NaerienNonRec']) + fraction_nonRec*MS_recoltable*array(invar['Npc_aer'])/100. #cumul de QN non recolte
@@ -1057,7 +1058,7 @@ def StartEach():
             invar['NaerienNonRec'][nump] = epsilon * invar['Npc_aerNonRec'][nump]/100. 
             #invar['MS_pivot'][nump] = epsilon
             #invar['Npivot'][nump] = epsilon * invar['Npc_piv'][nump]/100.
-            #pb dans calcul Npc piv apres...
+            # valeur aberrante de Npc_piv - to do: faudrait gerer uptake et activite plante mortes a 0 dans daily loop... en attendant MS plante morte en double 
             
             #pb MS_racfine et MS_aerien: calcule a partir de matrice cumule = brut pas net... pas mis a zero
             #invar['MS_rac_fine'][nump] = epsilon
