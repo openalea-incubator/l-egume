@@ -487,7 +487,7 @@ def calc_paraF(lsFeuilBilanR, m_lais, res_abs_i):
 
 
 def calc_para_Plt(invar, lsFeuilBilanR):
-    """ update paraF and sVox calculation in lsFeuilBilanR + conv to dico """
+    """ update invar plant light interception + conv to pd data.frame """
     # conversion data.frame
     lsFeuilBilanR = pd.DataFrame(lsFeuilBilanR)
     nbplt = len(invar['TT'])
@@ -519,7 +519,7 @@ def calc_para_Plt(invar, lsFeuilBilanR):
     invar['parip'] = array(pari)
     invar['parap'] = array(para)
 
-    # return pari
+    # return lsFeuilBilanR
 
 
 

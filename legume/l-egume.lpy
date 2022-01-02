@@ -1129,9 +1129,10 @@ def EndEach(lstring,lscene):
     # * unpacks the list of arguments    
     
     #calcul grille surface couvert (m_lais) 
-    #mlaicot = sh.calc_surfcoty(invar['MS_coty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #ajoute surface des cotyledons #cotyledon ajoute au debut avec add_surfcoty
     m_lais = deepcopy(m_lais_construct) 
     
+    #calcul grille ls_roots
+    ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et absorbtion absoption d'N
     
     # DemCp calcule invar a partir lsOrgans (en faire 1 fonction? bouger ailleurs?)
     tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
@@ -1144,7 +1145,7 @@ def EndEach(lstring,lscene):
     
     
     
-    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_systrac, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, lsOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu]
+    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, lsFeuilBilanR, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, lsOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu]
     
     
     # update internal to the loop: ls_epsi, ls_demandeN_bis, temps, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, 
@@ -1187,7 +1188,7 @@ def EndEach(lstring,lscene):
         ##########
         #step soil
         ##########
-        ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et absorbtion absoption d'N
+        #ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et absorbtion absoption d'N
         
         #print('ChangeRoot', sum(invar['ChangeRoot'][0]))
         
@@ -1972,7 +1973,7 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
     else:
         newage = age+STEPS
         
-        #calcul des PARif, PARaf et complete
+        #calcul des PARif
         if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee
             ls_vox, ls_strate, ls_PARif, ls_PARaF = [], [], [], []
             surf_elementaire = surF / float(len(ls_pts[0]))
@@ -1983,7 +1984,7 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
                 ls_strate.append(vox[2])
                 ls_PARif.append(res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX )
                 
-                # -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (
+                ## -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (
                 sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]#surface folaire dans le voxel
                 if sVOX>0.:
                     ls_PARaF.append(res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surf_elementaire/sVOX *3600.*24/1000000.)
@@ -2000,7 +2001,7 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
             strate = vox[2] #starte z
             PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise 
             
-            # -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (elongation noeud?)
+            ## -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (elongation noeud?)
             sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]#surface folaire dans le voxel
             if sVOX>0.:
                 PARaF = res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surF/sVOX *3600.*24/1000000.
@@ -2148,7 +2149,7 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
             PARaF = res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surF/sVOX *3600.*24/1000000.
         else:
             PARaF = res_trans[vox[2]][vox[1]][vox[0]] * surF * 3600.*24/1000000.
-        #print PARaF, PARaF_bis, sVOX#
+        ##print PARaF, PARaF_bis, sVOX#
         
         lsOrgans.append([TT,'Stp',nump,nsh2,rank,rankp,strate,surF,PARaF,statut,age2+STEPS,ordre,l,'NA',DOY,cutNB,'NA'])
         SurfprofilPlant[nump][strate] += surF #suppose mis dans meme strate que feuille
