@@ -226,10 +226,13 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     return invar, outvar, ls_demandeN_bis, temps
 
 
-def step_epsi(invar, res_trans, meteo_j, surfsolref):
+def step_epsi(invar, res_trans, lsFeuilBilanR, meteo_j, surfsolref):
     """ calculate ls_epsi from res_trans and invar"""
-    invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
-    invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
+    #invar['parap'] = array(list(map(sum, invar['PARaPlante'])))
+    #invar['parip'] = array(list(map(sum, invar['PARiPlante'])))
+    #MAJ invar['parap'] , invar['parip']
+    sh.calc_para_Plt(invar, lsFeuilBilanR)
+
     # qatot= sum(res_trans[-1][:][:])*3600.*24/1000000. + sum(invar['parip'])#(MJ.day-1) #approximatif! a reprendre avec un vrai bilan radiatif
     # print sum(res_trans[-1][:][:]), sum(res_trans[-1][:][:])*3600.*24/1000000., sum(res_trans[-1][:][:])*3600.*24/1000000.  +   sum(invar['parip'])
     # ls_epsi = invar['parip']/qatot.tolist() #a reprendre : approximatif slmt! -> changera un peu avec un vrai bilan radiatif

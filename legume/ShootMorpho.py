@@ -8,6 +8,9 @@ try:
 except:
     import RIRI5 as riri
 
+import numpy as np
+import pandas as pd
+
 
 #Temperature response funtions
 def betaT(Tmin, Tmax, q, T):
@@ -262,6 +265,28 @@ def calc_parapcoty(invar, m_lais, res_abs_i, Mcoty, age, DurGraine, carto, Param
             PARaF = 0.
 
         invar['PARiPlante'][nump].append(PARaF)
+        #m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
+        #lsFeuilBilanR.append([nump, 0, 0, 0, 'coty', surfcot, ParamP[nump]['id_grid'], carto[nump][0], carto[nump][1], carto[nump][2], vox[2], vox[1], vox[0], 0, 0])
+
+        # Plus utilise...
+
+def add_surfcoty(invar, m_lais, m_laiPlt, lsFeuilBilanR, carto, ParamP, origin_grid, na, dxyz, SLAcoty=100.):
+    """ ajout de surf cotyledon a m_lais, m_laiPlt, lsFeuilBilanR """
+    age = invar['TT']
+    Mcoty = invar['MS_coty']
+    DurGraine = riri.get_lsparami(ParamP, 'DurGraine')
+
+    for nump in range(len(carto)):
+        vox = riri.WhichVoxel(array(carto[nump]), origin_grid, na, dxyz)
+        if age[nump] <= DurGraine[nump]:  # cotyledons actifs pendant DurGraine
+            surfcot = Mcoty[nump] * SLAcoty / 10000.  # m2
+        else:
+            surfcot = 0.
+
+        m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surfcot
+        m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
+        lsFeuilBilanR.append([nump, 0, 0, 0, 'coty', surfcot, ParamP[nump]['id_grid'], carto[nump][0], carto[nump][1], carto[nump][2], vox[2], vox[1], vox[0], 0, 0])
+
 
 def calc_Lpet(ParamP, rank, rankp, ordre, l, type=1):
     """ calcule de longueur potentielle d'un petiole (m)"""
@@ -438,6 +463,64 @@ def reserves_graine(invar, ParamP):
     invar['Ngraine'] = array(invar['Ngraine']) - array(graineN)
 
     return array(graineC), array(graineN)
+
+
+def calc_paraF(lsFeuilBilanR, m_lais, res_abs_i):
+    """ update paraF and sVox calculation in lsFeuilBilanR + conv to dico """
+    # ['nump', 'nsh', 'rank', 'rankp','status', 'surf','id_grid', 'X','Y','Z','Vox2','Vox1','Vox0','sVox','paraF']
+    nblignes = len(lsFeuilBilanR) - 1
+    df = IOtable.conv_dataframe(IOtable.t_list(lsFeuilBilanR))
+    if nblignes > 0:
+        for i in range(nblignes):
+            # update sVox
+            id_grid = df['id_grid'][i]
+            surf = df['surf'][i]
+            vox = [df['Vox0'][i], df['Vox1'][i], df['Vox2'][i]]
+            sVOX = m_lais[id_grid][vox[2]][vox[1]][vox[0]]
+            paraF = res_abs_i[id_grid][vox[2]][vox[1]][vox[0]] * surf / sVOX * 3600. * 24 / 1000000.
+
+            # mise a jour
+            df['sVox'][i] = sVOX
+            df['paraF'][i] = paraF
+
+    return df
+
+
+def calc_para_Plt(invar, lsFeuilBilanR):
+    """ update paraF and sVox calculation in lsFeuilBilanR + conv to dico """
+    # conversion data.frame
+    lsFeuilBilanR = pd.DataFrame(lsFeuilBilanR)
+    nbplt = len(invar['TT'])
+
+    # split pour PARi
+    dfPARa = lsFeuilBilanR.groupby(lsFeuilBilanR['nump'])
+    groupOK = list(dfPARa.groups.keys())
+    pari = []
+    for nump in range(nbplt):
+        if nump in groupOK:
+            x = dfPARa.get_group(nump)
+            pari.append(np.sum(x['paraF']))
+        else:
+            pari.append(0.)
+
+    # split pour PARa (sans feuilles sen)
+    lsFeuilBilanR_sen = lsFeuilBilanR[lsFeuilBilanR["status"] != 'sen']
+    dfPARa = lsFeuilBilanR_sen.groupby(lsFeuilBilanR_sen['nump'])
+    groupOK = list(dfPARa.groups.keys())
+    para = []
+    for nump in range(nbplt):
+        if nump in groupOK:
+            x = dfPARa.get_group(nump)
+            para.append(np.sum(x['paraF']))
+        else:
+            para.append(0.)
+
+    # MAJ de invar
+    invar['parip'] = array(pari)
+    invar['parap'] = array(para)
+
+    # return pari
+
 
 
 def Turnover_compart_Perenne(invar, ParamP):
