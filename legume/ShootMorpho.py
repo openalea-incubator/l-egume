@@ -283,9 +283,10 @@ def add_surfcoty(invar, m_lais, m_laiPlt, lsFeuilBilanR, carto, ParamP, origin_g
         else:
             surfcot = 0.
 
-        m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surfcot
-        m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
-        lsFeuilBilanR.append([nump, 0, 0, 0, 'coty', surfcot, ParamP[nump]['id_grid'], carto[nump][0], carto[nump][1], carto[nump][2], vox[2], vox[1], vox[0], 0, 0])
+        if surfcot > 0.:
+            m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surfcot
+            m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
+            lsFeuilBilanR.append([nump, 0, 0, 0, 'coty', surfcot, ParamP[nump]['id_grid'], carto[nump][0], carto[nump][1], carto[nump][2], vox[2], vox[1], vox[0], 0, 0])
 
 
 def calc_Lpet(ParamP, rank, rankp, ordre, l, type=1):
@@ -347,10 +348,11 @@ def calcSurfScale(ParamP, tab, scale):
     # lsSurfSh = calcSurfScale(IOtable.conv_dataframe(IOtable.t_list(lsOrgans)), 'sh')
     # plus utile car fait dans calcSurfLightScales
 
-def calcSurfLightScales(ParamP, tab):
-    """ calcul le cumul de surface foliaire, surface foliaire verte et PARa au echelles plante/shoot_axe - passe la table organe une seulle fois en revue """
 
-    daxAgePiv = {}  # dico des axes qui portent des pivots et de leur age
+def calcSurfLightScales(tab):
+    """ calcul le cumul de surface foliaire, surface foliaire verte et PARa au echelles plante/shoot_axe - passe la table organe une seulle fois en revue """
+    # from dic lsFeuilBilanR : ['nump', 'nsh', 'rank', 'rankp','status', 'surf', 'id_grid', 'X','Y','Z','Vox2','Vox1','Vox0','sVox','paraF']
+
     dpS, dpSV, dpPARaF, dshS, dshSV, dshPARaF, daxS, daxSV, daxPARaF, daxPARaFsurf = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
     for i in range(len(tab['nump'])):
 
@@ -358,30 +360,14 @@ def calcSurfLightScales(ParamP, tab):
         idsh = str(tab['nump'][i]) + '_' + str(tab['nsh'][i])
         idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(tab['rank'][i])
 
-        age = float(tab['age'][i])
-        nump = int(tab['nump'][i])
-        ordre = int(tab['ordre'][i])
-        rank = int(tab['rank'][i])
-        rankp = int(tab['rankp'][i])
-        nsh = int(tab['nsh'][i])
-        l = float(tab['l'][i])
+        PARaF = float(tab['paraF'][i])
+        surf = max(float(tab['surf'][i]), 10e-15)  # m2 #max(calc_surF(ParamP[nump], rank, rankp, ordre, l), 10e-15)  # m2
+        PARaFsurf = PARaF / (surf * 3600. * 24 / 1000000.)  #
+        if tab['status'][i] != 'sen':
+            surfV = surf
+        else:
+            surfV = 0.
 
-        surf, surfV, PARaF, PARaFsurf = 0., 0., 0., 0.
-        if tab['organ'][i] == 'Lf':
-            PARaF = float(tab['PARaF'][i])
-            surf = max(calc_surF(ParamP[nump], rank, rankp, ordre, l), 10e-15)  # m2
-            PARaFsurf = PARaF / (surf * 3600. * 24 / 1000000.)  #
-            if tab['statut'][i] != 'sen':
-                surfV = surf
-
-        if tab['organ'][i] == 'Stp':
-            PARaF = float(tab['PARaF'][i])
-            surf = calc_surS(ParamP[nump], rank, rankp, ordre, l)  # m2
-            if tab['statut'][i] != 'sen':
-                surfV = surf
-
-        if tab['organ'][i] == 'Piv':
-            daxAgePiv[idax] = age
 
         # ajoute une cle pour chaque organe (meme si pas feuille)
         IOxls.append_dic(dpS, idp, surf)
@@ -407,8 +393,29 @@ def calcSurfLightScales(ParamP, tab):
     for k in list(daxPARaFsurf.keys()):
         daxPARaFsurf[k] = max(daxPARaFsurf[k])
 
-    return dpS, dpSV, dshS, dshSV, daxS, daxSV, dpPARaF, dshPARaF, daxPARaF, daxAgePiv, daxPARaFsurf
-    # ajouter calcul du max de rayonnement par axes...?-> daxPARaFsurf
+    return dpS, dpSV, dshS, dshSV, daxS, daxSV, dpPARaF, dshPARaF, daxPARaF, daxPARaFsurf
+
+
+
+def AgePivScales(tab):
+    """ calculage pivot/RacI pour """
+    # from dic lsOrgans: ['TT','organ','nump', 'nsh', 'rank', 'rankp', 'strate', 'surf', 'PARaF','statut','age','ordre','l','Long','DOY','cutNB', 'Larg']
+
+    daxAgePiv = {}  # dico des axes qui portent des pivots et de leur age
+    for i in range(len(tab['nump'])):
+
+        idp = str(tab['nump'][i])
+        idsh = str(tab['nump'][i]) + '_' + str(tab['nsh'][i])
+        idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(tab['rank'][i])
+
+        age = float(tab['age'][i])
+
+        if tab['organ'][i] == 'Piv':
+            daxAgePiv[idax] = age
+
+    return daxAgePiv
+    #separe de calcSurfLightScales
+
 
 
 #germination / iitialisation funcions
@@ -465,11 +472,11 @@ def reserves_graine(invar, ParamP):
     return array(graineC), array(graineN)
 
 
-def calc_paraF(lsFeuilBilanR, m_lais, res_abs_i):
+def calc_paraF(dicFeuilBilanR, m_lais, res_abs_i):
     """ update paraF and sVox calculation in lsFeuilBilanR + conv to dico """
     # ['nump', 'nsh', 'rank', 'rankp','status', 'surf','id_grid', 'X','Y','Z','Vox2','Vox1','Vox0','sVox','paraF']
-    nblignes = len(lsFeuilBilanR) - 1
-    df = IOtable.conv_dataframe(IOtable.t_list(lsFeuilBilanR))
+    nblignes = len(dicFeuilBilanR['nump']) #- 1
+    df = dicFeuilBilanR #IOtable.conv_dataframe(IOtable.t_list(lsFeuilBilanR))
     if nblignes > 0:
         for i in range(nblignes):
             # update sVox

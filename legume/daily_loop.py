@@ -296,7 +296,7 @@ def step_bilanWN_sol(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, 
 
 
 
-def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar):
+def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, dicOrgans, dicFeuilBilanR, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar):
     """ Update daily N uptake/fixation from soil WN balance and plant demands / prepares stress variables for next step / write output variables   """
 
     aer, rac_fine, pivot, fracNaer, fracNpiv, fracNrac_fine, MS_aerien_tm1, isTTcut, NcritTot_, epsilon,meteo_j = temps# temps[0], temps[1],temps[2], temps[3],temps[4], temps[5],temps[6] #unpacks variables temporaires passes entre fonction -> a repasser dans invar!!!
@@ -413,7 +413,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # print solN.critN(sum(aer+array(invar['MS_aerien']))#, invar['Npc_bis']
 
     # calcul offre/demandeC
-    tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
+    #tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
     # OffCp = calcOffreC (tab, 'plt')#pas utilise??!
     # invar['DemCp'] = calcDemandeC(tab, 'plt')#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
     # invar['L_Sp'] = sh.calcLeafStemRatio(ParamP, tab, lsAxes)
@@ -421,13 +421,15 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # calcul surf par tige/axe
     invar_sc['plt']['Surf'], invar_sc['plt']['SurfVerte'], invar_sc['sh']['Surf'], invar_sc['sh']['SurfVerte'], \
     invar_sc['ax']['Surf'], invar_sc['ax']['SurfVerte'], invar_sc['plt']['PARaF'], invar_sc['sh']['PARaF'], \
-    invar_sc['ax']['PARaF'], invar_sc['ax']['AgePiv'], invar_sc['ax']['MaxPARaF'] = sh.calcSurfLightScales(ParamP,
-                                                                                                           IOtable.conv_dataframe(
-                                                                                                               IOtable.t_list(
-                                                                                                                   lsOrgans)))
+    invar_sc['ax']['PARaF'], invar_sc['ax']['MaxPARaF'] = sh.calcSurfLightScales(dicFeuilBilanR)
+
+    invar_sc['ax']['AgePiv'] = sh.AgePivScales(dicOrgans)
+
+
     # calcul de fraction de PARa par pivot
     invar_sc['ax']['fPARaPiv'] = rt.calc_daxfPARaPiv(nbplantes, invar_sc['ax']['AgePiv'], invar_sc['plt']['PARaF'],
                                                      invar_sc['ax']['PARaF'])
+
     # calcul demande par pivot
     invar_sc['ax']['DemCRac'], invar_sc['ax']['NRac'] = rt.calc_DemandC_roots(ParamP, invar_sc['ax']['AgePiv'],
                                                                               invar['Udevsol'],
@@ -493,7 +495,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # calcul demandN -> a depalcer dans le starteach comme pour C?? -> pas utilise actuellement
     if lsApex != []:
-        I_I0profilInPlant = sh.cumul_lenIN(lsApex, tab, I_I0profilInPlant, deltaI_I0, nbI_I0)
+        I_I0profilInPlant = sh.cumul_lenIN(lsApex, dicOrgans, I_I0profilInPlant, deltaI_I0, nbI_I0)
 
     # pas utilise
     for nump in range(nbplantes):

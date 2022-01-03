@@ -140,7 +140,7 @@ def runlsystem_bystep(n):
 
         ## daily loop
         tag_loop_inputs = lsys.tag_loop_inputs
-        invar, outvar, invar_sc, ParamP, station, carto, meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, lsFeuilBilanR, surf_refVOX, triplets, ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, lsOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu = tag_loop_inputs
+        invar, outvar, invar_sc, ParamP, station, carto, meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, dicFeuilBilanR, surf_refVOX, triplets, ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, dicOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu = tag_loop_inputs
 
         ############
         # step light transfer coupling
@@ -161,7 +161,7 @@ def runlsystem_bystep(n):
         res_rfr = local_res_rfr  # mise a jour variables globales
 
         # calul des interception feuille et ls_epsi plante
-        dicFeuilBilanR = sh.calc_paraF(lsFeuilBilanR, m_lais, res_abs_i)
+        dicFeuilBilanR = sh.calc_paraF(dicFeuilBilanR, m_lais, res_abs_i)
         ls_epsi, invar = loop.step_epsi(invar, res_trans, dicFeuilBilanR, meteo_j, surfsolref)
 
         ##########
@@ -187,7 +187,7 @@ def runlsystem_bystep(n):
         ##########
 
         tag_inputs_stress = [ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp,
-                             ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, lsOrgans, lsApex,
+                             ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, dicOrgans, dicFeuilBilanR, lsApex,
                              start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant,
                              I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar]
 
@@ -264,10 +264,10 @@ def runl2system_bystep(n, m):
         # pb sur les invar pour reunir??! -> OK pour lumiere, mais pb pour le sol!!! -> faire passer des sorties et MAJ invar en dehors de loop.step_bilanWN_sol et loop.update_residue_mat et loop.step_epsi
 
         tag_loop_inputs1 = lsys1.tag_loop_inputs
-        invar1, outvar1, invar_sc1, ParamP1, station1, carto1, meteo_j1, mng_j1, DOY1, cutNB1, start_time1, nbplantes1, surfsolref1, m_lais1, lsFeuilBilanR1, surf_refVOX1, triplets1, ls_dif1, S1, par_SN1, lims_sol1, ls_roots1, stateEV1, Uval1, b_1, ls_mat_res1, vCC1, ls_ftswStress1, ls_NNIStress1, ls_TStress1, lsApex1, lsApexAll1, lsOrgans1, deltaI_I01, nbI_I01, I_I0profilLfPlant1, I_I0profilPetPlant1, I_I0profilInPlant1, NlClasses1, NaClasses1, NlinClasses1, opt_stressW1, opt_stressN1, opt_stressGel1, opt_residu1 = tag_loop_inputs1
+        invar1, outvar1, invar_sc1, ParamP1, station1, carto1, meteo_j1, mng_j1, DOY1, cutNB1, start_time1, nbplantes1, surfsolref1, m_lais1, dicFeuilBilanR1, surf_refVOX1, triplets1, ls_dif1, S1, par_SN1, lims_sol1, ls_roots1, stateEV1, Uval1, b_1, ls_mat_res1, vCC1, ls_ftswStress1, ls_NNIStress1, ls_TStress1, lsApex1, lsApexAll1, dicOrgans1, deltaI_I01, nbI_I01, I_I0profilLfPlant1, I_I0profilPetPlant1, I_I0profilInPlant1, NlClasses1, NaClasses1, NlinClasses1, opt_stressW1, opt_stressN1, opt_stressGel1, opt_residu1 = tag_loop_inputs1
 
         tag_loop_inputs2 = lsys2.tag_loop_inputs
-        invar2, outvar2, invar_sc2, ParamP2, station2, carto2, meteo_j2, mng_j2, DOY2, cutNB2, start_time2, nbplantes2, surfsolref2, m_lais2, lsFeuilBilanR2, surf_refVOX2, triplets2, ls_dif2, S2, par_SN2, lims_sol2, ls_roots2, stateEV2, Uval2, b_2, ls_mat_res2, vCC2, ls_ftswStress2, ls_NNIStress2, ls_TStress2, lsApex2, lsApexAll2, lsOrgans2, deltaI_I02, nbI_I02, I_I0profilLfPlant2, I_I0profilPetPlant2, I_I0profilInPlant2, NlClasses2, NaClasses2, NlinClasses2, opt_stressW2, opt_stressN2, opt_stressGel2, opt_residu2 = tag_loop_inputs2
+        invar2, outvar2, invar_sc2, ParamP2, station2, carto2, meteo_j2, mng_j2, DOY2, cutNB2, start_time2, nbplantes2, surfsolref2, m_lais2, dicFeuilBilanR2, surf_refVOX2, triplets2, ls_dif2, S2, par_SN2, lims_sol2, ls_roots2, stateEV2, Uval2, b_2, ls_mat_res2, vCC2, ls_ftswStress2, ls_NNIStress2, ls_TStress2, lsApex2, lsApexAll2, dicOrgans2, deltaI_I02, nbI_I02, I_I0profilLfPlant2, I_I0profilPetPlant2, I_I0profilInPlant2, NlClasses2, NaClasses2, NlinClasses2, opt_stressW2, opt_stressN2, opt_stressGel2, opt_residu2 = tag_loop_inputs2
 
         #TO DO: definir variables communes dans run couple: sol S de S1 et variables reunissant facilement les 2
         # sortir les invar plantes du sol! (simplifiant sans doute les entree/sorties)
@@ -299,8 +299,8 @@ def runl2system_bystep(n, m):
 
         # ls_epsi
         # calul des interception feuille et ls_epsi plante
-        dicFeuilBilanR1 = sh.calc_paraF(lsFeuilBilanR1, m_lais1, res_abs_i1)
-        dicFeuilBilanR2 = sh.calc_paraF(lsFeuilBilanR2, m_lais2, res_abs_i2)
+        dicFeuilBilanR1 = sh.calc_paraF(dicFeuilBilanR1, m_lais1, res_abs_i1)
+        dicFeuilBilanR2 = sh.calc_paraF(dicFeuilBilanR2, m_lais2, res_abs_i2)
 
         ls_epsi1, invar1 = loop.step_epsi(invar1, res_trans1, dicFeuilBilanR1, meteo_j1, surfsolref1)
         ls_epsi2, invar2 = loop.step_epsi(invar2, res_trans2, dicFeuilBilanR2, meteo_j2, surfsolref2)
@@ -331,12 +331,12 @@ def runl2system_bystep(n, m):
         ##########
 
         tag_inputs_stress1 = [ParamP1, invar1, invar_sc1, temps1, DOY1, nbplantes1, surfsolref1, ls_epsi1, ls_ftsw1, ls_transp1,
-                             ls_Act_Nuptake_plt1, ls_demandeN_bis1, ls_ftswStress1, ls_TStress1, lsOrgans1, lsApex1,
+                             ls_Act_Nuptake_plt1, ls_demandeN_bis1, ls_ftswStress1, ls_TStress1, dicOrgans1, dicFeuilBilanR1, lsApex1,
                              start_time1, cutNB1, deltaI_I01, nbI_I01, I_I0profilLfPlant1, I_I0profilPetPlant1,
                              I_I0profilInPlant1, NlClasses1, NaClasses1, NlinClasses1, outvar1]
 
         tag_inputs_stress2 = [ParamP2, invar2, invar_sc2, temps2, DOY2, nbplantes2, surfsolref2, ls_epsi2, ls_ftsw2, ls_transp2,
-                              ls_Act_Nuptake_plt2, ls_demandeN_bis2, ls_ftswStress2, ls_TStress2, lsOrgans2, lsApex2,
+                              ls_Act_Nuptake_plt2, ls_demandeN_bis2, ls_ftswStress2, ls_TStress2, dicOrgans2, dicFeuilBilanR2, lsApex2,
                               start_time2, cutNB2, deltaI_I02, nbI_I02, I_I0profilLfPlant2, I_I0profilPetPlant2,
                               I_I0profilInPlant2, NlClasses2, NaClasses2, NlinClasses2, outvar2]
 
@@ -430,9 +430,9 @@ def runl2systemLight_bystep(n, m):
         # pb sur les invar pour reunir??! -> OK pour lumiere, mais pb pour le sol!!! -> faire passer des sorties et MAJ invar en dehors de loop.step_bilanWN_sol et loop.update_residue_mat et loop.step_epsi
 
         tag_loop_inputs1 = lsys1.tag_loop_inputs
-        invar1, outvar1, invar_sc1, ParamP1, station1, carto1, meteo_j1, mng_j1, DOY1, cutNB1, start_time1, nbplantes1, surfsolref1, m_lais1, lsFeuilBilanR1, surf_refVOX1, triplets1, ls_dif1, S1, par_SN1, lims_sol1, ls_roots1, stateEV1, Uval1, b_1, ls_mat_res1, vCC1, ls_ftswStress1, ls_NNIStress1, ls_TStress1, lsApex1, lsApexAll1, lsOrgans1, deltaI_I01, nbI_I01, I_I0profilLfPlant1, I_I0profilPetPlant1, I_I0profilInPlant1, NlClasses1, NaClasses1, NlinClasses1, opt_stressW1, opt_stressN1, opt_stressGel1, opt_residu1 = tag_loop_inputs1
+        invar1, outvar1, invar_sc1, ParamP1, station1, carto1, meteo_j1, mng_j1, DOY1, cutNB1, start_time1, nbplantes1, surfsolref1, m_lais1, dicFeuilBilanR1, surf_refVOX1, triplets1, ls_dif1, S1, par_SN1, lims_sol1, ls_roots1, stateEV1, Uval1, b_1, ls_mat_res1, vCC1, ls_ftswStress1, ls_NNIStress1, ls_TStress1, lsApex1, lsApexAll1, dicOrgans1, deltaI_I01, nbI_I01, I_I0profilLfPlant1, I_I0profilPetPlant1, I_I0profilInPlant1, NlClasses1, NaClasses1, NlinClasses1, opt_stressW1, opt_stressN1, opt_stressGel1, opt_residu1 = tag_loop_inputs1
         tag_loop_inputs2 = lsys2.tag_loop_inputs
-        invar2, outvar2, invar_sc2, ParamP2, station2, carto2, meteo_j2, mng_j2, DOY2, cutNB2, start_time2, nbplantes2, surfsolref2, m_lais2, lsFeuilBilanR2, surf_refVOX2, triplets2, ls_dif2, S2, par_SN2, lims_sol2, ls_roots2, stateEV2, Uval2, b_2, ls_mat_res2, vCC2, ls_ftswStress2, ls_NNIStress2, ls_TStress2, lsApex2, lsApexAll2, lsOrgans2, deltaI_I02, nbI_I02, I_I0profilLfPlant2, I_I0profilPetPlant2, I_I0profilInPlant2, NlClasses2, NaClasses2, NlinClasses2, opt_stressW2, opt_stressN2, opt_stressGel2, opt_residu2 = tag_loop_inputs2
+        invar2, outvar2, invar_sc2, ParamP2, station2, carto2, meteo_j2, mng_j2, DOY2, cutNB2, start_time2, nbplantes2, surfsolref2, m_lais2, dicFeuilBilanR2, surf_refVOX2, triplets2, ls_dif2, S2, par_SN2, lims_sol2, ls_roots2, stateEV2, Uval2, b_2, ls_mat_res2, vCC2, ls_ftswStress2, ls_NNIStress2, ls_TStress2, lsApex2, lsApexAll2, dicOrgans2, deltaI_I02, nbI_I02, I_I0profilLfPlant2, I_I0profilPetPlant2, I_I0profilInPlant2, NlClasses2, NaClasses2, NlinClasses2, opt_stressW2, opt_stressN2, opt_stressGel2, opt_residu2 = tag_loop_inputs2
 
         #def variables communes
         meteo_j, station, surf_refVOX, triplets, surfsolref = meteo_j1, station1, surf_refVOX1, triplets1, surfsolref1
@@ -473,8 +473,8 @@ def runl2systemLight_bystep(n, m):
         transmi_sol = np.sum(res_trans[-1][:][:]) / (meteo_j['I0'] * surfsolref)  # bon
         epsi = 1. - transmi_sol  # bon
 
-        dicFeuilBilanR1 = sh.calc_paraF(lsFeuilBilanR1, m_lais, res_abs_i)
-        dicFeuilBilanR2 = sh.calc_paraF(lsFeuilBilanR1, m_lais, res_abs_i)
+        dicFeuilBilanR1 = sh.calc_paraF(dicFeuilBilanR1, m_lais, res_abs_i)
+        dicFeuilBilanR2 = sh.calc_paraF(dicFeuilBilanR2, m_lais, res_abs_i)
         sh.calc_para_Plt(invar1, dicFeuilBilanR1)
         sh.calc_para_Plt(invar2, dicFeuilBilanR2)
 
@@ -510,12 +510,12 @@ def runl2systemLight_bystep(n, m):
         ##########
 
         tag_inputs_stress1 = [ParamP1, invar1, invar_sc1, temps1, DOY1, nbplantes1, surfsolref1, ls_epsi1, ls_ftsw1, ls_transp1,
-                             ls_Act_Nuptake_plt1, ls_demandeN_bis1, ls_ftswStress1, ls_TStress1, lsOrgans1, lsApex1,
+                             ls_Act_Nuptake_plt1, ls_demandeN_bis1, ls_ftswStress1, ls_TStress1,dicOrgans1, dicFeuilBilanR1, lsApex1,
                              start_time1, cutNB1, deltaI_I01, nbI_I01, I_I0profilLfPlant1, I_I0profilPetPlant1,
                              I_I0profilInPlant1, NlClasses1, NaClasses1, NlinClasses1, outvar1]
 
         tag_inputs_stress2 = [ParamP2, invar2, invar_sc2, temps2, DOY2, nbplantes2, surfsolref2, ls_epsi2, ls_ftsw2, ls_transp2,
-                              ls_Act_Nuptake_plt2, ls_demandeN_bis2, ls_ftswStress2, ls_TStress2, lsOrgans2, lsApex2,
+                              ls_Act_Nuptake_plt2, ls_demandeN_bis2, ls_ftswStress2, ls_TStress2, dicOrgans2, dicFeuilBilanR2, lsApex2,
                               start_time2, cutNB2, deltaI_I02, nbI_I02, I_I0profilLfPlant2, I_I0profilPetPlant2,
                               I_I0profilInPlant2, NlClasses2, NaClasses2, NlinClasses2, outvar2]
 
@@ -631,8 +631,8 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(1):#(int(nb_usms)):
         #pool.apply_async(runlsystem, args=(i,))   # Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
-        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
-        runlsystem_bystep(i)
+        runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        #runlsystem_bystep(i)
         #runl2system_bystep(i, i+1)
         #runl2systemLight_bystep(i, i+1)
 

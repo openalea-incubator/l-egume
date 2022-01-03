@@ -133,7 +133,7 @@ def calc_QDC_roots(dOffre,dDemand):
         if dDemand[k]==0:
             ratio=1.
         else:
-            ratio = dOffre[k] / dDemand[k]
+            ratio = dOffre[k] / (dDemand[k])
             if ratio>1.:
                 ratio=1.
 

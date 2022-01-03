@@ -84,7 +84,7 @@ deltalevsd = 15
 cote = 40.#80.#100.#100#25.#25.#cm
 nbcote = 8#1#10
 optdamier = 4
-typearrangement='damier8'#'damier8_sp2'#'homogeneous'#'random8'#'damier16'#'random16'
+typearrangement='damier8'#'homogeneous'#'damier8_sp2'#'random8'#'damier16'#'random16'
 idscenar1 = 1#-1 #inferieur a zero=defaut et fait rien
 idscenar2 = 21#-1 #1#inferieur a zero=defaut et fait rien
 idscenar1_sd = 1
@@ -1068,17 +1068,6 @@ def StartEach():
             #-> to do? car veut garder MStot OK ou faire en tout dernier avant ecriture fichier?
             
     
-    
-    #calcul offre/demandeC sur la base des tableaux precedent avant leur remise a zero
-    #tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
-    
-    #if isTTcut == False and wasTTcut==False:
-    #    invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['Udev'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
-    #else:
-    #    invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = {},{},{},{}
-    #invar['L_Sp'] = sh.calcLeafStemRatio(ParmP,tab, lsAxes)
-    #print('DemCp', invar['DemCp'], isTTcut , wasTTcut)
-    
     if isTTcut == False and wasTTcut == True:
         wasTTcut = False #remet a faux un tour apres isTTcut
     
@@ -1098,8 +1087,7 @@ def StartEach():
      
     #ls_systrac[i]=[[carto[nump][0],carto[nump][1],0.,0.01,0.01]] #pour initialiser avec une racine et pas faire planter sol - pose pb seulement avant 1er step
     
-    #initialisation des invar['PARiPlante'] avec ajout des PARi cotyledon:
-    #sh.calc_parapcoty(invar, m_lais, res_abs_i, invar['MS_coty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz)
+    
     #init des surf cotyledon
     sh.add_surfcoty(invar, m_lais_construct, m_laiPlt, lsFeuilBilanR, carto, ParamP, origin_grid, na, dxyz, SLAcoty=100.)
     
@@ -1134,18 +1122,24 @@ def EndEach(lstring,lscene):
     #calcul grille ls_roots
     ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et absorbtion absoption d'N
     
-    # DemCp calcule invar a partir lsOrgans (en faire 1 fonction? bouger ailleurs?)
-    tab = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
+    #print('ChangeRoot', sum(invar['ChangeRoot'][0]))
+    # voir si calcul update ls_root a chaque step? -> critere avec ChangeRoot?
     
+    #Mise en forme dic
+    dicOrgans = IOtable.conv_dataframe(IOtable.t_list(lsOrgans))
+    dicFeuilBilanR = IOtable.conv_dataframe(IOtable.t_list(lsFeuilBilanR))
+    
+    
+    # calcule DemCp  invar a partir lsOrgans (en faire 1 fonction? bouger ailleurs? -> passer isTTcut, wasTTcut)
     if isTTcut == False and wasTTcut==False:
-        invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, tab, 'plt',invar['Udev'], ls_ftswStress, ls_NNIStress)#attention, pour que calcul soit bon, faut le STEPS  suivant mis a jour!-> a faire en StartEach
+        invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = sh.calcDemandeC(ParamP, dicOrgans, 'plt',invar['Udev'], ls_ftswStress, ls_NNIStress)
     else:
         invar['DemCp'], invar['DemCp_lf'] , invar['DemCp_in'], invar['DemCp_pt'] = {},{},{},{}
     
     
     
     
-    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, lsFeuilBilanR, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, lsOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu]
+    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, dicFeuilBilanR, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, dicOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu]
     
     
     # update internal to the loop: ls_epsi, ls_demandeN_bis, temps, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, 
@@ -1174,7 +1168,7 @@ def EndEach(lstring,lscene):
         
         
         # calul des interception feuille et ls_epsi plante
-        dicFeuilBilanR = sh.calc_paraF(lsFeuilBilanR, m_lais, res_abs_i)
+        dicFeuilBilanR = sh.calc_paraF(dicFeuilBilanR, m_lais, res_abs_i) #MAJ paraF
         ls_epsi, invar = loop.step_epsi(invar, res_trans, dicFeuilBilanR, meteo_j, surfsolref)
         
         
@@ -1188,10 +1182,6 @@ def EndEach(lstring,lscene):
         ##########
         #step soil
         ##########
-        #ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et absorbtion absoption d'N
-        
-        #print('ChangeRoot', sum(invar['ChangeRoot'][0]))
-        
         
         tag_inputs_soil_step = [S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu] #input tag
         
@@ -1202,14 +1192,13 @@ def EndEach(lstring,lscene):
         #setp update plant stress variables
         ##########
         
-        tag_inputs_stress = [ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, lsOrgans, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar]
+        tag_inputs_stress = [ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, dicOrgans, dicFeuilBilanR, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar]
         
         invar, invar_sc, outvar, I_I0profilInPlant, ls_ftswStress, ls_NNIStress, ls_TStress = loop.Update_stress_loop(*tag_inputs_stress)  
         
         ##########
         #step update soil residues senescence
         ##########
-        #tag_inputs_residue_updt = [ls_mat_res, vCC, S, carto, lims_sol, ParamP, invar, opt_residu] #input tag
         
         tag_inputs_residue_updt = [ls_mat_res, vCC, S, ls_roots, par_SN['PROFHUMs'], ParamP, invar, opt_residu, opt_stressGel] #input tag
         
@@ -1217,7 +1206,6 @@ def EndEach(lstring,lscene):
         ls_mat_res, S = res_residue_step #unpacks results from a list and updates global variables
         
         
-        #pourquoi ls_res_mat remis a zero juste apres????
     
     
     #################
@@ -1958,16 +1946,11 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
     if opt_ReadstressW == 1.:
         stressW = mng_j['ForceFTSW']#0.2
     
-    #if rank==28:
-    #print(nump, nsh,rank, age, l, invar['Hplante'][nump], surF, stressN)
     
     #sen participe a surface et LAI (interception) mais pas au PARa (absorption)
     if age> ParamP[nump]['spanMrt'] or tt_omb> ParamP[nump]['ombF_Ttresh']+ParamP[nump]['spanMrt']-ParamP[nump]['spanSen'] :
         mfeuilmorte = surF*10000/ParamP[nump]['SLAmin'] #g
         invar['dMSenFeuil'][nump] += mfeuilmorte
-        #voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])
-        #groupe_resid = int(ParamP[nump]['groupe_resid'])
-        #ls_mat_res[groupe_resid*4 + 0][voxsol[2]][voxsol[1]][voxsol[0]] += mfeuilmorte # ajout au 1er des 4 types de residus = feuille
         
         produce *
     else:
@@ -1975,7 +1958,8 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
         
         #calcul des PARif
         if nf > 3 or surF >= tresh_LA:#15cm2#  #feuilles multifoliee
-            ls_vox, ls_strate, ls_PARif, ls_PARaF = [], [], [], []
+            ls_vox, ls_strate, ls_PARif = [], [], []
+            #ls_PARaF = []
             surf_elementaire = surF / float(len(ls_pts[0]))
             for i in range(len(ls_pts[0])):
                 #print ls_pts[i], array([X0,Y0,Z0])
@@ -1984,31 +1968,14 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
                 ls_strate.append(vox[2])
                 ls_PARif.append(res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX )
                 
-                ## -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (
-                sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]#surface folaire dans le voxel
-                if sVOX>0.:
-                    ls_PARaF.append(res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surf_elementaire/sVOX *3600.*24/1000000.)
-                    #print("opt OK2")
-                else: #feuille dans voxel sans surface?
-                    ls_PARaF.append( res_trans[vox[2]][vox[1]][vox[0]] * surf_elementaire * 3600.*24/1000000.)
-                    #print("opt sans surface2")
             
             PARif = max(ls_PARif)#min ou moy?
             strate = max(ls_strate)#?? pas correct
-            PARaF = sum(ls_PARaF)
+            
         else:
             vox = riri.WhichVoxel(array([X0,Y0,Z0]), origin_grid, na, dxyz)
             strate = vox[2] #starte z
             PARif = res_trans[vox[2]][vox[1]][vox[0]]/ surf_refVOX #W.m-2 -> utilise 
-            
-            ## -> y a des nan iexpliques?? -> pas de surface ds ce voxel au coup d'avant? -> feuille a change de vosel?? (elongation noeud?)
-            sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]#surface folaire dans le voxel
-            if sVOX>0.:
-                PARaF = res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surF/sVOX *3600.*24/1000000.
-                #print("opt OK1")
-            else: #feuille dans voxel sans surface?
-                PARaF = res_trans[vox[2]][vox[1]][vox[0]] * surF * 3600.*24/1000000.
-                #print("opt sans surface2")
         
         
         I_I0 = PARif/meteo_j['I0']
@@ -2030,7 +1997,7 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
             Longueur = ParamP[nump]['profilLeafI_l'][ranklong]*(l-Lcut)*(l-Lcut)*cor_ordre
             Largeur = ParamP[nump]['profilLeafI_larg'][ranklong]*cor_ordre
         
-        lsOrgans.append([TT,'Lf',nump,nsh,rank,rankp,strate,surF,PARaF,statut,newage,ordre,l,Longueur,DOY,cutNB,Largeur]) #decalage de un step pour l en exp
+        lsOrgans.append([TT,'Lf',nump,nsh,rank,rankp,strate,surF,'PARaF',statut,newage,ordre,l,Longueur,DOY,cutNB,Largeur]) #decalage de un step pour l en exp
         invar['SurfPlante'][nump].append(surF)
         I_I0profilLfPlant[nump][classI_I0] += surF
         
@@ -2059,7 +2026,6 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
                 m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surF
                 lsFeuilBilanR.append([nump, nsh,rank,rankp, 'sen', surF,ParamP[nump]['id_grid'],X0,Y0,Z0,vox[2],vox[1],vox[0],0,0])
             
-            invar['PARiPlante'][nump].append(PARaF)
             produce GetPos(X0,Y0,Z0,nump)GetUp(V1,V2,V3)Lf(nump,nsh,newage,azi,rank,rankp,l,tt_omb,Lcutnew,'sen',ordre)
         elif tt_omb> ParamP[nump]['ombF_Ttresh']:
             #print "ombre!"
@@ -2075,11 +2041,8 @@ GetPos(X0,Y0,Z0,nump2)GetUp(V1,V2,V3)Lf(nump,nsh,age,azi,rank,rankp,l,tt_omb,Lcu
                 m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surF
                 lsFeuilBilanR.append([nump, nsh,rank,rankp,'sen', surF,ParamP[nump]['id_grid'],X0,Y0,Z0,vox[2],vox[1],vox[0],0,0])
             
-            invar['PARiPlante'][nump].append(PARaF)
             produce GetPos(X0,Y0,Z0,nump)GetUp(V1,V2,V3)Lf(nump,nsh,newage,azi,rank,rankp,l,tt_omb+STEPS,Lcutnew,'sen',ordre)
         else:
-            invar['PARaPlante'][nump].append(PARaF)
-            invar['PARiPlante'][nump].append(PARaF)
             adTTomb = STEPS if PARif <= ParamP[nump]['ombF_Ltresh'] else 0
             
             if statut == 'exp':
@@ -2144,19 +2107,11 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         I_I0 =  PARif/meteo_j['I0']
         classI_I0 = min(int(I_I0/deltaI_I0) , nbI_I0-1) #pour gerer cas du I_I0=1.
         
-        sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]
-        if sVOX>0.:
-            PARaF = res_abs_i[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] * surF/sVOX *3600.*24/1000000.
-        else:
-            PARaF = res_trans[vox[2]][vox[1]][vox[0]] * surF * 3600.*24/1000000.
-        ##print PARaF, PARaF_bis, sVOX#
         
-        lsOrgans.append([TT,'Stp',nump,nsh2,rank,rankp,strate,surF,PARaF,statut,age2+STEPS,ordre,l,'NA',DOY,cutNB,'NA'])
+        lsOrgans.append([TT,'Stp',nump,nsh2,rank,rankp,strate,surF,'PARaF',statut,age2+STEPS,ordre,l,'NA',DOY,cutNB,'NA'])
         SurfprofilPlant[nump][strate] += surF #suppose mis dans meme strate que feuille
         I_I0profilLfPlant[nump][classI_I0] += surF
         invar['SurfPlante'][nump].append(surF)
-        invar['PARiPlante'][nump].append(PARaF)
-        invar['PARaPlante'][nump].append(PARaF)
         
         
         if statut == 'exp':
@@ -2181,9 +2136,6 @@ Stp(nump,azi,l, statut) > Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0,Y0,Z0
         surF = sh.calc_surS(ParamP[nump], rank, rankp, ordre, l)#m2
         mfeuilmorte = surF*10000/ParamP[nump]['SLAmin'] #g
         invar['dMSenFeuil'][nump] += mfeuilmorte
-        #voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.]) 
-        #groupe_resid = int(ParamP[nump]['groupe_resid'])
-        #ls_mat_res[groupe_resid*4 + 0][voxsol[2]][voxsol[1]][voxsol[0]] += mfeuilmorte # ajout au 1er des 4 types de residus = feuille
         produce *
     else: 
         produce *
@@ -2234,10 +2186,6 @@ Pet(nump,nsh,age, phyllotax, l, statut) > GetPos(X0,Y0,Z0,nump3)GetUp(V1,V2,V3)L
     if age> ParamP[nump]['spanMrt'] or nsh in invar['lsApexMort'][nump]:#mort du module
         mpetmort = lpet/ParamP[nump]['SPLmin'] #g
         invar['dMSenTige'][nump] += mpetmort#g
-        #voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.]) 
-        #groupe_resid = int(ParamP[nump]['groupe_resid'])
-        #ls_mat_res[groupe_resid*4 + 0][voxsol[2]][voxsol[1]][voxsol[0]] += mpetmort # ajout au 1er des 4 types de residus = feuille
-        
         produce *
     
     elif statut == 'exp':
@@ -2302,10 +2250,6 @@ GetPos(X0,Y0,Z0,nump2)In(nump,nsh,age,rank,rankp, l, statut,ordre):
     if nsh in invar['lsApexMort'][nump]: #Meurt si tige meurt meurt
         minmort = lent/ParamP[nump]['SNLmin'] #g
         invar['dMSenTige'][nump] += minmort
-        #voxsol = riri.WhichVoxel(array(carto[nump]), [0.,0.,0.], [len(lims_sol[0])-1, len(lims_sol[1])-1, len(lims_sol[2])-1], [S.dxyz[0][0]*100., S.dxyz[1][0]*100., S.dxyz[2][0]*100.])  
-        #groupe_resid = int(ParamP[nump]['groupe_resid'])
-        #ls_mat_res[groupe_resid*4 + 1][voxsol[2]][voxsol[1]][voxsol[0]] += minmort # ajout au 2e des 4 types de residus = tigee
-        
         produce *
     elif statut == 'exp':
         pot = sh.expansion(age+STEPS, ParamP[nump]['aE'], ParamP[nump]['delaiE']) - sh.expansion(age, ParamP[nump]['aE'], ParamP[nump]['delaiE'])
@@ -2329,22 +2273,10 @@ D(nump,nsh, statut,age,posi,parent):
         #invar['lsApexMort'][nump].remove(parent) #l'enleve pas de la liste car sinon pas visible pour autres organes
         invar['countShExp'][nump] -= 1
         produce *
-    #elif nbExp_Prev<=ParamP[nump]['NBexp'] and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1:#cree bourgeon si NBB exp pas atteint
-    #    print 'vrai'
-    #    outvar['NBBexp'][-1][0][nump+2] +=1
-    #    invar['NBBexp'][nump] +=1
-    #    newage = age%ParamP[nump]['phyllochron']+STEPS
-    #    new_nrhiz = binomial(ParamP[nump]['DistLRhiz'][0], ParamP[nump]['DistLRhiz'][1])#2#0
-    #    newazi = random.uniform(0.,360.)
-    #    produce @M(posi[0],posi[1],posi[2])SetHead()/(newazi)&(90)B(nump, nsh, newage, posi, new_nrhiz,newazi, 0,'exp')
     elif not parent in invar['lsAPrev'][nump] :#and statut==0: #sort de dormance si tige parente coupee
-        #newage = age%ParamP[nump]['phyllochron']+STEPS
-        #produce D(nump,nsh,1,newage,posi,parent)
-    #elif statut ==1:#pas d'apres produit un nouvel axe
         NIparent = max(invar_sc['sh']['MaxNI'][str(nump)+'_'+str(parent)])
         deltaBud = sh.MaturBud(ParamP[nump]['delaiMaturBud'], NIparent)
         
-        #newage = age%ParamP[nump]['phyllochron']+STEPS
         newage = deltaBud*ParamP[nump]['phyllochron'] + age%ParamP[nump]['phyllochron']# + STEPS  # #rajoute pas le steps car compare a zero apres
         new_nrhiz = ls_seeds[nump].randgen.binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#0
         newazi = ls_seeds[nump].randgen.uniform(0.,360.)
@@ -2454,6 +2386,7 @@ GetPos(X0,Y0,Z0,nump2)RLAP(nump,nsh,age,rankp,l, Horiz):
     
     #calcul ratio QD instantane
     ratioC = rt.get_QDCmoy(invar_sc['ax']['QDCRac'], idax) 
+    
     
     #stressHydrique
     stressH = sh.FTSW_resp(mean(S.ftsw_t[Horiz,:,:]), [ParamP[nump]['WaterTreshElRootss'], ParamP[nump]['WaterTreshElRootsd']])
@@ -2693,6 +2626,7 @@ RLAP(nump,nsh,age,rankp, l, Horiz):
         idI = rt.idLong(moduloH+0.001, ParamP[nump]['profilRoot'])#rpy.r.idLong(l, ParamP[nump]['profilRoot'])
         larg = ParamP[nump]['profilRoot']['y'][idI]#['y'][id[0]]#['y'][id]
         delatdI = max(0.1, larg)
+    
     
     id = rt.idLong(l, ParamP[nump]['profilRoot'])#rpy.r.idLong(l, ParamP[nump]['profilRoot'])
     #print id, l, ParamP[nump]['profilRoot']['y']
