@@ -283,9 +283,11 @@ def add_surfcoty(invar, m_lais, m_laiPlt, lsFeuilBilanR, carto, ParamP, origin_g
         else:
             surfcot = 0.
 
-        m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surfcot
-        m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
+        #m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surfcot
+        #m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
         if surfcot > 0.:
+            m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]] += surfcot
+            m_laiPlt[nump][vox[2]][vox[1]][vox[0]] += surfcot
             lsFeuilBilanR.append([nump, 0, 0, 0, 'coty', surfcot, ParamP[nump]['id_grid'], carto[nump][0], carto[nump][1], carto[nump][2], vox[2], vox[1], vox[0], 0, 0])
 
 

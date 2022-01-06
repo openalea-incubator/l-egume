@@ -86,7 +86,7 @@ nbcote = 8#1#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'#'damier8_sp2'#'random8'#'damier16'#'random16'
 idscenar1 = 1#-1 #1#inferieur a zero=defaut et fait rien
-idscenar2 = 1#-1 #21#1#inferieur a zero=defaut et fait rien
+idscenar2 = 1#21##-1 #1#inferieur a zero=defaut et fait rien
 idscenar1_sd = 1
 idscenar2_sd = 1
 

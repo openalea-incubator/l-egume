@@ -297,7 +297,13 @@ def calc_daxfPARaPiv(nbplantes, daxAgePiv, dpPARaF, daxPARaF):
     for k in lsAxPiv:
         nump = int(str.split(k, '_')[0])
         if nb_piv[nump]>1:#si plusieur pivot = proportionnel a proportion de rayonnement
-            daxPARaPiv[k] = (daxPARaF[k] + reste_piv[nump] * daxPARaF[k]/(dpPARaF[str(nump)]-reste_piv[nump]+epsilon)) / (dpPARaF[str(nump)]+epsilon)
+            #print(k, daxPARaF)
+            #print(k, list(daxPARaF.keys()), k in list(daxPARaF.keys()))
+            if k in list(daxPARaF.keys()):
+                daxPARaPiv[k] = (daxPARaF[k] + reste_piv[nump] * daxPARaF[k]/(dpPARaF[str(nump)]-reste_piv[nump]+epsilon)) / (dpPARaF[str(nump)]+epsilon)
+            else:
+                #pas de PARa de l'axe
+                daxPARaPiv[k] = 0.
         else:#si un seul pivot (-> tout pour ce pivot)
             daxPARaPiv[k] = 1.#daxPARaF[k] + reste_piv[nump]
     
