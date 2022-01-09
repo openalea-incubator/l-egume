@@ -421,14 +421,13 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     # calcul surf par tige/axe
     invar_sc['plt']['Surf'], invar_sc['plt']['SurfVerte'], invar_sc['sh']['Surf'], invar_sc['sh']['SurfVerte'], \
     invar_sc['ax']['Surf'], invar_sc['ax']['SurfVerte'], invar_sc['plt']['PARaF'], invar_sc['sh']['PARaF'], \
-    invar_sc['ax']['PARaF'], invar_sc['ax']['MaxPARaF'] = sh.calcSurfLightScales(dicFeuilBilanR)
+    invar_sc['ax']['PARaF'], invar_sc['ax']['MaxPARaF'] = sh.calcSurfLightScales(dicFeuilBilanR, ParamP)
 
-    invar_sc['ax']['AgePiv'] = sh.AgePivScales(dicOrgans)
+    invar_sc['ax']['AgePiv'] = sh.AgePivScales(dicOrgans, ParamP)
 
 
     # calcul de fraction de PARa par pivot
-    invar_sc['ax']['fPARaPiv'] = rt.calc_daxfPARaPiv(nbplantes, invar_sc['ax']['AgePiv'], invar_sc['plt']['PARaF'],
-                                                     invar_sc['ax']['PARaF'])
+    invar_sc['ax']['fPARaPiv'] = rt.calc_daxfPARaPiv(nbplantes, invar_sc['ax']['AgePiv'], invar_sc['plt']['PARaF'], invar_sc['ax']['PARaF'])
 
     # calcul demande par pivot
     invar_sc['ax']['DemCRac'], invar_sc['ax']['NRac'] = rt.calc_DemandC_roots(ParamP, invar_sc['ax']['AgePiv'],
@@ -483,7 +482,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # calcul senesc a faire a l'echelle des axes plutot? -> a priori pas necessaire
 
-    invar['R_DemandC_Root'] = rt.calc_QDplante(nbplantes, invar_sc['ax']['QDCRac'], invar_sc['ax']['cumlRac'], invar['RLentot'])
+    invar['R_DemandC_Root'] = rt.calc_QDplante(nbplantes, invar_sc['ax']['QDCRac'], invar_sc['ax']['cumlRac'], invar['RLTotNet'])#invar['RLentot'])
     invar['R_DemandC_Shoot'] = aer / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + epsilon)#10e-15)
     #print('R_DemandC_Shoot', invar['R_DemandC_Shoot'], aer, invar['DemCp'], array(IOxls.dic2vec(nbplantes, invar['DemCp'])))
 

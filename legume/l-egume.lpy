@@ -86,7 +86,7 @@ nbcote = 8#1#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'#'damier8_sp2'#'random8'#'damier16'#'random16'
 idscenar1 = 1#-1 #1#inferieur a zero=defaut et fait rien
-idscenar2 = 1#21##-1 #1#inferieur a zero=defaut et fait rien
+idscenar2 = 21#-1 #1##1#inferieur a zero=defaut et fait rien
 idscenar1_sd = 1
 idscenar2_sd = 1
 
@@ -112,8 +112,8 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Fix2'#'Orca'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'Fet'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletP = 'Orca'#'Fet'#'TB'#'Fix2'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+ongletPvois = 'Fet'#'TB'#'nonFixSimTest'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
@@ -136,8 +136,8 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'scenarios_planMorris.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'Fix2'#'Orca'#'default'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'nonFixSimTest'#'Fet'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
+ongletScenar1 = 'Orca'#'Fet'#'TB'#'Fix2'#'default'#'nonFixSimTest'#'default'#'formica'#
+ongletScenar2 = 'Fet'#'TB'#'nonFixSimTest'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
@@ -1208,6 +1208,27 @@ def EndEach(lstring,lscene):
         
     
     
+    
+    res_ = 0.
+    resQD = 0.
+    resDem = 0.
+    for k in list(invar_sc['ax']['OfrCRac'].keys()):
+        res_+= invar_sc['ax']['OfrCRac'][k]
+        resQD += invar_sc['ax']['QDCRac'][k]
+        resDem += invar_sc['ax']['DemCRac'][k]
+    
+    #print('Offr var', res_, resQD, resDem, invar['R_DemandC_Root'])#{invar_sc['ax']['OfrCRac'])
+    #print('OffrRac', invar_sc['ax']['OfrCRac'])
+    #print('DemRac', invar_sc['ax']['DemCRac'])
+    #print ('QDrac', invar_sc['ax']['QDCRac'])
+    #print ('QDracMoy', invar_sc['ax']['QDCmoyRac'])
+    #print('fPAR',invar_sc['ax']['fPARaPiv'])
+    #print('PARaF',invar_sc['ax']['PARaF'])
+    #print('axSurf', invar_sc['ax']['Surf'])
+    #print('Agepiv',invar_sc['ax']['AgePiv'])
+    #print('dlRac', invar_sc['ax']['dlRac'])
+    #print('RLtot', invar_sc['ax']['cumlRac'], invar['RLTotNet'])
+    
     #################
     # mises a jour variables (meteo...) pour step suivant
     #################
@@ -1508,6 +1529,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     newpar = res_trans[-1][vox[1]][vox[0]]/surf_refVOX # A ameliorer :pris sur carto et position reelle des bourgeosn-> pb pour stolons?
     nbExp_Prev = outvar['NBBexp'][-1][0][nump+2]+1
     
+    
     # phyllo pot change selon rgeq pour les graminees
     if int(ParamP[nump]['type'])==3 : #graminee
         phylloPot = sh.PhylloPot_Grass(1, phylloI=ParamP[nump]['phyllochron'], k=0.3)#ParamP[nump]['phyllochron']#
@@ -1584,6 +1606,8 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
                 invar['germination'][nump] = 1
                 sh.germinate(invar, ParamP[nump], nump)
             
+            #print('B',nsh, newpar/meteo_j['I0'])
+            
             rgeq = invar['rgeq'][nump]#0
             #print nsh, 'rgeq', rgeq, invar['rgeq'][nump]
             produce [@M(posi[0],posi[1],posi[2])SetHead()/(azi)&(90)B(nump,newnsh,newageB,posini,new_nrhiz,newazi,0,'exp')][D(nump,newnsh2,0,newageB,posini,nsh)]SHP(nump,nsh, azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,0,rgeq,azi)
@@ -1594,6 +1618,8 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
             if nsh==0 and invar['germination'][nump] == 0: #tige seminale, production du premier apex
                 invar['germination'][nump] = 1
                 sh.germinate(invar, ParamP[nump], nump)
+            
+            #print('B',nsh, newpar/meteo_j['I0'])
             
             rgeq = invar['rgeq'][nump]#0
             produce [D(nump,newnsh,0,newageB,posini,nsh)]SHP(nump,nsh, azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,deltaBud, rgeq,azi)

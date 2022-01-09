@@ -351,7 +351,7 @@ def calcSurfScale(ParamP, tab, scale):
     # plus utile car fait dans calcSurfLightScales
 
 
-def calcSurfLightScales(tab):
+def calcSurfLightScales(tab, ParamP):
     """ calcul le cumul de surface foliaire, surface foliaire verte et PARa au echelles plante/shoot_axe - passe la table organe une seulle fois en revue """
     # from dic lsFeuilBilanR : ['nump', 'nsh', 'rank', 'rankp','status', 'surf', 'id_grid', 'X','Y','Z','Vox2','Vox1','Vox0','sVox','paraF']
 
@@ -360,7 +360,12 @@ def calcSurfLightScales(tab):
 
         idp = str(tab['nump'][i])
         idsh = str(tab['nump'][i]) + '_' + str(tab['nsh'][i])
-        idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(tab['rank'][i])
+        if int(ParamP[tab['nump'][i]]['type']) == 3 :
+            #grass -> talle 3 F
+            idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(0)
+        else:
+            #legume
+            idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(tab['rank'][i])
 
         PARaF = float(tab['paraF'][i])
         surf = max(float(tab['surf'][i]), 10e-15)  # m2 #max(calc_surF(ParamP[nump], rank, rankp, ordre, l), 10e-15)  # m2
@@ -399,7 +404,7 @@ def calcSurfLightScales(tab):
 
 
 
-def AgePivScales(tab):
+def AgePivScales(tab, ParamP):
     """ calculage pivot/RacI pour """
     # from dic lsOrgans: ['TT','organ','nump', 'nsh', 'rank', 'rankp', 'strate', 'surf', 'PARaF','statut','age','ordre','l','Long','DOY','cutNB', 'Larg']
 
@@ -408,7 +413,12 @@ def AgePivScales(tab):
 
         idp = str(tab['nump'][i])
         idsh = str(tab['nump'][i]) + '_' + str(tab['nsh'][i])
-        idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(tab['rank'][i])
+        if int(ParamP[tab['nump'][i]]['type']) == 3 :
+            #grass -> talle 3 F
+            idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(0)
+        else:
+            #legume
+            idax = str(tab['nump'][i]) + '_' + str(tab['nsh'][i]) + '_' + str(tab['rank'][i])
 
         age = float(tab['age'][i])
 
@@ -993,8 +1003,7 @@ def update_shoot_params(ParamP, rankmax=51):
         elif int(ParamP[nump]['type']) == 3:  # graminee
             cor_lF = ParamP[nump]['leafshape']  # pour afficher feuille avec surface reelle et corriger effet recangle (pas sqrt car appliquer que a largeur
 
-        cor_lstp = sqrt(
-            ParamP[nump]['stipshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+        cor_lstp = sqrt(ParamP[nump]['stipshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
 
         ParamP[nump]['profilLeafI_l'] = []
         ParamP[nump]['profilLeafI_larg'] = []
@@ -1005,7 +1014,7 @@ def update_shoot_params(ParamP, rankmax=51):
         ParamP[nump]['profilPetI_l'] = []
         ParamP[nump]['profilLeafI_nfol'] = []
         if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # legumineuse
-            ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD'])  # proportion de feuille par        classe d'incli pour calcul des k_teta
+            ParamP[nump]['k_teta_distf'] = riri.disttetaf(abs(ParamP[nump]['gammaFeuil']), ParamP[nump]['gammaFeuilSD'])  # proportion de feuille par    #    classe d'incli pour calcul des k_teta
         elif int(ParamP[nump]['type']) == 3:  # graminee avec courbure
             nfol = 8
             courbure = -5

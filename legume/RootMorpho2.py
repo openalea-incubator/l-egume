@@ -116,9 +116,9 @@ def calc_DemandC_roots(ParamP, dAgePiv, udev, dsatisfC, nbnodale=1.):
 
         #?lecture directe d'un parametre de nb de nodales?
         if int(ParamP[nump]['type']) == 3:  # fascilule: grass
-            nbnodale = 1#3  # force 3 nodales par talle pour C-> a passer en parametres?
+            nbnodale = ParamP[nump]['nbnodales']#3  # force 3 nodales par talle pour C-> a passer en parametres?
         else:
-            nbnodale = 1
+            nbnodale = max(1, ParamP[nump]['nbnodales'])
         demande[k], Nbrac[k] = calc_DemandC_root(ParamP[nump], dAgePiv[k], dTT[nump], satisf=satisf_k, nbnodale=nbnodale)
 
     return demande, Nbrac
@@ -131,7 +131,7 @@ def calc_QDC_roots(dOffre,dDemand):
     QD = {}
     for k in list(dOffre.keys()):
         if dDemand[k]==0:
-            ratio=1.
+            ratio=0.#1.
         else:
             ratio = dOffre[k] / (dDemand[k])
             if ratio>1.:
@@ -211,9 +211,9 @@ def calc_dLong_roots(ParamP, dNrac, udev, dsatisfC, dStressH, dPonder, nbnodale=
 
         # ?lecture directe d'un parametre de nb de nodales?
         if int(ParamP[nump]['type']) == 3:  # fascilule: grass
-            nbnodale = 1  # 3  # force 3 nodales par talle pour C-> a passer en parametres?
+            nbnodale = ParamP[nump]['nbnodales']#3  # force 3 nodales par talle pour C-> a passer en parametres?
         else:
-            nbnodale = 1
+            nbnodale = max(1, ParamP[nump]['nbnodales'])
 
         ddl[k] = dLong_root(ParamP[nump], dNrac[k], dTT[nump], satisf_k, stressH, nbnodale=nbnodale)#calc_DemandC_root(ParamP[nump], dAgePiv[k], dTT, satisf=satisf_k)
 
@@ -285,7 +285,7 @@ def calc_daxfPARaPiv(nbplantes, daxAgePiv, dpPARaF, daxPARaF):
     for i in range(nbplantes): reste_piv.append(0.);nb_piv.append(0)
     
     #quel PARa par plante sur des axes sans pivot?
-    for k in daxPARaF:
+    for k in list(daxPARaF.keys()):
         nump = int(str.split(k, '_')[0])
         if not k in lsAxPiv:
             reste_piv[nump] += daxPARaF[k]
@@ -301,11 +301,14 @@ def calc_daxfPARaPiv(nbplantes, daxAgePiv, dpPARaF, daxPARaF):
             #print(k, list(daxPARaF.keys()), k in list(daxPARaF.keys()))
             if k in list(daxPARaF.keys()):
                 daxPARaPiv[k] = (daxPARaF[k] + reste_piv[nump] * daxPARaF[k]/(dpPARaF[str(nump)]-reste_piv[nump]+epsilon)) / (dpPARaF[str(nump)]+epsilon)
+                #print("passe", k, daxPARaPiv[k])
             else:
                 #pas de PARa de l'axe
+                #print("passe 0")
                 daxPARaPiv[k] = 0.
         else:#si un seul pivot (-> tout pour ce pivot)
             daxPARaPiv[k] = 1.#daxPARaF[k] + reste_piv[nump]
+            #print("passe 1", nb_piv[nump], k, lsAxPiv, list(daxPARaF.keys()), k in list(daxPARaF.keys()))
     
     return daxPARaPiv
     #fait bugger qd dpPARaF[str(nump)] = reste_piv[nump] -> ajoute un epsilon
