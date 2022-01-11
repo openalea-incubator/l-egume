@@ -81,12 +81,12 @@ deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
 
-cote = 40.#80.#100.#100#25.#25.#cm
+cote = 40.#7.#80.#100.#100#25.#25.#cm
 nbcote = 8#1#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'#'damier8_sp2'#'random8'#'damier16'#'random16'
-idscenar1 = 1#-1 #1#inferieur a zero=defaut et fait rien
-idscenar2 = 21#-1 #1##1#inferieur a zero=defaut et fait rien
+idscenar1 = -1 #1#22#1#inferieur a zero=defaut et fait rien
+idscenar2 = -1 #1#21#21#1##1#inferieur a zero=defaut et fait rien
 idscenar1_sd = 1
 idscenar2_sd = 1
 
@@ -112,8 +112,8 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Orca'#'Fet'#'TB'#'Fix2'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'Fet'#'TB'#'nonFixSimTest'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+ongletP = 'Fix2'#'Fet'#'Orca'#'TB'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+ongletPvois = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
@@ -136,8 +136,8 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'scenarios_planMorris.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')
-ongletScenar1 = 'Orca'#'Fet'#'TB'#'Fix2'#'default'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'Fet'#'TB'#'nonFixSimTest'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
+ongletScenar1 = 'Fix2'#'Fet'#'Orca'#'TB'#'default'#'nonFixSimTest'#'default'#'formica'#
+ongletScenar2 = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
@@ -1227,7 +1227,11 @@ def EndEach(lstring,lscene):
     #print('axSurf', invar_sc['ax']['Surf'])
     #print('Agepiv',invar_sc['ax']['AgePiv'])
     #print('dlRac', invar_sc['ax']['dlRac'])
+    #print('Nrac', invar_sc['ax']['NRac'])
     #print('RLtot', invar_sc['ax']['cumlRac'], invar['RLTotNet'])
+    #print('NBI', invar['NBI'])
+    #print('dlSenroot', invar['dRLenSentot'])
+    
     
     #################
     # mises a jour variables (meteo...) pour step suivant
@@ -1569,7 +1573,11 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
     remiseNIcoupe = 3#2# max de stade bourgeon
     remiseNIgel = 5# max apres un gel
     
-    if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh_til'] and nrhiz==0: #effet par_tresh marche mais a l'envers??? ->OK
+    #test pour limiter dev en stress
+    limStressTalN = 0.5 #1.# stress qui bloque tallage en condition limitante N ou eau -> parametre
+    limStressTalW = 0.5 #1.# stress qui bloque tallage en condition limitante N ou eau -> parametre
+    
+    if age >= deldeb/(0.00001+stressW*stressN) and newpar>=meteo_j['I0']*ParamP[nump]['par_tresh_til'] and nrhiz==0: #effet par_tresh  ->OK
         ##azi = random.uniform(0,360)
         elv0 = ls_seeds[nump].randgen.uniform(ParamP[nump]['elv0b'],ParamP[nump]['elv0h'])#(0,90)
         ageref = min(phylloPot, phylloPot*ParamP[nump]['RvitTallage'])
@@ -1593,7 +1601,9 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
         
         new_nrhiz = ls_seeds[nump].randgen.binomial(ParamP[nump]['DistLRhizn'], ParamP[nump]['DistLRhizp'])#2#5#0
         
-        if statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1:#nsh< ParamP[nump]['nshoots'] and  : #modifie en nshoots-1, sinon la premiere tige n'est pas comptee!
+        
+        #if statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1 :#nsh< ParamP[nump]['nshoots'] and  : #modifie en nshoots-1, sinon la premiere tige n'est pas comptee!
+        if statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1 and stressW >= limStressTalW and stressN >= limStressTalN:#nsh< ParamP[nump]['nshoots'] and  : #modifie en nshoots-1, sinon la premiere tige n'est pas comptee!
             #print nump, 'B', newageA, test_retard[nump]
             newazi = ls_seeds[nump].randgen.uniform(0.,360.)
             invar['countSh'][nump] += 1
@@ -1611,7 +1621,13 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
             rgeq = invar['rgeq'][nump]#0
             #print nsh, 'rgeq', rgeq, invar['rgeq'][nump]
             produce [@M(posi[0],posi[1],posi[2])SetHead()/(azi)&(90)B(nump,newnsh,newageB,posini,new_nrhiz,newazi,0,'exp')][D(nump,newnsh2,0,newageB,posini,nsh)]SHP(nump,nsh, azi,elv0,posi,0,newpar)GetPos(0,0,0,nump)A(nump,nsh,1,newageA,0,0,rgeq,azi)
-        else:
+        
+        elif statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1 and (stressW < limStressTalW or stressN < limStressTalN):
+            # nouvelle tige qui demarre pas a cause de stress -> mort bourgeon
+            print('limstressTal', nump, nsh, stressW, stressN)
+            produce *
+            
+        else: #tige en place qui repart
             invar['countSh'][nump] += 1
             newnsh = invar['countSh'][nump] #nsh
             

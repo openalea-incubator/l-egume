@@ -2,6 +2,7 @@
 ## fonctions de lecture et de mise en forme R pour analyse des sorties de simul l-egume
 #########
 library(ggplot2)
+library(ineq)
 
 
 read_ltoto <- function(ls_toto)
@@ -271,7 +272,7 @@ dynamic_graphs <- function(simmoy, name, obs=NULL, surfsolref=NULL)
 
 
 #fonction graph ggplot2
-gg_plotsim <- function(varsim, simmoy, simsd, name="")
+gg_plotsim <- function(varsim, simmoy, simsd, name="", col="blue")
 {
   #fait le line plot avec ecart type a partir des tableau moyen simules
   var_ <- varsim #"FTSW"#"NBI"#"MSA"#"NNI"#"LAI"#
@@ -280,7 +281,7 @@ gg_plotsim <- function(varsim, simmoy, simsd, name="")
   max <- 1.5*max(simmoy[,var_])
   
   plot_var <- ggplot(data = simmoy, aes(x = STEPS)) +
-    geom_line(aes(y = simmoy[,var_]), color="blue")+
+    geom_line(aes(y = simmoy[,var_]), color=col)+
     geom_ribbon(aes(ymin=simmoy[,var_]-simsd[,var_],ymax=simmoy[,var_]+simsd[,var_]),fill="blue",alpha=0.2)+
     geom_hline(yintercept=0)+
     ylim(min,max)+
@@ -296,13 +297,13 @@ gg_plotsim <- function(varsim, simmoy, simsd, name="")
 
 
 
-gg_addplotobs <- function(plot_var, var_, obsOK, corresp)
+gg_addplotobs <- function(plot_var, var_, obsOK, corresp, colobs="red")
 {
   # ajour a un graph simule des points observe pour variable var_
   #obsOK : obs avec tableau meme dimension que les simul (merge)
   #corresp: dataframe de correspondance des nom de variables obs/sim
   nomvarobs <- as.character(corresp[corresp$sim==var_,c("obs")])
-  plot_var2 <- plot_var + {if(var_ %in% corresp$sim) geom_point(aes(obsMerge$DOY, obsMerge[,nomvarobs]), fill="red",color="red" , size=2)}
+  plot_var2 <- plot_var + {if(var_ %in% corresp$sim) geom_point(aes(obsMerge$DOY, obsMerge[,nomvarobs]), fill=colobs,color=colobs , size=2)}
   
   plot_var2
 }
@@ -311,7 +312,7 @@ gg_addplotobs <- function(plot_var, var_, obsOK, corresp)
 
 
 
-gg_plotObsSim <- function(obssim, var_, name="")
+gg_plotObsSim <- function(obssim, var_, name="", colpt="red")
 {
   #plot obs-sim avec ggplot
   
@@ -337,7 +338,7 @@ gg_plotObsSim <- function(obssim, var_, name="")
     ggtitle(name)+
     geom_abline(intercept = 0, slope = 1, color = "black")+
     geom_point(aes(color = "obs"))+
-    geom_smooth(method=lm, se = FALSE, color = "red")+
+    geom_smooth(method=lm, se = FALSE, color = colpt)+
     ylim(min,max)+
     xlim(min,max)+
     geom_text(x=0.2*max, y=0.95*max, size=3, label=eq)+
@@ -543,7 +544,7 @@ build_ls_dobssim <-function(esp_, ls_expe, ls_var, ls_varsim)
 
 
 
-library(ineq)
+
 build_dtoto <- function(sp_dtoto, key, DOYdeb, DOYScoupe)
 {
   ls_toto_paquet <- sp_dtoto[[key]]$name

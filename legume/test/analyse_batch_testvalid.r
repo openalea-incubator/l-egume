@@ -155,7 +155,7 @@ dev.off()
 
 
 #exemple analyse pour 1 usm pour usm 'key'
-key <- names(sp_dtoto)[1]#dileg luz
+key <- names(sp_dtoto)[3]#dileg luz
 
 
 ls_toto_paquet <- sp_dtoto[[key]]$name
@@ -299,7 +299,8 @@ ls_plt[["Npc_aerNonRec"]]
 ls_plt[["Npc_aer"]]
 #pas bon car manque /nbplt!!! + pb nbp_piv
 
-
+ls_plt[["R_DemandC_Root"]]
+ls_plt[["RDepth"]]
 
 
 var_ <- "dMSenTige"#"dMSenFeuil"#"dMSenRoot"#"dMSenPiv"#"dMSenNonRec"
