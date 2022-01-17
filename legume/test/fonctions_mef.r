@@ -2,6 +2,7 @@
 ## fonctions de lecture et de mise en forme R pour analyse des sorties de simul l-egume
 #########
 library(ggplot2)
+library("gginnards")
 library(ineq)
 
 
@@ -272,9 +273,11 @@ dynamic_graphs <- function(simmoy, name, obs=NULL, surfsolref=NULL)
 
 
 #fonction graph ggplot2
-gg_plotsim <- function(varsim, simmoy, simsd, name="", col="blue")
+
+gg_plotsim <- function(varsim, simmoy, simsd, name="", col="blue", colref="red")
 {
   #fait le line plot avec ecart type a partir des tableau moyen simules
+  # for dtoto daily output
   var_ <- varsim #"FTSW"#"NBI"#"MSA"#"NNI"#"LAI"#
   
   min <- 0
@@ -282,13 +285,13 @@ gg_plotsim <- function(varsim, simmoy, simsd, name="", col="blue")
   
   plot_var <- ggplot(data = simmoy, aes(x = STEPS)) +
     geom_line(aes(y = simmoy[,var_]), color=col)+
-    geom_ribbon(aes(ymin=simmoy[,var_]-simsd[,var_],ymax=simmoy[,var_]+simsd[,var_]),fill="blue",alpha=0.2)+
+    geom_ribbon(aes(ymin=simmoy[,var_]-simsd[,var_],ymax=simmoy[,var_]+simsd[,var_]),fill=col,alpha=0.2)+
     geom_hline(yintercept=0)+
     ylim(min,max)+
     geom_text(x=1.20*min(simmoy$STEPS), y=0.98*max, size=4, label=name)+
     theme(axis.text.x = element_text(size=6),axis.text.y = element_text(size=6))+
     labs(title = "obs",subtitle = "sim",x = "DOY", y = var_)+
-    theme(plot.title=element_text(size=10,color = "red"),plot.subtitle = element_text(size=10,color = "blue"))
+    theme(plot.title=element_text(size=10,color = colref),plot.subtitle = element_text(size=10,color = col))
   
   plot_var
 }
@@ -352,6 +355,31 @@ gg_plotObsSim <- function(obssim, var_, name="", colpt="red")
   plot_ObsSim 
 }
 #plot_ObsSim <- gg_plotObsSim(obssim, "NBI", name=onglet)
+
+
+
+
+Concat_ggplot_layers <- function(ls_pltsim, layertype = "GeomLine")
+{
+  # function avec une liste de ggplot similaires et ajoute dans le premier 
+  #les layers de type layertype des autres graphs
+  # utilise package gginnards
+  #teste ds eval finales ISOP MF
+  
+  #layertype = "GeomLine"
+  
+  p <- ls_pltsim[[1]] #part du premier plot de la liste
+  for (i in 2:length(ls_pltsim))
+  {
+    nom <- names(ls_pltsim)[i]
+    lay_ <- extract_layers(ls_pltsim[[nom]], layertype)
+    p <- append_layers(p, lay_, position = "bottom")
+    #print(p)
+  }
+  
+  p
+}
+#p <- Concat_ggplot_layers(ls_pltsim_ID, layertype = "GeomLine")
 
 
 

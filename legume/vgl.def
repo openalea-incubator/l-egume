@@ -20,7 +20,8 @@ From: ubuntu:18.04
 
     #for security fixe:
     apt upgrade -y
-    apt install -y wget bzip2 freeglut3-dev libxext-dev libxrender-dev libglib2.0-0 git libqhull-dev
+    apt install -y wget bzip2 freeglut3-dev libxext-dev libxrender-dev libglib2.0-0 git libqhull-dev libboost-all-dev
+    #libboost-dev libboost-all-dev libboost-python-dev
 
     # miniconda2: get miniconda2 version 4.7.12.1
     wget https://repo.anaconda.com/miniconda/Miniconda3-py37_4.8.2-Linux-x86_64.sh -O miniconda.sh
@@ -36,7 +37,7 @@ From: ubuntu:18.04
     apt clean
 
     #install conda env.yml file
-    /opt/miniconda/bin/conda install python=3.7 pip scipy pandas openalea.lpy xlrd -c conda-forge -c fredboudon
+    /opt/miniconda/bin/conda install python=3.7 pip scipy pandas openalea.lpy xlrd -c conda-forge -c fredboudon 
     
 
     # Clone and install lgrass

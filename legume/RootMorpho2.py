@@ -1,4 +1,6 @@
 from scipy import pi, array, sqrt, arange, cos, sin, amax, where, argmin
+import pandas as pd
+import IOxls
 
 ## gestion des enveloppe et des tropisme -> fonctions dans fichier R 'calc_root_tropism.r'
 
@@ -128,10 +130,11 @@ def calc_DemandC_roots(ParamP, dAgePiv, udev, dsatisfC, nbnodale=1.):
 
 def calc_QDC_roots(dOffre,dDemand):
     """ calcul offre sur demande instantane """
+    #epsilon = 1e-12
     QD = {}
     for k in list(dOffre.keys()):
         if dDemand[k]==0:
-            ratio=0.#1.
+            ratio= 0.#1.
         else:
             ratio = dOffre[k] / (dDemand[k])
             if ratio>1.:
@@ -321,20 +324,25 @@ def ponder_daxfPARaPiv_ax(daxPARaPiv, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7, 
     epsilon = 1e-12
     lsAxPiv = list(daxPARaPiv.keys())
     daxPARaPiv_ponder = {}
+    daxParent = {}
     for k in lsAxPiv:#initialise a zero
         daxPARaPiv_ponder[k] = 0.
-     
+
+        nump, nax, ram = int(str.split(k, '_')[0]), int(str.split(k, '_')[1]), int(str.split(k, '_')[2])
+        idparent = str(nump) + '_' + str(nax)
+        IOxls.append_dic(daxParent, idparent, k)
+
+
     #lsAxPiv = ['0_0_0', '0_3_0', '0_3_1', '0_3_2', '0_3_3', '0_3_4', '0_1_2', '0_1_3', '0_1_4', '0_1_5', '0_0_4', '0_0_5']
     for k in lsAxPiv:
         #etablit liste des apparentes (meme plante, meme axe)
         nump, nax, ram = int(str.split(k, '_')[0]), int(str.split(k, '_')[1]), int(str.split(k, '_')[2])
+        idparent = str(nump) + '_' + str(nax)
         ponder = [Frac_piv_loc[nump], 1.- Frac_piv_loc[nump] - Frac_piv_sem[nump], Frac_piv_sem[nump]] #ponder=[frac_locale, frac_reste_axe, frac_seminal]
         #print nump, ponder
         #ponder=[0.1, 0.2, 0.7]
-        lsparent = []
-        for ax in lsAxPiv:
-            if int(str.split(ax, '_')[0])==nump and int(str.split(ax, '_')[1])==nax:
-                lsparent.append(ax)
+
+        lsparent = daxParent[idparent]
 
         #si seminale, pas de repartition
         if nax==0 and ram==0:
@@ -344,6 +352,7 @@ def ponder_daxfPARaPiv_ax(daxPARaPiv, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7, 
             daxPARaPiv_ponder[k] += daxPARaPiv[k]*(ponder[0]+ponder[1])
             daxPARaPiv_ponder[idseminal] += daxPARaPiv[k]*(ponder[2])
         else: #pas seminale et des parents sur l'axe
+            #print('passe parent')
             idseminal = str(nump)+'_0_0'
             daxPARaPiv_ponder[k] += daxPARaPiv[k]*(ponder[0])
             daxPARaPiv_ponder[idseminal] += daxPARaPiv[k]*(ponder[2])
@@ -358,7 +367,7 @@ def ponder_daxfPARaPiv_ax(daxPARaPiv, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7, 
 def distrib_dM_ax(daxfPARaPiv, pivots, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7, 0.2, 0.1]):
     """ distribue increment de biomasse (e.g de pivots/racfine) par plante a l'echelle axe en fonction des fractions daxfPARaPiv"""
     #ponderation de l'allocation locale
-    daxPARaPiv_ponder = ponder_daxfPARaPiv_ax(daxfPARaPiv, Frac_piv_sem, Frac_piv_loc)#ponder)
+    daxPARaPiv_ponder = ponder_daxfPARaPiv_ax(daxfPARaPiv, Frac_piv_sem, Frac_piv_loc)
 
     daxPiv = {}
     for k in list(daxfPARaPiv.keys()):
@@ -369,7 +378,7 @@ def distrib_dM_ax(daxfPARaPiv, pivots, Frac_piv_sem, Frac_piv_loc):#ponder=[0.7,
     
     return daxPiv#dictionnaire pivots echelle axe 
 
-def calc_DiamPiv(ParamP, MaxPiv):
+def calc_DiamPivMax(ParamP, MaxPiv):
     """ calcule les diametres MAx de pivots a partir de dico axe des biomasses cumulee """
     DiampivMax = {}
     for k in list(MaxPiv.keys()):
@@ -377,6 +386,23 @@ def calc_DiamPiv(ParamP, MaxPiv):
         DPivot2_coeff = ParamP[nump]['DPivot2_coeff']
         DiampivMax[k] = sqrt(DPivot2_coeff * MaxPiv[k])
     return DiampivMax #dictionnaire des diametres par axe
+
+
+def cal_DiamPiv(ParamP, invar_sc, nump, idax, moduloH):
+    """ calcule diamp Piv a une hauteur z"""
+
+    #RS(nump, nsh, rankp, moduloH):
+    #diampiv = max(0.1 ,invar['DiampivMax'][nump]*(1-moduloH/ParamP[nump]['ZPivot_min']))
+    #idax = str(nump)+'_'+str(nsh)+'_'+str(rankp)
+
+    if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #pivot: legume or non fixing-legume
+        diampiv = max(0.1 ,invar_sc['ax']['DiampivMax'][idax]*(1-moduloH/ParamP[nump]['ZPivot_min']))
+    elif int(ParamP[nump]['type'])==3 : #fascilule: grass
+        id = idLong(moduloH+0.01, ParamP[nump]['profilRoot'])#
+        larg = ParamP[nump]['profilRoot']['y'][id]#['y'][id[0]]#['y'][id]
+        diampiv = max(0.1, larg)
+
+    return diampiv
 
 
 def Dur_Growth_Root(D, Dmax, GDs):
@@ -476,6 +502,50 @@ def idLong(Long, tabTropism):
     id = amax(where(tabTropism["cumlen"] < Long))  # amax = mas array; where = pyhon for which
     return id
     # idLong(Long=5.1, tabTropism=test)
+
+
+
+# def rootTropism_df(alpha0, g, segment=0.3, Long=10.):
+#     """python version of rootTropism.r """
+#     # calcul coordonees de n segments sur longueur Long avec incli initiale = alpha0 et tropisme=g
+#
+#     # alpha0 = 70. #degre (par rapport a verticale)
+#     # segment = 0.3 #cm
+#     # g = 0.5 #gravitropisme
+#     # Long = 10.#cm
+#
+#     cumlen = arange(0, Long, segment)  # seq(0, Long, segment)#equivalent python?
+#     # 2 1er point (inclinaison initiale)
+#     ang_actu = alpha0
+#     x = [0., segment * cos(alpha0 * pi / 180.)]
+#     # axe vertical
+#     y = [0., segment * sin(alpha0 * pi / 180.)]
+#     # axe horizontal
+#     reste_angle = alpha0
+#
+#     # n points pour faire Long
+#     for i in range(1, len(cumlen) - 1):  # int((Long-segment)/segment + 1)):
+#         ang_actu = ang_actu - reste_angle * g
+#         x.append(x[-1] + segment * cos(ang_actu * pi / 180.))  # axe vertical
+#         y.append(y[-1] + segment * sin(ang_actu * pi / 180.))  # axe horizontal
+#         reste_angle = ang_actu
+#
+#     # pd.DataFrame({'x':x, 'y':y, 'cumlen':cumlen})
+#     return pd.DataFrame({'x':x, 'y':y, 'cumlen':cumlen})##data.frame(x, y, cumlen)#pd df...
+#     # test = rootTropism(70,0.5)
+#     # rq: recherche pandas df plus lent que  dico
+
+
+
+# def getLarg(Long, tabTropism_pd):
+#     """ lit largeur/largeur du cylindre racine - pour remplacer calculs id Long en utilisant pandas data.frame """
+#     subx = tabTropism_pd[tabTropism_pd["cumlen"] < Long]
+#     nblignes = subx.shape[0]# max ([1, subx.shape[0]])
+#     #larg = subx.loc[nblignes - 1, "y"]
+#     line = subx.loc[nblignes - 1, :]
+#     return line#larg
+#     # finalement moins performant que idLong!!
+
 
 
 #def  TrajRtropisme_intersection(angini, groot,dz=0.25, dli=0.01):

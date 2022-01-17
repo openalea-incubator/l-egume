@@ -439,7 +439,8 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
                               Frac_piv_loc=riri.get_lsparami(ParamP,
                                                              'Frac_piv_loc'))  # rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], pivot)
     invar_sc['ax']['MaxPiv'] = IOxls.add_dic(daxPiv, invar_sc['ax']['MaxPiv'])
-    invar_sc['ax']['DiampivMax'] = rt.calc_DiamPiv(ParamP, invar_sc['ax']['MaxPiv'])
+    invar_sc['ax']['DiampivMax'] = rt.calc_DiamPivMax(ParamP, invar_sc['ax']['MaxPiv'])
+
     invar_sc['ax']['OfrCRac'] = rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], rac_fine,
                                                  Frac_piv_sem=riri.get_lsparami(ParamP, 'Frac_piv_sem'),
                                                  Frac_piv_loc=riri.get_lsparami(ParamP, 'Frac_piv_loc'))
