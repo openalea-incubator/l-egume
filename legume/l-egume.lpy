@@ -1685,7 +1685,7 @@ B(nump, nsh, age, posi, nrhiz, azi, par, statut):
         
         elif statut=='exp' and invar['countShExp'][nump]< ParamP[nump]['nshoots']-1 and (stressW < limStressTalW or stressN < limStressTalN):
             # nouvelle tige qui demarre pas a cause de stress -> mort bourgeon
-            print('limstressTal', nump, nsh, stressW, stressN)
+            #print('limstressTal', nump, nsh, stressW, stressN)
             produce *
             
         else: #tige en place qui repart
