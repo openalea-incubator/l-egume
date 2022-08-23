@@ -265,9 +265,14 @@ class Soil(object):
         self.ftsw_t = negs * 1. *ftsw * self.m_obstarac #pour eviter valeurs negatives
 
     def HRv(self):
-        """ compute relative soil humidity - Humidite volumique(%, 100 * vol eau par volume de sol)"""
+        """ compute relative soil humidity - Humidite volumique(%, 100 * de max de quantite d'eau fc)"""
         return divide(self.tsw_t, self.m_QH20fc)*100.
         # peut etre 100 pour cent?? -> OK par rapport aux parametetre de reponse de mineralisation a l'humidite du sol (proportion de capciate au champ)
+        #ambigu car pas HRv mesure par capteurs sols!
+
+    def HRv_capteur(self):
+        """ compute relative soil humidity - Humidite volumique(%, 100 * vol eau par volume de sol)"""
+        return (self.tsw_t / self.m_soil_vol)/10.
 
     def HRp(self):
         """ compute relative soil humidity - Humidite ponderale (%, 100 * g H2O.g sol-1)"""
