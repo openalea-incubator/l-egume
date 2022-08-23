@@ -64,6 +64,7 @@ opt_Mng = 0 # type of management file to be read: 0: default observed file ; 1: 
 opt_ReadPP = 0 # Force photoperiod to read input values in management - for indoor experiment
 visu_root=1 #1# pour visualisation/interpretation root
 visu_shoot=1 #1# pour visualisation/interpretation shoot
+visu_leaf=1 #1# pour visualisation/interpretation feuilles slmt
 visu_sol=0 #1# pour visualisation/interpretation sol
 visu_solsurf=1 #0 pour visualisation du pattern
 frDisplay = 0 #1 #sauvegarde de la derniere vue
@@ -1196,7 +1197,7 @@ def EndEach(lstring,lscene):
     
     
     
-    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, dicFeuilBilanR, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, dicOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu]
+    tag_loop_inputs = [invar, outvar, invar_sc, ParamP, station, carto,  meteo_j, mng_j, DOY, cutNB, start_time, nbplantes, surfsolref, m_lais, dicFeuilBilanR, surf_refVOX,  triplets , ls_dif, S, par_SN, lims_sol, ls_roots, stateEV, Uval, b_, ls_mat_res, vCC, ls_ftswStress, ls_NNIStress, ls_TStress, lsApex, lsApexAll, dicOrgans, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, opt_stressW, opt_stressN, opt_stressGel, opt_residu, dxyz]
     
     
     # update internal to the loop: ls_epsi, ls_demandeN_bis, temps, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, 
@@ -2700,7 +2701,7 @@ Pet(nump, nsh, age, azi,l1, statut1) > GetPos(X0,Y0,Z0,nump3)GetUp(V1,V2,V3)Lf(n
 
 
 Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, Lcut,statut,ordre):
-    if visu_shoot==1:
+    if visu_shoot==1 or visu_leaf==1:
         cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2:#legumineuse
             rk = rank+rankp if ordre==2 else rank
@@ -2748,7 +2749,7 @@ Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, Lcut,statut,ordre):
 
 
 Stp(nump, azi,l, statut)> Pet(nump1, nsh, age, azi1, l1, statut1)GetPos(X0_,Y0_,Z0_,nump3)GetUp(V1,V2,V3)Lf(nump2,nsh2,age2,azi2,rank,rankp,l2,tt_omb,Lcut,statut2,ordre):
-    if visu_shoot==1: 
+    if visu_shoot==1 or visu_leaf==1: 
         if ParamP[nump]['gotStip']== 1.:
             cor_ordre = ParamP[nump]['ratioII'] if ordre==2 else 1.
             rk = rank+rankp if ordre==2 else rank

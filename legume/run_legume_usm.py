@@ -153,6 +153,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_ReadPP = int(dic_opt['opt_ReadPP'])  # Force photoperiod to read input values in management - for indoor experiment
     testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
     testsim[name].visu_shoot = int(dic_opt['visu_shoot'])  # 1# pour visualisation/interpretation shoot
+    testsim[name].visu_leaf = int(dic_opt['visu_leaf'])  # 1# pour visualisation/interpretation feuilles slmt
     testsim[name].visu_sol = int(dic_opt['visu_sol'])  # 1# pour visualisation/interpretation sol
     testsim[name].visu_solsurf = int(dic_opt['visu_solsurf'])  # 0 pour visualisation du pattern
     testsim[name].frDisplay = int(dic_opt['frDisplay'])  # 1 #sauvegarde de la derniere vue
