@@ -484,15 +484,20 @@ def reserves_graine(invar, ParamP):
     return array(graineC), array(graineN)
 
 
-def calc_paraF(dicFeuilBilanR, m_lais, res_abs_i):
+def calc_paraF(dicFeuilBilanR, m_lais, res_abs_i, force_id_grid=None):
     """ update paraF and sVox calculation in lsFeuilBilanR + conv to dico """
+    # force_id_grid=n is for external calculation for a single species in a mixture
     # ['nump', 'nsh', 'rank', 'rankp','status', 'surf','id_grid', 'X','Y','Z','Vox2','Vox1','Vox0','sVox','paraF']
     nblignes = len(dicFeuilBilanR['nump']) #- 1
     df = dicFeuilBilanR #IOtable.conv_dataframe(IOtable.t_list(lsFeuilBilanR))
     if nblignes > 0:
         for i in range(nblignes):
             # update sVox
-            id_grid = df['id_grid'][i]
+            if (force_id_grid is None):
+                id_grid = df['id_grid'][i]
+            else:
+                id_grid = int(force_id_grid)
+
             surf = df['surf'][i]
             vox = [df['Vox0'][i], df['Vox1'][i], df['Vox2'][i]]
             sVOX = m_lais[id_grid][vox[2]][vox[1]][vox[0]]

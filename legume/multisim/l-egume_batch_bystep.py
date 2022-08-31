@@ -124,6 +124,7 @@ def runlsystem(n):
 
 def runlsystem_bystep(n):
     """run du niem l-system by step dans une liste (names)"""
+    #  A tester avec usm 1711 dans exemple
 
     lsys = testsim[names[n]]
     lstring = lsys.axiom
@@ -131,8 +132,8 @@ def runlsystem_bystep(n):
     lsys.opt_external_coupling = 1 # met a un l'option external coupling
 
     #option stress a zero si besoin
-    #lsys.opt_stressN = 0
-    #lsys.opt_stressW = 0
+    lsys.opt_stressN = 0
+    lsys.opt_stressW = 0
 
     for i in range(nb_iter+1):
         print('iter ',i,n)
@@ -163,6 +164,8 @@ def runlsystem_bystep(n):
         # calul des interception feuille et ls_epsi plante
         dicFeuilBilanR = sh.calc_paraF(dicFeuilBilanR, m_lais, res_abs_i)
         ls_epsi, invar = loop.step_epsi(invar, res_trans, dicFeuilBilanR, meteo_j, surfsolref)
+
+        print('epsi', sum(ls_epsi))
 
         ##########
         # Step Potential plant growth
@@ -437,17 +440,19 @@ def runl2systemLight_bystep(n, m):
         #def variables communes
         meteo_j, station, surf_refVOX, triplets, surfsolref, dxyz = meteo_j1, station1, surf_refVOX1, triplets1, surfsolref1, dxyz1
 
-        ls_dif = ls_dif1
-        m_lais = m_lais1 + m_lais2
+        #ls_dif = ls_dif1
+        #m_lais = m_lais1 + m_lais2
         ## ??vraiment bon?? -> comme si une seule dist!!
 
         #gere difference de dsitib par especes
-        #if (ls_dif1[0] == ls_dif2[0]).all(): # cas ou ce sont les memes distrib d'angles
-        #    ls_dif = ls_dif1
-        #    m_lais = m_lais1 + m_lais2
-        #else: #distrib differents
-        #    ls_dif = ls_dif1 + ls_dif2
-        #    m_lais = np.array([m_lais1[0], m_lais2[0]])  # matrice 4D , 1ere dim = 1 matrice 3D par distrib angles espece
+        if (ls_dif1[0] == ls_dif2[0]).all(): # cas ou ce sont les memes distrib d'angles
+            ls_dif = ls_dif1
+            m_lais = m_lais1 + m_lais2
+            id_sp2 = 0
+        else: #distrib differents
+            ls_dif = ls_dif1 + ls_dif2
+            m_lais = np.array([m_lais1[0], m_lais2[0]])  # matrice 4D , 1ere dim = 1 matrice 3D par distrib angles espece
+            id_sp2 = 1
 
 
         #TO DO: definir variables communes dans run couple: sol S de S1 et variables reunissant facilement les 2
@@ -473,16 +478,21 @@ def runl2systemLight_bystep(n, m):
         transmi_sol = np.sum(res_trans[-1][:][:]) / (meteo_j['I0'] * surfsolref)  # bon
         epsi = 1. - transmi_sol  # bon
 
-        dicFeuilBilanR1 = sh.calc_paraF(dicFeuilBilanR1, m_lais, res_abs_i)
-        dicFeuilBilanR2 = sh.calc_paraF(dicFeuilBilanR2, m_lais, res_abs_i)
+        dicFeuilBilanR1 = sh.calc_paraF(dicFeuilBilanR1, m_lais, res_abs_i, force_id_grid = 0) #Sp1
+        dicFeuilBilanR2 = sh.calc_paraF(dicFeuilBilanR2, m_lais, res_abs_i, force_id_grid = id_sp2) #Sp2
+
+        # mise a jour parip et parap dans invar
         sh.calc_para_Plt(invar1, dicFeuilBilanR1)
         sh.calc_para_Plt(invar2, dicFeuilBilanR2)
 
         ls_epsi1 = epsi * invar1['parip'] / (np.sum(invar1['parip']) + np.sum(invar2['parip']) + 10e-15)
         ls_epsi2 = epsi * invar2['parip'] / (np.sum(invar1['parip']) + np.sum(invar2['parip']) + 10e-15)
-        # mettre a jour epsi dans invar?
+
 
         print('espi', epsi, np.sum(ls_epsi1), np.sum(ls_epsi2))
+        #print('ls_epsi1', ls_epsi1)
+        #print('ls_epsi2', ls_epsi2)
+
         # espi ok - espi1 et 2 oscille bizarement?? option d'inclinaison des tiges ombrees??  bug?
         # sera a comparer avec des sim activant l'absence de stress edaphiques (compet lumiere uniquement)...
 
@@ -545,8 +555,13 @@ def runl2systemLight_bystep(n, m):
         lsys1.stateEV = stateEV1
 
         lsys1.res_trans = res_trans
-        lsys1.res_abs_i = res_abs_i
+        lsys1.res_abs_i = np.array([res_abs_i[0]]) #res_abs_i
         lsys1.res_rfr = res_rfr
+
+        # print('restrans', np.shape(res_trans))
+        # print('res_rfr', np.shape(res_rfr))
+        # print('res_abs_i', np.shape(res_abs_i))
+        # print('res_abs_i', np.shape(np.array([res_abs_i[0]])))
 
         lsys1.ls_ftswStress = ls_ftswStress1
         lsys1.ls_NNIStress = ls_NNIStress1
@@ -562,7 +577,7 @@ def runl2systemLight_bystep(n, m):
         lsys2.stateEV = stateEV2
 
         lsys2.res_trans = res_trans
-        lsys2.res_abs_i = res_abs_i
+        lsys2.res_abs_i = np.array([res_abs_i[id_sp2]]) #res_abs_i
         lsys2.res_rfr = res_rfr
 
         lsys2.ls_ftswStress = ls_ftswStress2
@@ -584,8 +599,13 @@ def runl2systemLight_bystep(n, m):
 #desactive tirages loi binomiale racine? -> pas ; ko tjrs different
 
 
+# 1) modif light pour gerer esp avec differentes distributions! -> ok
+#   - dicFeuilBilanR calculation with sh.calc_paraF() for species 2: add an option to force the id plant value (because all id1 are at 0 in the different ls-stems) -> ok
+#   - update parip parap value within each invar with sh.calc_para_Plt() -> ok; pas besoin ls_epsi
+#   - reinjecte uniquement sortie bilan radiatif espece dans chaque l-system pour res_trans_i -> ok
+#   - donne bien meme sorties de epsi que run exterieur couple sans stress (a espislon pres) -> ok
+
 # to do:
-# 1) modif light pour gerer esp avec differentes distributions! (fonction pour join ls_dif et m_lais)
 # 2) test d'un couplage light et sol!!
 # - sept sol n'a plus invar en entree! bien!!
 # - mise en commun des ParamP, ls_epsi, ls_roots, ls_demandeN_bis
@@ -631,10 +651,10 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(1):#(int(nb_usms)):
         #pool.apply_async(runlsystem, args=(i,))   # Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
-        runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
         #runlsystem_bystep(i)
         #runl2system_bystep(i, i+1)
-        #runl2systemLight_bystep(i, i+1)
+        runl2systemLight_bystep(i, i+1)
 
     pool.close()
     pool.join()
