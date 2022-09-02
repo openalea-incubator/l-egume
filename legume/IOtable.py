@@ -292,3 +292,19 @@ def Outdel(ls_names):
         os.remove(namef)
         #pass
 
+def merge_dict_list(ls_dict, ls_keys):
+    """ permet de concatener des dict fait de listes tous au meme format pour une serie de cles """
+    newDic = {}
+    for k in ls_keys:
+        newDic[k] = []
+
+    for dico in ls_dict:
+        for k in ls_keys:
+            if isinstance(dico[k], list):
+                newDic[k] = newDic[k] + dico[k]
+            else: #array
+                newDic[k] = newDic[k] + dico[k].tolist()
+
+    return newDic
+    # va pour merge de plusieurs invar!!
+

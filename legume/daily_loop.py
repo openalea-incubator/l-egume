@@ -626,10 +626,8 @@ def increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, ae
     # to do: passer ls_epsi, aer, ls_ftsw, ls_transp, Npc dans invar!
 
 
-
-def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, opt_residu, opt_stressGel):
-    """ Distribute senescing tissues in ls_mat_res - After plant senescence/per residu type """
-    # ajout dans la matrice des residus
+def distrib_residue_mat_frominvar(ls_mat_res, S, ls_roots, profres, ParamP, invar, opt_stressGel):
+    """ Distribute senescing tissues in ls_mat_res - After plant senescence/per residu type - from invar and ParamP of legume model """
 
     dz_sol = S.dxyz[2][0]*100. #cm
     #couches2keep = min(int(profres / dz_sol) + 1, len(S.dxyz[2]))
@@ -679,14 +677,85 @@ def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, opt
             mat_res = root_propProf[nump] * invar['dMSmortPlant_pivot'][nump]  # sur profhum
             ls_mat_res[groupe_resid * 4 + 3] += mat_res  # ajout au groupe 4 = feuille
 
+    return ls_mat_res
+
+
+def merge_residue_mat(ls_mat_res, vCC, S):
+    # ajout dans la matrice des residus au sol
+
+    if sum(list(map(sum, ls_mat_res))) > 0.:  # si de nouveaux residus (ou supeieur a un seuil
+        for i in range(len(ls_mat_res)):
+            mat_res = ls_mat_res[i]
+            if sum(mat_res) > 0.:
+                S.mixResMat(mat_res, i, vCC[i])
+
+    return S
+
+
+def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, opt_residu, opt_stressGel):
+    """ Distribute senescing tissues in ls_mat_res - After plant senescence/per residu type """
+    # ajout dans la matrice des residus
+
+    # dz_sol = S.dxyz[2][0]*100. #cm
+    # #couches2keep = min(int(profres / dz_sol) + 1, len(S.dxyz[2]))
+    #
+    # root_prop0 = rtd.propRootDistrib_upZ(ls_roots, depth=dz_sol, dz_sol=dz_sol) #proportion horizon de surface
+    # root_propProf = rtd.propRootDistrib_upZ(ls_roots, depth=profres, dz_sol=dz_sol) #proportion horizon de profHum
+    #
+    # for nump in range(len(invar['dMSenRoot'])):
+    #     groupe_resid = int(ParamP[nump]['groupe_resid'])
+    #
+    #     ## senescence feuilles
+    #     mat_res = root_prop0[nump] * invar['dMSenFeuil'][nump] #en surface
+    #     ls_mat_res[groupe_resid * 4 + 0] += mat_res #ajout au groupe 1 = feuille
+    #
+    #     ## senescence tiges
+    #     mat_res = root_prop0[nump] * invar['dMSenTige'][nump]  # en surface
+    #     ls_mat_res[groupe_resid * 4 + 1] += mat_res  # ajout au groupe 2 = tiges
+    #
+    #     # turnover aerien non rec
+    #     mat_res = root_prop0[nump] * invar['dMSenNonRec'][nump] #en surface
+    #     ls_mat_res[groupe_resid * 4 + 0] += mat_res #ajout au groupe 1 = feuille
+    #
+    #     ## senescence racines
+    #     mat_res = root_propProf[nump] * invar['dMSenRoot'][nump] #sur profhum
+    #     ls_mat_res[groupe_resid * 4 + 2] += mat_res #ajout au groupe 3 = racine fines
+    #
+    #     ## senescence pivot
+    #     mat_res = root_propProf[nump] * invar['dMSenPiv'][nump]  # sur profhum
+    #     ls_mat_res[groupe_resid * 4 + 3] += mat_res  # ajout au groupe 4 = pivot
+    #
+    #     #si gel, ajout mort gel
+    #     if sum(invar['isGelDam']) != 0 and opt_stressGel == 1:
+    #         mat_res = root_prop0[nump] * invar['dMSmortGel_aer'][nump]  # en surface
+    #         ls_mat_res[groupe_resid * 4 + 0] += mat_res  # ajout au groupe 1 = feuille
+    #
+    #     #si nouvelle plante morte
+    #     if sum(invar['dMSmortPlant_aer']) > 0.:
+    #         #parties aeriennes
+    #         mat_res = root_prop0[nump] * invar['dMSmortPlant_aer'][nump]  # en surface
+    #         ls_mat_res[groupe_resid * 4 + 0] += mat_res  # ajout au groupe 1 = feuille
+    #
+    #         # parties racines
+    #         mat_res = root_propProf[nump] * invar['dMSmortPlant_racfine'][nump]  # sur profhum
+    #         ls_mat_res[groupe_resid * 4 + 2] += mat_res  # ajout au groupe 3 = racines
+    #
+    #         # parties pivot
+    #         mat_res = root_propProf[nump] * invar['dMSmortPlant_pivot'][nump]  # sur profhum
+    #         ls_mat_res[groupe_resid * 4 + 3] += mat_res  # ajout au groupe 4 = feuille
+
+    ls_mat_res = distrib_residue_mat_frominvar(ls_mat_res, S, ls_roots, profres, ParamP, invar, opt_stressGel)
 
     # inclusion dans objet sol
+    # if opt_residu == 1:  # option residu activee: mise a jour des cres
+    #     if sum(list(map(sum, ls_mat_res))) > 0.:  # si de nouveaux residus (ou supeieur a un seuil
+    #         for i in range(len(ls_mat_res)):
+    #             mat_res = ls_mat_res[i]
+    #             if sum(mat_res) > 0.:
+    #                 S.mixResMat(mat_res, i, vCC[i])
+
     if opt_residu == 1:  # option residu activee: mise a jour des cres
-        if sum(list(map(sum, ls_mat_res))) > 0.:  # si de nouveaux residus (ou supeieur a un seuil
-            for i in range(len(ls_mat_res)):
-                mat_res = ls_mat_res[i]
-                if sum(mat_res) > 0.:
-                    S.mixResMat(mat_res, i, vCC[i])
+        S = merge_residue_mat(ls_mat_res, vCC, S)
 
     # calcul senesc a faire a l'echelle des axes plutot? -> a priori pas necessaire
     return [ls_mat_res, S]
