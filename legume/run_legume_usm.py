@@ -37,6 +37,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     #nom fichier en dur (pas en entree de la fonction) + onglet determine par geno
     fscenar = 'liste_scenarios.xls' #'liste_scenarios_exemple.xls'
     fsd = 'exemple_sd.xls' #nom mis a jour mais pas table variance_geno
+    fsdx = 'exemple_corr_matrix.xls'
     fopt = 'mod_susm.xls'## fichier option
     fsta = 'stations_exemple.xls' ##fichier station
     ongletSta = 'Lusignan'  # 'exemple'
@@ -79,6 +80,10 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     path_variance_geno = os.path.join(foldin, fsd)#(path_, 'input', fsd)
     testsim[name].path_variance_geno = path_variance_geno
+
+    path_variance_matrix = os.path.join(foldin, fsdx)
+    testsim[name].path_variance_matrix = path_variance_matrix
+
     # la, lire scenario et changer parametres
     idscenar1 = int(ls_usms['scenario1'][i])
     idscenar2 = int(ls_usms['scenario2'][i])
@@ -182,7 +187,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     testsim[name].axiom = a  # passe un axial tree, pas de chaine de caractere
 
-    if int(ls_usms['opt_sd'][i]) == 1:
+    if int(ls_usms['opt_sd'][i]) == 1 or int(ls_usms['opt_sd'][i]) == 2:
         sdname = '_SD' + str(idscenar2_sd) + '-' + str(idscenar1_sd)
     else:
         sdname = '_-'

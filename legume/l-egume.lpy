@@ -50,7 +50,7 @@ import zipfile
 
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
-opt_sd = 0 #1 #genere distribution des valeurs de parametres
+opt_sd = 0 #1 #genere distribution des valeurs de parametres, 1: fournit CV et calcul SD #2: lecture directe des val de sd independamment de la moy
 opt_covar = 1 # #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
@@ -289,9 +289,9 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalev
     #ls_sdpar = [0.5] #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
     #ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
     
-    if opt_sd == 1:
-        #test modif bea
-        sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
+    if opt_sd == 1: #new version: lecture des CV et calcul des SD a partir des parametres moyens
+        
+        sd_fichier_g4 = pd.read_excel(path_variance_geno, sheet_name=ongletP)
         ls_parname_g4 = list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
         CVs4 = sd_fichier_g4.loc[sd_fichier_g4["id_scenario"] == idscenar1_sd][ls_parname_g4][0:]
         CVs4 = CVs4.iloc[0]
@@ -345,8 +345,37 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalev
             #defaut = no matrix of covariance = independant
             ParamP, df1 = IOxls.modif_ParamP_sdMulti(ParamP, g4, ls_parname=  ls_parname_g4, ls_sdpar=ls_sdpar_g4, corrmatrix=None)
             ParamP, df2 = IOxls.modif_ParamP_sdMulti(ParamP, g5, ls_parname=  ls_parname_g5, ls_sdpar=ls_sdpar_g5, corrmatrix=None)
-    
-    
+            
+    elif opt_sd == 2: #remet old file = lecture directe des valeurs de SD independament des valeurs moyennes
+        
+        sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
+        ls_parname_g4 = list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
+        ls_sdpar_g4 = sd_fichier_g4.loc[sd_fichier_g4["id_scenario"] == idscenar1_sd][ls_parname_g4][0:]
+        ls_sdpar_g4 = ls_sdpar_g4.iloc[0]
+        
+        sd_fichier_g5 = pd.read_excel(path_variance_geno, sheet_name=ongletPvois)
+        ls_parname_g5 = list(sd_fichier_g5.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
+        ls_sdpar_g5 = sd_fichier_g5.loc[sd_fichier_g5["id_scenario"] == idscenar2_sd][ls_parname_g5][0:]
+        ls_sdpar_g5 = ls_sdpar_g5.iloc[0]
+        
+        if opt_covar == 1:
+            covar_fichier_g4 = pd.read_excel(path_variance_matrix, sheet_name=ongletP)
+            cor_g4 = array(covar_fichier_g4[covar_fichier_g4['id_scenario'] == idscenar1_sd]["correlation"])
+            size_mat4 = int(sqrt(len(cor_g4)))
+            cor_mat4 = cor_g4.reshape((size_mat4,size_mat4))
+            
+            covar_fichier_g5 = pd.read_excel(path_variance_matrix, sheet_name=ongletPvois)
+            cor_g5 = array(covar_fichier_g5[covar_fichier_g5['id_scenario'] == idscenar2_sd]["correlation"])
+            size_mat5 = int(sqrt(len(cor_g5)))
+            cor_mat5 = cor_g5.reshape((size_mat5,size_mat5))
+            
+            ParamP, df1 = IOxls.modif_ParamP_sdMulti(ParamP, g4, ls_parname=  ls_parname_g4, ls_sdpar=ls_sdpar_g4, corrmatrix=cor_mat4)
+            ParamP, df2 = IOxls.modif_ParamP_sdMulti(ParamP, g5, ls_parname=  ls_parname_g5, ls_sdpar=ls_sdpar_g5, corrmatrix=cor_mat5)
+            
+        else: 
+            #defaut = no matrix of covariance = independant
+            ParamP, df1 = IOxls.modif_ParamP_sdMulti(ParamP, g4, ls_parname=  ls_parname_g4, ls_sdpar=ls_sdpar_g4, corrmatrix=None)
+            ParamP, df2 = IOxls.modif_ParamP_sdMulti(ParamP, g5, ls_parname=  ls_parname_g5, ls_sdpar=ls_sdpar_g5, corrmatrix=None)
     
     #3) ajout de parametre 'recalcule'
     #roots
@@ -1467,7 +1496,7 @@ def End(lstring,lscene):
         f.close()
         ls_fileOUT.append(lsorgpath)
     
-    if outf['outsdfile'] != 0. and opt_sd==1:# valeur de parametres par plante 
+    if outf['outsdfile'] != 0. and opt_sd != 0:# valeur de parametres par plante 
         #ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
         sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
         ls_parname = ['name']+list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme; suppose la meme pour les 2 sp
@@ -2740,7 +2769,7 @@ Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, Lcut,statut,ordre):
             col=6
         
         #insere pour gradient de distrib: gradient selon valeur d'un parametre
-        if opt_sd==1:
+        if opt_sd==1 or opt_sd==2:
             parname = 'Lfeuille'#'Len'#
             parval = ParamP[nump][parname] #test_retard[nump]#
             vals = riri.get_lsparami(ParamP, parname) #test_retard#

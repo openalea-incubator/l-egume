@@ -132,8 +132,8 @@ def runlsystem_bystep(n):
     lsys.opt_external_coupling = 1 # met a un l'option external coupling
 
     #option stress a zero si besoin
-    lsys.opt_stressN = 0 #1 #
-    lsys.opt_stressW = 0 #1 #
+    lsys.opt_stressN = 1 #1 #
+    lsys.opt_stressW = 1 #1 #
 
     #option de calcul des residus
     lsys.opt_residu = 0 #1 #
@@ -619,10 +619,10 @@ def runl2systemLightSoil_bystep(n, m):
     lsys2.opt_external_coupling = 1  # met a un l'option external coupling
 
     #force les option stress a zero pour n'intergir que pour lumiere
-    lsys1.opt_stressN = 0 #1 #
-    lsys1.opt_stressW = 0 #1 #
-    lsys2.opt_stressN = 0 #1 #
-    lsys2.opt_stressW = 0 #1 #
+    lsys1.opt_stressN = 1 #0 #
+    lsys1.opt_stressW = 1 #0 #
+    lsys2.opt_stressN = 1 #0 #
+    lsys2.opt_stressW = 1 #0 #
 
     #option de calcul des residus
     lsys1.opt_residu = 0 #1 #
@@ -933,10 +933,10 @@ if __name__ == '__main__':
     for i in range(1):#(int(nb_usms)):
         #pool.apply_async(runlsystem, args=(i,))   # Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
         #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
-        #runlsystem_bystep(i)
+        runlsystem_bystep(i)
         #runl2system_bystep(i, i+1)
         #runl2systemLight_bystep(i, i+1)
-        runl2systemLightSoil_bystep(i, i+1)
+        #runl2systemLightSoil_bystep(i, i+1)
 
     pool.close()
     pool.join()
