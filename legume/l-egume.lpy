@@ -50,7 +50,7 @@ import zipfile
 
 #options de simulation
 opt_residu = 1 #si 0, pas activation de mineralisation
-opt_sd = 0 #1 #genere distribution des valeurs de parametres, 1: fournit CV et calcul SD #2: lecture directe des val de sd independamment de la moy
+opt_sd = 0 #1 #genere distribution des valeurs de parametres, 2: fournit CV et calcul SD #1: lecture directe des val de sd independamment de la moy
 opt_covar = 1 # #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
@@ -289,7 +289,7 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalev
     #ls_sdpar = [0.5] #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
     #ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
     
-    if opt_sd == 1: #new version: lecture des CV et calcul des SD a partir des parametres moyens
+    if opt_sd == 2: #new version: lecture des CV et calcul des SD a partir des parametres moyens
         
         sd_fichier_g4 = pd.read_excel(path_variance_geno, sheet_name=ongletP)
         ls_parname_g4 = list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
@@ -346,7 +346,7 @@ def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalev
             ParamP, df1 = IOxls.modif_ParamP_sdMulti(ParamP, g4, ls_parname=  ls_parname_g4, ls_sdpar=ls_sdpar_g4, corrmatrix=None)
             ParamP, df2 = IOxls.modif_ParamP_sdMulti(ParamP, g5, ls_parname=  ls_parname_g5, ls_sdpar=ls_sdpar_g5, corrmatrix=None)
             
-    elif opt_sd == 2: #remet old file = lecture directe des valeurs de SD independament des valeurs moyennes
+    elif opt_sd == 1: #remet old file = lecture directe des valeurs de SD independament des valeurs moyennes
         
         sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
         ls_parname_g4 = list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme
