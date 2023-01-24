@@ -725,6 +725,7 @@ class SoilN(Soil):
         print(("Total:\t\t\t\t\t {0:8.1f}\t\t\t Total:\t\t\t\t {1:8.1f}".format(bilanN['InputNmintot'], bilanN['OutputNmintot'])))
         print ("")
 
+
     def ConcNO3(self):
         """ calculation of the nitrate concentration (kg N.mm-1) by voxel - 8.34 p 160 """
         #mm d'eau libre? (eau liee retiree -  pas dans les eaux de drainage)?
@@ -734,21 +735,55 @@ class SoilN(Soil):
     def ConcN(self):
         """ calculation of the molar concentration of mineral nitrogen (micromole N.L-1) by voxel - 8.36 p 161 """
         #L d'eau libre (eau liee retiree - car pas dans les eaux de drainage)
-        MMA = 142.85 #mole d'N.kg-1 (g.mole-1)
+        MMA = 71.428 #142.85 #mole d'N.kg-1 (14 g.mole-1)
         moleN = (self.m_NO3 + self.m_NH4)/(MMA)*10**6 #micromole d'N
-        return moleN / (self.tsw_t * self.m_vox_surf) * 10000   #remis pour conc sur 1ha pour coller au parametrage de sTICS
+        #return moleN / (self.tsw_t * self.m_vox_surf) * 10000   #remis pour conc sur 1ha pour coller au parametrage de sTICS
+        return moleN / (self.tsw_t * self.m_vox_surf) #micromole d'N.L-1
 
-    def stepNuptakePlt(self, par, paramp=[{}], ls_lrac=None, ls_mWaterUptakePlt=None, ls_demandeN=None):
+    def ConcN_old(self):
+        """ calculation of the molar concentration of mineral nitrogen (micromole N.L-1) by voxel - 8.36 p 161 """
+        # L d'eau libre (eau liee retiree - car pas dans les eaux de drainage)
+        MMA = 142.85  # mole d'N.kg-1 (g.mole-1)
+        moleN = (self.m_NO3 + self.m_NH4) / (MMA) * 10 ** 6  # micromole d'N
+        return moleN / (self.tsw_t * self.m_vox_surf) * 10000  # remis pour conc sur 1ha pour coller au parametrage de sTICS
+
+
+    def stepNuptakePlt(self, par, paramp=[{}], ls_lrac=None, ls_mWaterUptakePlt=None, ls_demandeN=None, optNuptake='LocalTransporter'):
         """ calculation of actual N uptake by plant - if no plants (baresoil) -> let None in ls_rac,ls_mWaterUptakePlt, ls_demandeN """
 
-        if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
-            ActUpNtot = self.m_1*0.
-            ls_Act_Nuptake_plt = [self.m_1*0.]*len(paramp)
-            ls_DQ_N = [1.]*len(paramp)
-            idmin = self.m_1*-1.
-        else: #si plante
-            PotUpNtot, ls_Pot_Nuptake_plt, idmin = Distrib_Potential_Nuptake_Plt(self, par, paramp, ls_lrac, ls_mWaterUptakePlt)
-            ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N = Actual_Nuptake_plt(self, ls_Pot_Nuptake_plt, ls_demandeN)
+        if optNuptake =='STICS':
+            # version initiale tiree de STICS avec correction unites concN
+            if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
+                ActUpNtot = self.m_1*0.
+                ls_Act_Nuptake_plt = [self.m_1*0.]*len(paramp)
+                ls_DQ_N = [1.]*len(paramp)
+                idmin = self.m_1*-1.
+            else: #si plante
+                PotUpNtot, ls_Pot_Nuptake_plt, idmin = Distrib_Potential_Nuptake_Plt(self, par, paramp, ls_lrac, ls_mWaterUptakePlt)
+                ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N = Actual_Nuptake_plt(self, ls_Pot_Nuptake_plt, ls_demandeN)
+        elif optNuptake =='LocalTransporter':
+            # version reponse locale racine-trasporter
+            if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
+                ActUpNtot = self.m_1*0.
+                ls_Act_Nuptake_plt = [self.m_1*0.]*len(paramp)
+                ls_DQ_N = [1.]*len(paramp)
+                idmin = self.m_1*-1.
+            else: #si plante
+                ls_PltN = ls_demandeN # avec cette option doit etre ls valeur de NNI
+                PotUpNtot, ls_Pot_Nuptake_plt, idmin = Distrib_Potential_Nuptake_Plt_Bis(self, paramp, ls_lrac)
+                ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N = Actual_Nuptake_plt_Bis(self, ls_Pot_Nuptake_plt, ls_PltN)
+        elif optNuptake =='old':
+            # version ancienne (bug concN)
+            if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
+                ActUpNtot = self.m_1*0.
+                ls_Act_Nuptake_plt = [self.m_1*0.]*len(paramp)
+                ls_DQ_N = [1.]*len(paramp)
+                idmin = self.m_1*-1.
+            else: #si plante
+                ls_PltN = ls_demandeN # avec cette option doit etre ls valeur de NNI
+                PotUpNtot, ls_Pot_Nuptake_plt, idmin = Distrib_Potential_Nuptake_Plt_old(self, par, paramp, ls_lrac, ls_mWaterUptakePlt)
+                ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N = Actual_Nuptake_plt_old(self, ls_Pot_Nuptake_plt, ls_PltN)
+
 
         # retire les nitrates et ammomium rellement preleves du sol
         frac_NO3 =  self.m_NO3 / (self.m_NO3 + self.m_NH4 + 10**-15)
@@ -793,21 +828,32 @@ def VdistribResidues(SoilObj, Amount, Vprop, Wcontent=0.8,Ccontent=0.42):
 def VABSvox(paramp, CONCN):
     """ Specific absorbtion capacity by roots (micromole N.h-1.cm-1 root) eq. 8.36 p 161 """
     """ paramp = plant parameters """
+    HATS = paramp['Vmax1']*CONCN / (paramp['Kmax1'] + CONCN) *10000*10
+    LATS = paramp['Vmax2']*CONCN / (paramp['Kmax2'] + CONCN) *10000*10
+    # facteur 10000*10 car parametres STICS prevu pour densite (pas longueur) couche LrarZ
+    return HATS+LATS
+
+
+def VABSvox_old(paramp, CONCN):
+    """ Specific absorbtion capacity by roots (micromole N.h-1.cm-1 root) eq. 8.36 p 161 """
+    """ paramp = plant parameters """
     HATS = paramp['Vmax1']*CONCN / (paramp['Kmax1'] + CONCN)
     LATS = paramp['Vmax2']*CONCN / (paramp['Kmax2'] + CONCN)
     return HATS+LATS
+
 
 def FLUXRACs(paramp, SN, ls_lrac):
     """ list of potential active uptake rate (kg N. voxel-1, day-1) per root system per voxel - fluxTot=total uptake potential by all roots ; 
     ls_frac_fluxrac = fraction de demande totale par voxel par systeme racinaire - eq. 8.37 p 161 """
     #ls_lrac = ls_ roots (en m) -> convert en cm (*100)
 
-    MMA = 142.85 #mole d'N.kg-1 (g.mole-1)
+    MMA = 71.428 #142.85 #mole d'N.kg-1 (14 g.mole-1)
     ls_flux_rac = []
     fluxTot = SN.m_1*0.
     for i in range(len(ls_lrac)):
         VABS = VABSvox(paramp[i], SN.ConcN())
-        flux = VABS * ls_lrac[i] * 100. * 24. / (MMA * 10**6) #calcule car retombe pas sur coeff 33.6 indique p 161
+        flux = VABS * ls_lrac[i] * 24. / (MMA * 10 ** 6 * 1000) #24h / mole-µmole / g-kg
+
         ls_flux_rac.append(flux)
         fluxTot = fluxTot + flux
 
@@ -818,8 +864,32 @@ def FLUXRACs(paramp, SN, ls_lrac):
 
     return fluxTot, ls_frac_fluxrac
     #renvoie demande flux total et fraction de demande par voxel par systeme racinaire?
-    #passer les densite de racines (i.e. ls_roots) plutot que les longueurs?
-    
+    #passer les densite de racines (i.e. ls_roots) plutot que les longueurs (comme STICS)?
+    #seuiller lrac  a une longuer efficace max? LVOPTg -> parametre
+
+
+def FLUXRACs_old(paramp, SN, ls_lrac):
+    """ list of potential active uptake rate (kg N. voxel-1, day-1) per root system per voxel - fluxTot=total uptake potential by all roots ;
+    ls_frac_fluxrac = fraction de demande totale par voxel par systeme racinaire - eq. 8.37 p 161 """
+    # ls_lrac = ls_ roots (en m) -> convert en cm (*100)
+
+    MMA = 142.85  # mole d'N.kg-1 (g.mole-1)
+    ls_flux_rac = []
+    fluxTot = SN.m_1 * 0.
+    for i in range(len(ls_lrac)):
+        VABS = VABSvox_old(paramp[i], SN.ConcN_old())
+        flux = VABS * ls_lrac[i] * 100. * 24. / (MMA * 10 ** 6)  # calcule car retombe pas sur coeff 33.6 indique p 161
+        ls_flux_rac.append(flux)
+        fluxTot = fluxTot + flux
+
+    # calcul des fractions par racine
+    ls_frac_fluxrac = []
+    for i in range(len(ls_flux_rac)):
+        ls_frac_fluxrac.append(ls_flux_rac[i] / (fluxTot + 10 ** -15))  # 10**-15 pour eviter division par zero
+
+    return fluxTot, ls_frac_fluxrac
+    # renvoie demande flux total et fraction de demande par voxel par systeme racinaire?
+    # passer les densite de racines (i.e. ls_roots) plutot que les longueurs?
 
 
 def Convective_Nflux(SN, ls_mWaterUptakePlt):
@@ -882,6 +952,65 @@ def Potential_NuptakeTot(SN, parSN, paramp, ls_lrac, ls_mWaterUptakePlt):
     supNtot, ls_supNtot =  Nsoil_supply(SN, parSN, ls_lrac, ls_mWaterUptakePlt)
     fluxTot, ls_frac_fluxrac = FLUXRACs(paramp, SN, ls_lrac)
     ActUptakeN = SN.m_1*0.
+    idmin = SN.m_1*0 #code des facteur limitant uptake N (0=Ntot available, 2=passive soil supply, 1=Active root uptake, 3=No uptake)
+
+    for z in range(len(SN.dxyz[2])):
+        for x in range(len(SN.dxyz[0])):
+            for y in range(len(SN.dxyz[1])):
+                lslim = [Ntot[z][x][y], fluxTot[z][x][y], supNtot[z][x][y]] #mini des 3 sources d'N
+                minN = min(lslim)
+                id_min = lslim.index(minN)
+                if minN > epsilon:
+                    ActUptakeN[z][x][y] = minN
+                    idmin[z][x][y] = id_min
+                else:#no uptake below epsilon treshold
+                    ActUptakeN[z][x][y] = 0.
+                    idmin[z][x][y] = 3 #none of the three others
+
+    return ActUptakeN, idmin, ls_frac_fluxrac
+    # -> ajuste par voxel selon offre du sol et demande des plantes
+
+
+def Potential_NuptakeTot_Bis(SN, paramp, ls_lrac):
+    """ Eq. 8.38 """
+    # test pour compatibilite romain
+    # slmt determine par assimilation de l'azote est active, via equation de Devienne (HATS, LATS)-> FLUXRACs( qui est mal nomme!)
+
+    epsilon = 10e-10
+
+    Ntot = (SN.m_NO3 + SN.m_NH4)*SN.m_obstarac
+    #supNtot, ls_supNtot =  Nsoil_supply(SN, parSN, ls_lrac, ls_mWaterUptakePlt)
+    fluxTot, ls_frac_fluxrac = FLUXRACs(paramp, SN, ls_lrac)
+    ActUptakeN = SN.m_1*0.
+    idmin = SN.m_1*0 #code des facteur limitant uptake N (0=Ntot available, 1=passive soil supply, 2=Active root uptake, 3=No uptake)
+
+    for z in range(len(SN.dxyz[2])):
+        for x in range(len(SN.dxyz[0])):
+            for y in range(len(SN.dxyz[1])):
+                lslim = [Ntot[z][x][y], fluxTot[z][x][y]] #mini des 2 sources d'N
+                minN = min(lslim)
+                id_min = lslim.index(minN) # (0=Ntot available, 1=Active root uptake)
+                if minN > epsilon:
+                    ActUptakeN[z][x][y] = minN
+                    idmin[z][x][y] = id_min
+                else:#no uptake below epsilon treshold
+                    ActUptakeN[z][x][y] = 0.
+                    idmin[z][x][y] = 3 #none of the three others
+
+    return ActUptakeN, idmin, ls_frac_fluxrac
+
+def Potential_NuptakeTot_old(SN, parSN, paramp, ls_lrac, ls_mWaterUptakePlt):
+    """ Eq. 8.38 """
+    # philosophie:
+    # assimilation de l'azote est active, via equation de Devienne (HATS, LATS)-> FLUXRACs( qui est mal nomme!)
+    # transport actif peut etre limitee par le flux d'azote a la racine et mobilite de l'N ds le sol (convectif + diffusif = soilNsupply) -> prend le min des 2
+    # in fine, n'est rellement preleve que l'N necessaire a la croissance (actual_N uptake) -> borne
+    epsilon = 10e-10
+
+    Ntot = (SN.m_NO3 + SN.m_NH4)*SN.m_obstarac
+    supNtot, ls_supNtot =  Nsoil_supply(SN, parSN, ls_lrac, ls_mWaterUptakePlt)
+    fluxTot, ls_frac_fluxrac = FLUXRACs_old(paramp, SN, ls_lrac)
+    ActUptakeN = SN.m_1*0.
     idmin = SN.m_1*0 #code des facteur limitant uptake N (0=Ntot available, 1=passive soil supply, 2=Active root uptake, 3=No uptake)
 
     for z in range(len(SN.dxyz[2])):
@@ -928,6 +1057,49 @@ def Distrib_Potential_Nuptake_Plt(SN, parSN, paramp_, ls_lrac, ls_mWaterUptakePl
     #doner l'option de renvoyer zero si paramp, ls_lrac, ls_mWaterUptakePlt sont a None (pour faire tourner en sol nu facilement)
 
 
+
+def Distrib_Potential_Nuptake_Plt_Bis(SN, paramp_, ls_lrac):
+    """ Eq. 8.38 - distibue uptake entre NO3/NH4 et entre les differentes plantes"""
+    #test pour compatibilite romain
+
+    epsilon = 10e-12
+    PotUpNtot, idmin, ls_frac_fluxrac = Potential_NuptakeTot_Bis(SN, paramp_, ls_lrac)
+
+    ls_Pot_Nuptake_plt = []
+    for rt in ls_frac_fluxrac:
+        ls_Pot_Nuptake_plt.append( rt * PotUpNtot)
+
+
+    return PotUpNtot, ls_Pot_Nuptake_plt, idmin
+
+
+def Distrib_Potential_Nuptake_Plt_old(SN, parSN, paramp_, ls_lrac, ls_mWaterUptakePlt):#ls_lrac, ls_mWaterUptakePlt):
+    """ Eq. 8.38 - distibue uptake entre NO3/NH4 et entre les differentes plantes"""
+    epsilon = 10e-12
+    PotUpNtot, idmin, ls_frac_fluxrac = Potential_NuptakeTot_old(SN, parSN, paramp_, ls_lrac, ls_mWaterUptakePlt)
+
+    #distribution de l'uptakeN par plante
+    ##ls_rac_tot = SN.m_1*0.
+    ##for rt in ls_lrac:
+    ##   ls_rac_tot += rt
+
+    ls_Pot_Nuptake_plt = []
+    ##for rt in ls_lrac:
+    ##    frac_rac_tot = rt / (ls_rac_tot +epsilon)
+    ##    ls_Pot_Nuptake_plt.append( frac_rac_tot * PotUpNtot)
+
+    for rt in ls_frac_fluxrac:
+        ls_Pot_Nuptake_plt.append( rt * PotUpNtot)
+
+
+    return PotUpNtot, ls_Pot_Nuptake_plt, idmin
+    #rq: distribution entre plante se fait en fonction de densite relative de longueur uniquementif relatifs?
+    #tenir compte des parametre de transport act: ls_frac_fluxrac de FLUXRACs?? -> OK =fait
+    # !! Manque confrontation a demande totale des plantes (8.39): uptake n'excede pas demande des pantes integree sur tout le profil!! -> a reprendre
+    # ls_demandeN a fournir!
+    #doner l'option de renvoyer zero si paramp, ls_lrac, ls_mWaterUptakePlt sont a None (pour faire tourner en sol nu facilement)
+
+
 def Actual_Nuptake_plt(SN, ls_Pot_Nuptake_plt, ls_demandeN):
     """ Eq. 8.39, 8.40 p162 """
     #caclule de demande sur offre par plante! -> ls_DQN
@@ -952,6 +1124,73 @@ def Actual_Nuptake_plt(SN, ls_Pot_Nuptake_plt, ls_demandeN):
     ##SN.bilanN['cumUptakePlt'].append(ActUpNtot/SN.soilSurface() *10000)
 
     return ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N
+
+
+def Actual_Nuptake_plt_Bis(SN, ls_Pot_Nuptake_plt, ls_PltN):
+    """  """
+    # calcul en fonction de feedback statut plante = frein a l'uptake si N suffisant
+    # ls_PltN = ls_NNI si optNNI=True (sinon, concentration en N des racines)
+
+    ls_frein_N = []
+    for i in range(len(ls_PltN)):
+
+        # A passer en parametre (valeurs de NNI ou de Npc racine min et max)
+        treshmaxN = 1.0 #NNI  et au dessus -> frein=0 / peut aussi etre teneur en N des racines
+        treshminN = 0.8 #NNI et en dessous -> frein=1 / peut aussi etre teneur en N des racines
+
+        if ls_PltN[i] > treshmaxN:
+            frein = 0.
+        elif ls_PltN[i] < treshminN:
+            frein = 1.
+        else:
+            frein = (ls_PltN[i] - treshminN) / (treshmaxN - treshminN)
+
+        ls_frein_N.append(frein)
+
+    #calcul d'un actual uptake par plante et recalcul total
+    ls_Act_Nuptake_plt = []
+    ActUpNtot = SN.m_1*0.
+    for i in range(len(ls_Pot_Nuptake_plt)):
+        Act_Nuptake_i = ls_Pot_Nuptake_plt[i] * ls_frein_N[i]
+        ls_Act_Nuptake_plt.append(Act_Nuptake_i)
+        ActUpNtot = ActUpNtot + Act_Nuptake_i
+
+    print('frein', ls_frein_N, ls_PltN)
+    ### retire les nitrates et ammomium rellement preleves du sol
+    ##frac_NO3 =  SN.m_NO3 / (SN.m_NO3 + SN.m_NH4 + 10**-15)
+    ##SN.m_NO3 = SN.m_NO3 - frac_NO3*ActUpNtot
+    ##SN.m_NH4 = SN.m_NH4 - (1. - frac_NO3)*ActUpNtot
+    ###bilan
+    ##SN.bilanN['cumUptakePlt'].append(ActUpNtot/SN.soilSurface() *10000)
+
+    return ActUpNtot, ls_Act_Nuptake_plt, ls_frein_N
+
+
+def Actual_Nuptake_plt_old(SN, ls_Pot_Nuptake_plt, ls_demandeN):
+    """ Eq. 8.39, 8.40 p162 """
+    #caclule de demande sur offre par plante! -> ls_DQN
+    ls_DQ_N = []
+    for i in range(len(ls_demandeN)):
+        DQ = min(ls_demandeN[i] / sum(ls_Pot_Nuptake_plt[i]), 1.) #plafonne a ratio a 1: preleve uniquement a hauteur de demande de la plante!
+        ls_DQ_N.append(DQ)
+
+    #calcul d'un actual uptake par plante et recalcul total
+    ls_Act_Nuptake_plt = []
+    ActUpNtot = SN.m_1*0.
+    for i in range(len(ls_Pot_Nuptake_plt)):
+        Act_Nuptake_i = ls_Pot_Nuptake_plt[i] * ls_DQ_N[i]
+        ls_Act_Nuptake_plt.append(Act_Nuptake_i)
+        ActUpNtot = ActUpNtot + Act_Nuptake_i
+
+    ### retire les nitrates et ammomium rellement preleves du sol
+    ##frac_NO3 =  SN.m_NO3 / (SN.m_NO3 + SN.m_NH4 + 10**-15)
+    ##SN.m_NO3 = SN.m_NO3 - frac_NO3*ActUpNtot
+    ##SN.m_NH4 = SN.m_NH4 - (1. - frac_NO3)*ActUpNtot
+    ###bilan
+    ##SN.bilanN['cumUptakePlt'].append(ActUpNtot/SN.soilSurface() *10000)
+
+    return ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N
+
 
 
 def critN (MS, a=4.8, b=-0.33):

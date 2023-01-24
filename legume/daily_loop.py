@@ -243,7 +243,7 @@ def step_epsi(invar, res_trans, lsFeuilBilanR, meteo_j, surfsolref):
     ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
     return ls_epsi, invar
 
-def step_bilanWN_sol(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu):
+def step_bilanWN_sol(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu, opt_Nuptake):
     """ daily step for soil W and N balance from meteo, management and lsystem inputs"""
 
     # testRL = updateRootDistrib(invar['RLTot'][0], ls_systrac[0], lims_sol)
@@ -282,7 +282,7 @@ def step_bilanWN_sol(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, 
     S.stepNitrif(par_SN)
     #ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi,ls_demandeN_bis)
     S.stepNINFILT(mapN_Rain, mapN_Irrig, mapN_fertNO3, mapN_fertNH4, Drainage, opt=1)
-    ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi, ls_demandeN_bis)
+    ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi, ls_demandeN_bis, opt_Nuptake)
     #print(amin(S.m_NO3), unique(idmin, return_counts=True),ls_DQ_N)
 
     temps_sol = [evapo_tot, Drainage, ls_m_transpi, m_evap, ActUpNtot, ls_DQ_N, idmin] #other output variables
