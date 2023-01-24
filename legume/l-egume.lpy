@@ -25,7 +25,7 @@ import Obj3Dutils as o3d
 
 try:
     from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
-    i#mport soil_moduleN3 as solN
+    #import soil_moduleN3 as solN
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
@@ -61,7 +61,7 @@ opt_stressGel = 1 #Active gel stress option below Tgel
 opt_optT = 0 #option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
 opt_PP = 1 #0 #Active photoperiodic effects (1 active; 0 inactive)
 opt_Mng = 0 # type of management file to be read: 0: default observed file ; 1: automatic management file #must be consistent with the management file!
-opt_Nuptake = 'STICS' #'LocalTransporter' #'old'#options for calculating plant N uptake
+opt_Nuptake = 0# #options for calculating plant N uptake - 0:'STICS' #1:'LocalTransporter' #2:'old'
 opt_ReadPP = 0 # Force photoperiod to read input values in management - for indoor experiment
 visu_root=1 #1# pour visualisation/interpretation root
 visu_shoot=1 #1# pour visualisation/interpretation shoot
@@ -1279,13 +1279,10 @@ def EndEach(lstring,lscene):
         ##########
         #step soil
         ##########
-        if opt_Nuptake =='STICS' or 'old':
+        if opt_Nuptake == 0 or opt_Nuptake == 2:#'STICS' or 'old':
             ls_N = ls_demandeN_bis
-        elif opt_Nuptake =='LocalTransporter':
+        elif opt_Nuptake == 1:#'LocalTransporter':
             ls_N = invar['NNI'] #ls_NNIStress['NTreshExpSurf']
-        
-        # a bouger interieur fonction step pour plus de lisibilite?
-        #print(opt_Nuptake, ls_NNIStress, ls_demandeN_bis)
         
         tag_inputs_soil_step = [S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake] #input tag
         

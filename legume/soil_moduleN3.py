@@ -751,7 +751,7 @@ class SoilN(Soil):
     def stepNuptakePlt(self, par, paramp=[{}], ls_lrac=None, ls_mWaterUptakePlt=None, ls_demandeN=None, optNuptake='LocalTransporter'):
         """ calculation of actual N uptake by plant - if no plants (baresoil) -> let None in ls_rac,ls_mWaterUptakePlt, ls_demandeN """
 
-        if optNuptake =='STICS':
+        if optNuptake ==0:#'STICS':
             # version initiale tiree de STICS avec correction unites concN
             if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
                 ActUpNtot = self.m_1*0.
@@ -761,7 +761,7 @@ class SoilN(Soil):
             else: #si plante
                 PotUpNtot, ls_Pot_Nuptake_plt, idmin = Distrib_Potential_Nuptake_Plt(self, par, paramp, ls_lrac, ls_mWaterUptakePlt)
                 ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N = Actual_Nuptake_plt(self, ls_Pot_Nuptake_plt, ls_demandeN)
-        elif optNuptake =='LocalTransporter':
+        elif optNuptake ==1:#'LocalTransporter':
             # version reponse locale racine-trasporter
             if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
                 ActUpNtot = self.m_1*0.
@@ -772,7 +772,7 @@ class SoilN(Soil):
                 ls_PltN = ls_demandeN # avec cette option doit etre ls valeur de NNI
                 PotUpNtot, ls_Pot_Nuptake_plt, idmin = Distrib_Potential_Nuptake_Plt_Bis(self, paramp, ls_lrac)
                 ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N = Actual_Nuptake_plt_Bis(self, ls_Pot_Nuptake_plt, ls_PltN)
-        elif optNuptake =='old':
+        elif optNuptake ==2:#'old':
             # version ancienne (bug concN)
             if ls_lrac is None or ls_mWaterUptakePlt is None or ls_demandeN is None: #si pas de plante (au moins fournir le paramp qui donne un nbre de plante)
                 ActUpNtot = self.m_1*0.

@@ -154,6 +154,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_optT = int(dic_opt['opt_optT']) # option de calcul du cumul de temperature (0=betaD; 1=betaH; 2=lineaireD)
     testsim[name].opt_stressGel = int(dic_opt['opt_stressGel']) #Active gel stress option below Tgel
     testsim[name].opt_PP = int(dic_opt['opt_PP']) # Active photoperiodic effects (1 active; 0 inactive)
+    testsim[name].opt_Nuptake = int(dic_opt['opt_Nuptake']) #options for calculating plant N uptake - 0:'STICS'  #1:'LocalTransporter'  #2:'old'
     testsim[name].opt_Mng = int(dic_opt['opt_Mng'])  # type of management file to be read: 0: default observed file ; 1: automatic management file #must be consistent with the management file!
     testsim[name].opt_ReadPP = int(dic_opt['opt_ReadPP'])  # Force photoperiod to read input values in management - for indoor experiment
     testsim[name].visu_root = int(dic_opt['visu_root'])  # 1# pour visualisation/interpretation root
