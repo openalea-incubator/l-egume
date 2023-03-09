@@ -1061,65 +1061,6 @@ def update_shoot_params(ParamP, rankmax=51):
     return ParamP
 
 
-def init_plant_residues_fromParamP(S, opt_residu, ParamP):
-    """ separate initialisation of plant residue from plant files / lystem"""
-    # initialise soil residues from a ParamP of plants + update ParamP[nump]['CNRES']
-
-    if opt_residu == 1:  # initialisatio de residus
-
-        # number of groupes?
-        ls_groupres = list(map(int, riri.get_lsparami(ParamP, 'groupe_resid')))
-        setg = list(set(ls_groupres))  # set equivalent fonction r.unique!
-        n_groupres = len(setg)
-        nbplantes = len(ls_groupres)
-        # recup 1 jeu de param pour chaque groupe
-        CNRES, CC, WC, Nmires = [], [], [], []
-        for i in range(len(setg)):
-            for nump in range(nbplantes):
-                if ParamP[nump]['groupe_resid'] == setg[i]:
-                    ParamP[nump]['CNRES'] = [ParamP[nump]['CNRESlf'], ParamP[nump]['CNRESst'], ParamP[nump]['CNRESr'],
-                                             ParamP[nump]['CNRESpiv']]
-                    CNRES = CNRES + ParamP[nump]['CNRES']  # ajout des 4 classes pardefaut
-                    CC = CC + ParamP[nump]['CC']
-                    WC = WC + ParamP[nump]['WC']
-                    Nmires = Nmires + ParamP[nump]['Nmires']
-                    # print ('par',CNRES, CC, WC, Nmires)
-                    break  # s'arrete a premiere plante de ce groupe
-
-        if len(setg) == 1:  # si 1 seul grope, met qd meme un deuxieme residu de meme type pour pas planter
-            for nump in range(nbplantes):
-                if ParamP[nump]['groupe_resid'] == setg[0]:
-                    ParamP[nump]['CNRES'] = [ParamP[nump]['CNRESlf'], ParamP[nump]['CNRESst'], ParamP[nump]['CNRESr'],
-                                             ParamP[nump]['CNRESpiv']]
-                    CNRES = CNRES + ParamP[nump]['CNRES']
-                    CC = CC + ParamP[nump]['CC']
-                    WC = WC + ParamP[nump]['WC']
-                    Nmires = Nmires + ParamP[nump]['Nmires']
-                    # print ('par',CNRES, CC, WC, Nmires)
-                    break
-        # Nmires not used???
-
-        # distrib dans le sol en dur!
-        nb_res = len(
-            CNRES)  # 4 types de residus par espece (4 compatiment du papier) * 2 especes #pas utilise jusque la? (force donc cycles boucle pas? ou  ajuster a 1 moment?)
-        vAmount = [0.1] * nb_res  # [20.]# T Fresh Weight.ha-1 (equivalent QRES)
-        Vprop1 = [1. / 3., 1. / 3., 1. / 3.] + 50 * [
-            0.]  # distribution dans les horizons #-> change 27 en 50 pour etre sur d'avoir le nb d'horizon-> a adapter selon le vrai nbr d'horizons!!!
-        vProps = [Vprop1] * nb_res  # [Vprop1]#[Vprop1, Vprop1, Vprop1]
-
-        # S.init_residues(vCNRESt, vAmount, vProps, vWC, vCC)
-
-        print('soil init', CNRES, vAmount, vProps, WC, CC)
-        S.init_residues(CNRES, vAmount, vProps, WC, CC)
-
-        print('ls_CRES', shape(S.ls_CRES))
-        print('ls_CBio', shape(S.ls_CBio))
-        print('parResi', S.parResi)
-
-        return CC
-# pourrait etre deplace dans un fichier dedie initialisation ....
-
-
 
 
 #old - non utilise
