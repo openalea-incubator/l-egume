@@ -1040,7 +1040,7 @@ def EndEach(lstring,lscene):
         
         tag_inputs_soil_step = [S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake] #input tag
         
-        res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
+        res_soil_step = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
         S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step #unpacks results from a list and updates global variables
         
         ##########

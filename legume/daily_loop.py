@@ -243,57 +243,6 @@ def step_epsi(invar, res_trans, lsFeuilBilanR, meteo_j, surfsolref):
     ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
     return ls_epsi, invar
 
-def step_bilanWN_sol(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu, opt_Nuptake):
-    """ daily step for soil W and N balance from meteo, management and lsystem inputs"""
-
-    # testRL = updateRootDistrib(invar['RLTot'][0], ls_systrac[0], lims_sol)
-    # ls_roots = rtd.build_ls_roots_mult(invar['RLTot'], ls_systrac, lims_sol) #ancien calcul base sur SRL fixe
-    #ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et tester absoption d'azote (normalement m) #a passer apres calcul de longuer de racine!
-    # esternalise calcul de ls_roots -> wrapper prend grille en entree et plus geom
-
-    # preparation des entrees eau
-    Rain = meteo_j['Precip']
-    Irrig = mng_j['Irrig']  # ['irrig_Rh1N']#R1N = sol_nu
-
-    # preparation des entrees azote
-    mapN_Rain = 1. * S.m_1[0, :, :] * Rain * par_SN['concrr']  # Nmin de la pluie
-    mapN_Irrig = 1. * S.m_1[0, :, :] * Irrig * par_SN['concrr']  # Nmin de l'eau d'irrigation
-    mapN_fertNO3 = 1. * S.m_1[0, :, :] * mng_j['FertNO3'] * S.m_vox_surf[0, :, :] / 10000.  # kg N par voxel
-    mapN_fertNH4 = 1. * S.m_1[0, :, :] * mng_j['FertNH4'] * S.m_vox_surf[0, :, :] / 10000.  # kg N par voxel
-
-    S.updateTsol(meteo_j['Tsol'])  # (meteo_j['TmoyDay'])#(meteo_j['Tsol'])# #Tsol forcee comme dans STICS (Tsol lue!!)
-
-    #############
-    # step  sol
-    #############
-    treshEffRoots_ = 10e10  # valeur pour forcer a prendre densite effective
-    ls_transp, evapo_tot, Drainage, stateEV, ls_m_transpi, m_evap, ls_ftsw = S.stepWBmc(meteo_j['Et0'] * surfsolref,
-                                                                                        ls_roots, ls_epsi,
-                                                                                        Rain * surfsolref,
-                                                                                        Irrig * surfsolref, stateEV,
-                                                                                        par_SN['ZESX'], leafAlbedo=0.15,
-                                                                                        U=Uval, b=b_, FTSWThreshold=0.4,
-                                                                                        treshEffRoots=treshEffRoots_,
-                                                                                        opt=1)
-    S.stepNB(par_SN)
-    if opt_residu == 1:  # s'ily a des residus
-        S.stepResidueMin(par_SN)
-        S.stepMicrobioMin(par_SN)
-    S.stepNitrif(par_SN)
-    #ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi,ls_demandeN_bis)
-    S.stepNINFILT(mapN_Rain, mapN_Irrig, mapN_fertNO3, mapN_fertNH4, Drainage, opt=1)
-    ActUpNtot, ls_Act_Nuptake_plt, ls_DQ_N, idmin = S.stepNuptakePlt(par_SN, ParamP, ls_roots, ls_m_transpi, ls_demandeN_bis, opt_Nuptake)
-    #print(amin(S.m_NO3), unique(idmin, return_counts=True),ls_DQ_N)
-
-    temps_sol = [evapo_tot, Drainage, ls_m_transpi, m_evap, ActUpNtot, ls_DQ_N, idmin] #other output variables
-
-    return [S,  stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol]
-    #lims_sol et surfsolref pourrait pas etre fournie via S.?
-    #pourquoi b_ et Uval trainent la? (paramtres sol??)
-    #return more output variables?? -> OK temps_sol
-    #move to soil module?
-
-
 
 
 def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolref, ls_epsi, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, ls_demandeN_bis, ls_ftswStress, ls_TStress, dicOrgans, dicFeuilBilanR, lsApex, start_time, cutNB, deltaI_I0, nbI_I0, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NlClasses, NaClasses, NlinClasses, outvar):

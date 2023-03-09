@@ -30,6 +30,12 @@ try:
 except:
     import RIRI5 as riri
 
+try:
+    from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    #import soil_moduleN3 as solN
+except:
+    import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
+
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
 opttest = 'exemple'#'mayssa'#'sdBea'#'OATbea'#1#2#'Histor'#1#4 ##2#1#  5#4#2#'autre'#0#13#'exemple_BA'#
@@ -193,7 +199,7 @@ def runlsystem_bystep(n):
 
         tag_inputs_soil_step = [S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake] # input tag
 
-        res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
+        res_soil_step = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
         S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step  # unpacks results from a list and updates global variables
 
         ##########
@@ -349,8 +355,8 @@ def runl2system_bystep(n, m):
         tag_inputs_soil_step2 = [S2, par_SN2, surfsolref2, stateEV2, Uval2, b_2, meteo_j2, mng_j2, ParamP2, ls_epsi2, ls_roots2, ls_N2, opt_residu2, opt_Nuptake]  # input tag
 
 
-        res_soil_step1 = loop.step_bilanWN_sol(*tag_inputs_soil_step1)
-        res_soil_step2 = loop.step_bilanWN_sol(*tag_inputs_soil_step2)
+        res_soil_step1 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step1)
+        res_soil_step2 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step2)
         S1, stateEV1, ls_ftsw1, ls_transp1, ls_Act_Nuptake_plt1, temps_sol1 = res_soil_step1  # unpacks results from a list and updates global variables
         S2, stateEV2, ls_ftsw2, ls_transp2, ls_Act_Nuptake_plt2, temps_sol2 = res_soil_step2  # unpacks results from a list and updates global variables
 
@@ -535,8 +541,8 @@ def runl2systemLight_bystep(n, m):
         tag_inputs_soil_step1 = [S1, par_SN1, surfsolref1, stateEV1, Uval1, b_1, meteo_j1, mng_j1, ParamP1, ls_epsi1, ls_roots1, ls_N1, opt_residu1, opt_Nuptake]  # input tag
         tag_inputs_soil_step2 = [S2, par_SN2, surfsolref2, stateEV2, Uval2, b_2, meteo_j2, mng_j2, ParamP2, ls_epsi2, ls_roots2, ls_N2, opt_residu2, opt_Nuptake]  # input tag
 
-        res_soil_step1 = loop.step_bilanWN_sol(*tag_inputs_soil_step1)
-        res_soil_step2 = loop.step_bilanWN_sol(*tag_inputs_soil_step2)
+        res_soil_step1 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step1)
+        res_soil_step2 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step2)
         S1, stateEV1, ls_ftsw1, ls_transp1, ls_Act_Nuptake_plt1, temps_sol1 = res_soil_step1  # unpacks results from a list and updates global variables
         S2, stateEV2, ls_ftsw2, ls_transp2, ls_Act_Nuptake_plt2, temps_sol2 = res_soil_step2  # unpacks results from a list and updates global variables
 
@@ -768,7 +774,7 @@ def runl2systemLightSoil_bystep(n, m):
 
         # step soil en commun
         tag_inputs_soil_step = [S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
-        res_soil_step = loop.step_bilanWN_sol(*tag_inputs_soil_step)
+        res_soil_step = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
         S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step
 
         # gere desagregattion par esp des sorties
