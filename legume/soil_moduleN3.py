@@ -1155,7 +1155,7 @@ def Actual_Nuptake_plt_Bis(SN, ls_Pot_Nuptake_plt, ls_PltN):
         ls_Act_Nuptake_plt.append(Act_Nuptake_i)
         ActUpNtot = ActUpNtot + Act_Nuptake_i
 
-    print('frein', ls_frein_N, ls_PltN)
+    #print('frein', ls_frein_N, ls_PltN)
     ### retire les nitrates et ammomium rellement preleves du sol
     ##frac_NO3 =  SN.m_NO3 / (SN.m_NO3 + SN.m_NH4 + 10**-15)
     ##SN.m_NO3 = SN.m_NO3 - frac_NO3*ActUpNtot
