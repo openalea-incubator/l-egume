@@ -129,8 +129,7 @@ def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, Lsol, largsol, discret_solX
     S = solN.SoilN(par_sol, par_SN, soil_number=vsoilnumbers,
                    dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1],
                          [dz_sol / 100.] * ncouches_sol], vDA=vDA, vCN=vCN, vMO=vMO, vARGIs=vARGIs, vNO3=vNO3,
-                   vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol, pH=par_SN['pH'], ZESX=par_SN['ZESX'], CFES=par_SN['CFES'],
-                   obstarac=obstarac, pattern8=pattern8)
+                   vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol, obstarac=obstarac, pattern8=pattern8)
 
     ## initialise humidite si fournit
     if HRpinit != []:  # initialise humidite si un vecteur est fourni
@@ -138,13 +137,14 @@ def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, Lsol, largsol, discret_solX
 
     # Uval = 0.9*2.61#(epaisseur de sol* mm d'eau dans 1cm) #U quantite d'eau dans une couche superieure en mm (5 par default)
     # Uval = par_SN['q0']*0.1*sum(S.m_QH20fc[0])*surfsolref / (S.dxyz[2][0]*100.)#(epaisseur de sol (cm)* mm d'eau dans 1cm) #U quantite d'eau dans une couche superieure en mm (5 par default)
-    Uval = par_SN['q0']
-    stateEV = [0., 0., 0.]  # pour le calcul de l'evaporation du sol (memoire du cumul evapore depuis derniere PI)
-    HXs = par_sol[str(vsoilnumbers[0])]['teta_fc']  # humidite a la capacite au champ de l'horizon de surface
-    b_ = solN.bEV(par_SN['ACLIMc'], par_SN['ARGIs'], HXs)  # HXs=0.261)#1.#valeur empirique tres proche#0.1#0.63#0.63
-    # print (par_SN['q0'],'Uval', ' b ', Uval, b_, sum(S.m_QH20fc[0]), surfsolref , (S.dxyz[2][0]*100.))
 
-    return S, Tsol, Uval, stateEV, b_
+    #Uval = par_SN['q0']
+    #stateEV = [0., 0., 0.]  # pour le calcul de l'evaporation du sol (memoire du cumul evapore depuis derniere PI)
+    #HXs = par_sol[str(vsoilnumbers[0])]['teta_fc']  # humidite a la capacite au champ de l'horizon de surface
+    #b_ = solN.bEV(par_SN['ACLIMc'], par_SN['ARGIs'], HXs)  # HXs=0.261)#1.#valeur empirique tres proche#0.1#0.63#0.63
+    ## print (par_SN['q0'],'Uval', ' b ', Uval, b_, sum(S.m_QH20fc[0]), surfsolref , (S.dxyz[2][0]*100.))
+
+    return S, Tsol#, Uval, stateEV, b_
 
 
 

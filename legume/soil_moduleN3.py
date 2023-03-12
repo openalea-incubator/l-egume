@@ -63,7 +63,7 @@ from soil_module5 import *
 
 
 class SoilN(Soil):
-    def __init__(self, par_sol, parSN, soil_number , dxyz, vDA,  vCN, vMO, vARGIs, vNO3, vNH4,  vCALCs, Tsol, pH, ZESX, CFES, obstarac=None, pattern8=[[0,0],[100.,100.]]):
+    def __init__(self, par_sol, parSN, soil_number , dxyz, vDA,  vCN, vMO, vARGIs, vNO3, vNH4,  vCALCs, Tsol, obstarac=None, pattern8=[[0,0],[100.,100.]]):
         """
         par_sol SN contient en plus pour l'azote:
             'FMIN1G'        #(day-1) (p145)
@@ -110,12 +110,14 @@ class SoilN(Soil):
         bilanC et bilanN: dictionnaires contenant les variables dynamiques et les cumuls necessaire a l'etablissement des bilans C et N (kg C/N.ha-1)
         """
         #initialisation sol et teneur en eau
-        Soil.__init__(self,par_sol, soil_number , dxyz, vDA, ZESX, CFES, obstarac, pattern8)
+        Soil.__init__(self,par_sol, soil_number, dxyz, vDA, parSN['ZESX'], parSN['CFES'], obstarac, pattern8)
         self.compute_teta_lim(par_sol)
         self.init_asw()
+        # init variables memoire evaporation
+        self.init_memory_EV(parSN)
 
         self.CALCs = vCALCs[0] #(%) value for non calcareous soils (p220 STICS) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! A mesurer/mettre a jour (rq: mesure CaO anterieure parcelle C2: 1.58 g.kg-1 dans 0-30)
-        self.pHeau = pH
+        self.pHeau = parSN['pH']#pH
         self.ARG = vARGIs[0]
         #a faire: NORGs matrices de NORGs, CORGs, K2HUM...
         
@@ -167,6 +169,17 @@ class SoilN(Soil):
         K2HUMi = par['FMIN1G']*exp(-par['FMIN2G']*ARGIs)/(1+par['FMIN3G']*CALCs)
         return K2HUMi
         #!! revoir ARGIs et CALCs!!
+
+    def init_memory_EV(self, parSN):
+        """ inititalise memory variables and parameters to compute soil evaporation """
+        self.Uval = parSN['q0']
+        HXs = self.m_teta_fc[0,0,0] #par_sol[str(vsoilnumbers[0])]['teta_fc']  # humidite a la capacite au champ de l'horizon de surface
+        self.b_ = bEV(parSN['ACLIMc'], parSN['ARGIs'], HXs)
+        self.stateEV = [0., 0., 0.]  # pour le calcul de l'evaporation du sol (memoire du cumul evapore depuis derniere PI)
+        # marche seulement pour solN (car faut parSN)
+
+    def update_memory_EV(self, new_vals):
+        self.stateEV = new_vals
 
     def SOMMin_RespT(self, par):
         """ reponse de la mineralisation (ammonification) de la SOM a la temperature - described as a sigmoid process (FTH) - Eq 8.3 p143 et (pour residus FTR p146-147) """
@@ -1280,7 +1293,7 @@ def demandeNroot(MSpiv,dMSpiv,Npcpiv, surfsolref, Noptpiv):
 #    dicout['UptPlt'] = bilanN['cumUptakePlt']
 
 
-def step_bilanWN_solVGL(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu, opt_Nuptake):
+def step_bilanWN_solVGL(S, par_SN, surfsolref, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu, opt_Nuptake):
     """ daily step for soil W and N balance from meteo, management and L-egume lsystem inputs"""
 
     # testRL = updateRootDistrib(invar['RLTot'][0], ls_systrac[0], lims_sol)
@@ -1304,7 +1317,8 @@ def step_bilanWN_solVGL(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_
     # step  sol
     #############
     treshEffRoots_ = 10e10  # valeur pour forcer a prendre densite effective
-    ls_transp, evapo_tot, Drainage, stateEV, ls_m_transpi, m_evap, ls_ftsw = S.stepWBmc(meteo_j['Et0'] * surfsolref,
+    stateEV, Uval, b_ = S.stateEV, S.Uval, S.b_
+    ls_transp, evapo_tot, Drainage, new_stateEV, ls_m_transpi, m_evap, ls_ftsw = S.stepWBmc(meteo_j['Et0'] * surfsolref,
                                                                                         ls_roots, ls_epsi,
                                                                                         Rain * surfsolref,
                                                                                         Irrig * surfsolref, stateEV,
@@ -1312,6 +1326,7 @@ def step_bilanWN_solVGL(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_
                                                                                         U=Uval, b=b_, FTSWThreshold=0.4,
                                                                                         treshEffRoots=treshEffRoots_,
                                                                                         opt=1)
+    S.update_memory_EV(new_stateEV)
     S.stepNB(par_SN)
     if opt_residu == 1:  # s'ily a des residus
         S.stepResidueMin(par_SN)
@@ -1324,7 +1339,7 @@ def step_bilanWN_solVGL(S, par_SN, surfsolref, stateEV, Uval, b_, meteo_j,  mng_
 
     temps_sol = [evapo_tot, Drainage, ls_m_transpi, m_evap, ActUpNtot, ls_DQ_N, idmin] #other output variables
 
-    return [S,  stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol]
+    return [S,  new_stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol]
     #lims_sol et surfsolref pourrait pas etre fournie via S.?
     #pourquoi b_ et Uval trainent la? (paramtres sol??)
     #return more output variables?? -> OK temps_sol
