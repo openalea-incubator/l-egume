@@ -50,11 +50,12 @@ cote = 100 #cm
 pattern8 = [[0, 0], [cote, cote]]
 Lsol = max((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
 largsol = min((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
-surfsolref = Lsol * largsol  # m2
+#surfsolref = Lsol * largsol  # m2
 dz_sol = 5. #cm
 ncouches_sol = 20
 discret_solXY = [1,1] #nombre de voxel selon X et Y
-lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1], [dz_sol / 100.] * ncouches_sol])
+dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1], [dz_sol / 100.]* ncouches_sol]
+#lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1], [dz_sol / 100.] * ncouches_sol])
 
 
 # vecteurs pour initialisation des propietes des couches de sol
@@ -83,10 +84,8 @@ opt_Nuptake = 1 #Local Transporters
 #############
 #init de l'objet sol
 S = solN.SoilN(par_sol, par_SN, soil_number=vsoilnumbers,
-                   dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1],
-                         [dz_sol / 100.] * ncouches_sol], vDA=vDA, vCN=vCN, vMO=vMO, vARGIs=vARGIs, vNO3=vNO3,
+                   dxyz=dxyz, vDA=vDA, vCN=vCN, vMO=vMO, vARGIs=vARGIs, vNO3=vNO3,
                    vNH4=vNH4, vCALCs=vCALCs, Tsol=Tsol, obstarac=None, pattern8=pattern8)
-
 
 
 
@@ -123,7 +122,7 @@ for j in range(n_jour):
     mng_j = {'Coupe': 0.0, 'Irrig': 0.0, 'FertNO3': 0.0, 'FertNH4': 0.0, 'Hcut': 3.0, 'ForceNNI': 1.0}
 
     # Step Sol avec les inputs prevues dans VGL
-    tag_inputs_soil_step = [S, par_SN, surfsolref, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
+    tag_inputs_soil_step = [S, par_SN, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
     S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
 
 
@@ -215,17 +214,17 @@ opt_Nuptake = 1 #Local Transporters
 ###### Creation objet sol avce fonction init_sol_fromLpy utilisee dans vgl
 cote = 100 #cm
 pattern8 = [[0, 0], [cote, cote]]
-Lsol = max((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
-largsol = min((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
-surfsolref = Lsol * largsol  # m2
+#Lsol = max((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
+#largsol = min((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
+#surfsolref = Lsol * largsol  # m2
 dz_sol = inis['dz_sol']
 discret_solXY = list(map(int, inis['discret_solXY']))
 ncouches_sol = int(inis['ncouches_sol'])
-lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1], [dz_sol / 100.] * ncouches_sol])
+#lims_sol = rtd.lims_soil(pattern8, dxyz=[[Lsol / discret_solXY[0]] * discret_solXY[0], [largsol / discret_solXY[1]] * discret_solXY[1], [dz_sol / 100.] * ncouches_sol])
 
 
 #initialisation du sol avec fonction pour Lpy (sans residus)
-S, Tsol = initial.init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, Lsol, largsol, discret_solXY, dz_sol, pattern8, opt_residu=0)
+S, Tsol = initial.init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, pattern8, opt_residu=0)
 
 ## initialisation matrice des residus -> faut en plus des parameres plantes!
 # vCC = initial.init_plant_residues_fromParamP(S, opt_residu, ParamP)
@@ -268,7 +267,7 @@ for j in range(n_jour):
     for k in list(mng_j.keys()): mng_j[k] = mng_j[k][0]
 
     # Step Sol avec les inputs prevues dans VGL
-    tag_inputs_soil_step = [S, par_SN, surfsolref, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
+    tag_inputs_soil_step = [S, par_SN, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
     S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
 
 
@@ -380,3 +379,6 @@ def calculate_Uptake_Nitrates(self, Conc_Nitrates_Soil, nitrates_roots, sucrose_
 
 #ACLIMc', par_SN['ARGIs'] pas dispo a inititalisation sol eau + b /stateEV necessaire stepW
 # initialise memory depuis solN ->OK
+
+#retirer  et passer en interne (pas initialisation): Lsol, larsol et sursolref
+

@@ -1293,13 +1293,15 @@ def demandeNroot(MSpiv,dMSpiv,Npcpiv, surfsolref, Noptpiv):
 #    dicout['UptPlt'] = bilanN['cumUptakePlt']
 
 
-def step_bilanWN_solVGL(S, par_SN, surfsolref, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu, opt_Nuptake):
+def step_bilanWN_solVGL(S, par_SN, meteo_j,  mng_j, ParamP, ls_epsi, ls_roots, ls_demandeN_bis, opt_residu, opt_Nuptake):
     """ daily step for soil W and N balance from meteo, management and L-egume lsystem inputs"""
 
     # testRL = updateRootDistrib(invar['RLTot'][0], ls_systrac[0], lims_sol)
     # ls_roots = rtd.build_ls_roots_mult(invar['RLTot'], ls_systrac, lims_sol) #ancien calcul base sur SRL fixe
     #ls_roots = rtd.build_ls_roots_mult(array(invar['RLTotNet']) * 100. + 10e-15, ls_systrac, lims_sol)  # !*100 pour passer en cm et tester absoption d'azote (normalement m) #a passer apres calcul de longuer de racine!
     # esternalise calcul de ls_roots -> wrapper prend grille en entree et plus geom
+
+    surfsolref = S.surfsolref
 
     # preparation des entrees eau
     Rain = meteo_j['Precip']

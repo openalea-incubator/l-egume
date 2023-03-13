@@ -197,7 +197,7 @@ def runlsystem_bystep(n):
         elif opt_Nuptake == 1:  # 'LocalTransporter':
             ls_N = invar['NNI']  # ls_NNIStress['NTreshExpSurf']
 
-        tag_inputs_soil_step = [S, par_SN, surfsolref, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake] # input tag
+        tag_inputs_soil_step = [S, par_SN, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake] # input tag
 
         res_soil_step = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
         S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step  # unpacks results from a list and updates global variables
@@ -351,8 +351,8 @@ def runl2system_bystep(n, m):
             ls_N1 = invar1['NNI']  # ls_NNIStress['NTreshExpSurf']
             ls_N2 = invar2['NNI']  # ls_NNIStress['NTreshExpSurf']
 
-        tag_inputs_soil_step1 = [S1, par_SN1, surfsolref1, meteo_j1, mng_j1, ParamP1, ls_epsi1, ls_roots1, ls_N1, opt_residu1, opt_Nuptake]  # input tag
-        tag_inputs_soil_step2 = [S2, par_SN2, surfsolref2, meteo_j2, mng_j2, ParamP2, ls_epsi2, ls_roots2, ls_N2, opt_residu2, opt_Nuptake]  # input tag
+        tag_inputs_soil_step1 = [S1, par_SN1, meteo_j1, mng_j1, ParamP1, ls_epsi1, ls_roots1, ls_N1, opt_residu1, opt_Nuptake]  # input tag
+        tag_inputs_soil_step2 = [S2, par_SN2, meteo_j2, mng_j2, ParamP2, ls_epsi2, ls_roots2, ls_N2, opt_residu2, opt_Nuptake]  # input tag
 
 
         res_soil_step1 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step1)
@@ -538,8 +538,8 @@ def runl2systemLight_bystep(n, m):
             ls_N1 = invar1['NNI']  # ls_NNIStress['NTreshExpSurf']
             ls_N2 = invar2['NNI']  # ls_NNIStress['NTreshExpSurf']
 
-        tag_inputs_soil_step1 = [S1, par_SN1, surfsolref1, meteo_j1, mng_j1, ParamP1, ls_epsi1, ls_roots1, ls_N1, opt_residu1, opt_Nuptake]  # input tag
-        tag_inputs_soil_step2 = [S2, par_SN2, surfsolref2, meteo_j2, mng_j2, ParamP2, ls_epsi2, ls_roots2, ls_N2, opt_residu2, opt_Nuptake]  # input tag
+        tag_inputs_soil_step1 = [S1, par_SN1, meteo_j1, mng_j1, ParamP1, ls_epsi1, ls_roots1, ls_N1, opt_residu1, opt_Nuptake]  # input tag
+        tag_inputs_soil_step2 = [S2, par_SN2, meteo_j2, mng_j2, ParamP2, ls_epsi2, ls_roots2, ls_N2, opt_residu2, opt_Nuptake]  # input tag
 
         res_soil_step1 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step1)
         res_soil_step2 = solN.step_bilanWN_solVGL(*tag_inputs_soil_step2)
@@ -773,7 +773,7 @@ def runl2systemLightSoil_bystep(n, m):
         S, par_SN, surfsolref, mng_j, opt_residu, opt_stressGel = S1, par_SN1, surfsolref1, mng_j1, opt_residu1, opt_stressGel1
 
         # step soil en commun
-        tag_inputs_soil_step = [S, par_SN, surfsolref, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
+        tag_inputs_soil_step = [S, par_SN, meteo_j, mng_j, ParamP, ls_epsi, ls_roots, ls_N, opt_residu, opt_Nuptake]  # input tag
         res_soil_step = solN.step_bilanWN_solVGL(*tag_inputs_soil_step)
         S, stateEV, ls_ftsw, ls_transp, ls_Act_Nuptake_plt, temps_sol = res_soil_step
 

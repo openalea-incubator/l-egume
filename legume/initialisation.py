@@ -88,11 +88,15 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
 
 
 
-def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, Lsol, largsol, discret_solXY, dz_sol, pattern8, opt_residu, obstarac=None):
+def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, pattern8, opt_residu, obstarac=None):
     """ 3DS soil initialisation from L-py - 3 couches de sol avec propirete differentes maxi"""
 
     #Tsol lu dans meteo
     Tsol = meteo_j['Tsol']  # 15. #degresC
+
+    # pattern8 en cm!
+    Lsol = max((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
+    largsol = min((pattern8[1][0] - pattern8[0][0]) / 100., (pattern8[1][1] - pattern8[0][1]) / 100.)  # m
 
     # vecteurs d'initialisation du sol (pour 3 couches maxi)
     num_nb = list(map(int, inis['num_nb']))  # [6,6,18] #nbr de couche de chaque num de sol
