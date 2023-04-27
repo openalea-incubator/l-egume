@@ -62,7 +62,12 @@ def produit_vectoriel (u, v) :
 
 def normalised_v(vec):
     """ mise a 1 de la norme de vec """
-    if vec[2] >= 0. :
+    if vec[2] > 0. :
+        z = scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
+        y = z*vec[1]/vec[2]
+        x = z*vec[0]/vec[2]
+    elif vec[2] == 0. :
+        vec[2] = 10e-12
         z = scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
         y = z*vec[1]/vec[2]
         x = z*vec[0]/vec[2]
@@ -72,7 +77,7 @@ def normalised_v(vec):
         x = z*vec[0]/vec[2]
 
     return scipy.array([x,y,z])
-    #!!! gere pas bien le cas ou vec[2]=0!!
+
 
 def norme_v(vec):
     """ calcule la norme d'un vecteur """

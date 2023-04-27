@@ -16,7 +16,7 @@ print(('path', path_))
 sys.path.insert(0, path_)
 
 try:
-    from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
     #import soil_moduleN3 as solN
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
