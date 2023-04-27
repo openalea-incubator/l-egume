@@ -132,6 +132,7 @@ for j in range(n_jour):
     kgNsolHa = kgNO3solHa + kgNH4solHa
     uptNO3PltHa = ls_Act_Nuptake_plt[0].sum()*nb_plt/S.surfsolref*10000
     lix = S.lixiNO3  # /S.surfsolref*10000
+    uptNO3Pltmole = [ls_Act_Nuptake_plt[0].sum() * 1000000 * 1000 / (14 * 24)] *nb_plt # en µmole d'N / plante / h (format CNwheat)
 
     cumMinN_j = S.bilanN['cumMinN'][-1]
     Lix_j = S.bilanN['cumLix'][-1]
@@ -141,12 +142,15 @@ for j in range(n_jour):
 
     #print('N', j, azomes, kgNO3solHa, kgNH4solHa, Lix_j, MinN, UptakePlt_j)
     # print('N', j, azomes,kgNsolHa, kgNO3solHa,kgNH4solHa, lix, Lix_j, uptNO3PltHa, UptakePlt_j)
+    # print('N', j, uptNO3PltHa, UptakePlt_j)
+    # print('N plt', j, np.array(list(map(np.sum, ls_Act_Nuptake_plt)))) # en kg N/plant-1.d-1
+    print('N mole', j, uptNO3Pltmole)  # en µmole d'N / plante / h
 
     # print de sorties W
     transp = sum(ls_transp)
     tsw = S.tsw_t.sum()
 
-    print('Water', j, tsw,transp, stateEV)
+    #print('Water', j, tsw,transp, stateEV)
 
 
 
