@@ -290,10 +290,10 @@ def init_variables_plantes(ParamP, nbplantes):
     
     
     
-    PG = array(riri.get_lsparami(ParamP, 'PMG'))/1000.
+    PG = array(IOxls.get_lsparami(ParamP, 'PMG'))/1000.
     invar['MS_graine'] = PG.tolist()
     invar['Mtot'].append(PG.tolist())
-    invar['Ngraine'] = array(PG)*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.
+    invar['Ngraine'] = array(PG)*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.
     
     
     #invar['Maerien'].append(array(PG)*0.)
@@ -303,23 +303,23 @@ def init_variables_plantes(ParamP, nbplantes):
     
     #initialisation des compartiments avec des epsilon pour pas que ca bug pas?
     epsilon = 10e-10#10e-15
-    frac_coty_ini = array(riri.get_lsparami(ParamP, 'frac_coty_ini')) #0.5 ##a passer en parametre?
+    frac_coty_ini = array(IOxls.get_lsparami(ParamP, 'frac_coty_ini')) #0.5 ##a passer en parametre?
     PG = array(PG)*epsilon
     
     invar['Maerien'].append(array(PG)*frac_coty_ini) #4/5 va aerien
     invar['MS_coty'] = array(PG)*frac_coty_ini #dans les cotyledons
     invar['Mfeuil'].append(array(PG)*frac_coty_ini*0.98) #tout aerien dans feuil
     invar['Mtige'].append(array(PG)*frac_coty_ini*0.01) #
-    invar['Mrac_fine'].append(array(PG)*(1.-frac_coty_ini)*array(riri.get_lsparami(ParamP, 'frac_rac_fine')))
-    invar['Mpivot'].append(array(PG)*(1.-frac_coty_ini)*(1. - array(riri.get_lsparami(ParamP, 'frac_rac_fine'))))
+    invar['Mrac_fine'].append(array(PG)*(1.-frac_coty_ini)*array(IOxls.get_lsparami(ParamP, 'frac_rac_fine')))
+    invar['Mpivot'].append(array(PG)*(1.-frac_coty_ini)*(1. - array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))))
     invar['MS_aerienNonRec'] = array(PG)*frac_coty_ini*0.01
     invar['Msenaerien'].append(array(PG)*0.)
     
-    invar['Naerien'] = array(PG)*frac_coty_ini*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['Ncoty'] = array(PG)*frac_coty_ini*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['Nrac_fine'] = array(PG)*(1.-frac_coty_ini)*array(riri.get_lsparami(ParamP, 'frac_rac_fine'))*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['Npivot'] = array(PG)*(1.-frac_coty_ini)*(1. - array(riri.get_lsparami(ParamP, 'frac_rac_fine')))*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['NaerienNonRec'] = array(PG)*frac_coty_ini*0.01*array(riri.get_lsparami(ParamP, 'Npc_ini'))/100.
+    invar['Naerien'] = array(PG)*frac_coty_ini*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
+    invar['Ncoty'] = array(PG)*frac_coty_ini*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
+    invar['Nrac_fine'] = array(PG)*(1.-frac_coty_ini)*array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
+    invar['Npivot'] = array(PG)*(1.-frac_coty_ini)*(1. - array(IOxls.get_lsparami(ParamP, 'frac_rac_fine')))*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
+    invar['NaerienNonRec'] = array(PG)*frac_coty_ini*0.01*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.
     
     
     #Mtige pas explicite pour le moment
@@ -422,7 +422,7 @@ def init_outputs(ParamP, nbplantes,ncouches_sol):
     outvar = {'colnames':[],'pattern':[],'TT':[],'TTsol':[], 'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'epsi':[], 'Hplante':[], 'Dplante':[],'dMSaer':[],'RLTot':[], 'RDepth':[], 'MS_aerien':[],'MS_feuil':[],'MS_tot':[], 'countSh':[], 'demandC':[], 'Leaf_Stem':[], 'NBsh':[], 'NBI':[],'time':[],'FTSW':[],'Etransp':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'Npc':[], 'NBD1':[], 'NBB':[], 'countShExp':[], 'NBBexp':[], 'R_DemandC_Root':[], 'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[], 'Naerien':[], 'Npc_aer':[], 'DemandN_Tot_Aer':[], 'Nuptake_sol':[], 'NNI':[], 'Ndfa':[], 'Qfix':[],'dMSenFeuil':[], 'dMSenTige':[],'MS_pivot':[],'MS_rac_fine':[],'R_DemandC_Shoot':[],'RUE':[],'BilanC_PARa':[], 'BilanC_RUE':[],'BilanCdMStot':[], 'BilanCdMrac_fine':[], 'BilanCdMpivot':[], 'BilanCdMaer':[],'BilanCdMSenFeuil':[],'BilanCdMSenTige':[], 'DemCp':[],'remob':[],'Npc_piv':[], 'Npc_rac_fine':[], 'dRLenSentot':[], 'dMSenRoot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'NBphyto':[], 'cutNB':[],'NBapexAct':[],'transpi':[], 'cumtranspi':[],'transpi':[], 'cumtranspi':[],'aliveB':[],'dMSmortGel':[],'dNmortGel':[],'TTphyllo':[],'dTT':[],'Udevstress':[],'Udev':[],'TTudev':[],'RUEpot':[],'MS_aerienNonRec':[], 'MS_aerienRec':[], 'NaerienNonRec':[],'NaerienRec':[],'Ncoty':[],'MS_tige':[],'graineC':[],'graineN':[],'dMSenPiv':[],'dMSenNonRec':[],'BilanCdMSenNonRec':[],'BilanCdMSenPiv':[],'CreservPiv':[],'NreservPiv':[],'perteN_NonRec':[], 'perteN_Piv':[], 'perteN_aerien':[],'Npc_aerNonRec':[],'MS_senaerien':[],'dMSmortPlant_aer':[],'dMSmortPlant_pivot':[],'dMSmortPlant_racfine':[],'dNmortPlant_aer':[],'dNmortPlant_pivot':[],'dNmortPlant_racfine':[],'alivePiv':[],'alive':[],'ChangeRoot':[]}
     
     outvar['pattern'].append(['pattern',0]+[surfsolref]*nbplantes)
-    outvar['colnames'].append(['V1','steps']+riri.get_lsparami(ParamP, 'name')) #ajout des noms d'omglet en 1ere ligne
+    outvar['colnames'].append(['V1','steps']+IOxls.get_lsparami(ParamP, 'name')) #ajout des noms d'omglet en 1ere ligne
     
     # 2) Variables dynamique localisee du sol
     #id couches sorties sol (grand rhizotron)
@@ -462,7 +462,7 @@ def Start():
     ParamP, nbplantes, ls_seeds, lsidP, test_retard = initial.init_ParamP_VGL(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=Rseed ,type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc, opt_sd=opt_sd, opt_covar=opt_covar, path_variance_geno=path_variance_geno, path_variance_matrix=path_variance_matrix, idscenar1_sd=idscenar1_sd, idscenar2_sd=idscenar2_sd)
 
     
-    #print 'Len ', riri.get_lsparami(ParamP, 'Len')
+    #print 'Len ', IOxls.get_lsparami(ParamP, 'Len')
     #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
     ls_pointes1 = []
     for nump in range(nbplantes):
@@ -472,7 +472,7 @@ def Start():
             pointes1 = [array(pointes)]
         ls_pointes1.append(pointes1)
     
-    #print('ici', riri.get_lsparami(ParamP, 'name'))
+    #print('ici', IOxls.get_lsparami(ParamP, 'name'))
     
     #initialisation de la scene
     global carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, m_laiPlt, triplets, ls_dif, res_trans, res_abs_i, res_rfr 
@@ -487,7 +487,7 @@ def Start():
 
     vCC = initial.init_plant_residues_fromParamP(S, opt_residu, ParamP)
     #mat_res = 0.*S.m_1 #en faire 
-    ls_groupe_resid = list(map(int, riri.get_lsparami(ParamP, 'groupe_resid')))
+    ls_groupe_resid = list(map(int, IOxls.get_lsparami(ParamP, 'groupe_resid')))
     setr = list(set(ls_groupe_resid)) #set equivalent fonction r.unique!
     ls_mat_res = []
     for i in range(2):#len(setr)): #force a 2 sinon bug qd des esidu de l'esp 1 seulement
@@ -507,7 +507,7 @@ def Start():
     
     
     #init grille rayonnement
-    m_lais = sh.calc_surfcoty(invar['MS_coty'], invar['TT'], riri.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #init avec surface des cotyledons
+    m_lais = sh.calc_surfcoty(invar['MS_coty'], invar['TT'], IOxls.get_lsparami(ParamP, 'DurGraine'), carto, ParamP, n_gamagroup, origin_grid, na, dxyz) #init avec surface des cotyledons
     
     tag_light_inputs = [m_lais/surf_refVOX, triplets , ls_dif , meteo_j['I0']*surf_refVOX] #input tag
     local_res_trans, local_res_abs_i = riri.calc_extinc_allray_multi_reduced(*tag_light_inputs, optsky=station['optsky'], opt=station['sky'])
@@ -618,7 +618,7 @@ def StartEach():
     if mng_j['Coupe']==1:        
         
         # MAJ compartiments recoltes/non recoltes
-        fraction_nonRec = array(riri.get_lsparami(ParamP, 'fraction_NonRec'))#0.1 # a entrer un parametre de fraction non rec / ou une methode de calcul(f de hcut/hauteur?)
+        fraction_nonRec = array(IOxls.get_lsparami(ParamP, 'fraction_NonRec'))#0.1 # a entrer un parametre de fraction non rec / ou une methode de calcul(f de hcut/hauteur?)
         MS_recoltable = array(invar['MS_aerien']) - array(invar['MS_senaerien']) ##! tenir compte de la senescence!! 
         MS_recoltable[MS_recoltable<epsilon] = epsilon #pour eviter valeur neg
         invar['MS_aerienNonRec'] = array(invar['MS_aerienNonRec']) + fraction_nonRec*MS_recoltable #cumul de MS non recolte
@@ -1091,11 +1091,11 @@ def End(lstring,lscene):
         #ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
         sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
         ls_parname = ['name']+list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme; suppose la meme pour les 2 sp
-        nbp = len(riri.get_lsparami(ParamP, 'name'))
+        nbp = len(IOxls.get_lsparami(ParamP, 'name'))
         res_sd = {'nump':range(0,nbp)}
         res_sd['retard'] = test_retard[0:nbp]
         for p in ls_parname:
-            res_sd[p] = riri.get_lsparami(ParamP, p)
+            res_sd[p] = IOxls.get_lsparami(ParamP, p)
         
         #ajout des coord x,y des plantes
         xcarto, ycarto = [],[]
@@ -2363,7 +2363,7 @@ Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, Lcut,statut,ordre):
         if opt_sd==1 or opt_sd==2:
             parname = 'Lfeuille'#'Len'#
             parval = ParamP[nump][parname] #test_retard[nump]#
-            vals = riri.get_lsparami(ParamP, parname) #test_retard#
+            vals = IOxls.get_lsparami(ParamP, parname) #test_retard#
             col = 30 + int(7* (parval - min(vals)) / (max(vals)+10E-12 -  min(vals)))
         
         

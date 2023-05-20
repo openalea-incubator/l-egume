@@ -5,10 +5,6 @@ import IOxls
 import ShootMorpho as sh
 import RootDistrib as rtd
 import RootMorpho2 as rt
-try:
-    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
-except:
-    import RIRI5 as riri
 
 try:
     from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
@@ -52,7 +48,7 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     # ls_epsi = epsi * invar['parip'] / (sum(invar['parip']) + 10e-15)
     #ls_epsi = step_epsi(invar, res_trans, meteo_j, surfsolref)
 
-    #print('graine', graineC, graineN, invar['NBI'], riri.get_lsparami(ParamP, 'DurGraine'),invar['TT'])
+    #print('graine', graineC, graineN, invar['NBI'], IOxls.get_lsparami(ParamP, 'DurGraine'),invar['TT'])
 
     # calcul de Biomasse tot
     stressHRUE = array(ls_ftswStress['WaterTreshRUE'])
@@ -62,28 +58,28 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     if opt_stressN==0:
         stressNRUE = 1.
 
-    stressFIX = 1 - array(invar['Ndfa']) * array(riri.get_lsparami(ParamP, 'NODcost'))  # coeff 0.15 = 15% reduction RUE a 100% fixation -> a passer en paarmetre
+    stressFIX = 1 - array(invar['Ndfa']) * array(IOxls.get_lsparami(ParamP, 'NODcost'))  # coeff 0.15 = 15% reduction RUE a 100% fixation -> a passer en paarmetre
     stressTRUE = array(ls_TStress['stressTRUE'])#1.#
 
-    invar['RUEpot'] = array(riri.get_lsparami(ParamP, 'RUE')) * stressTRUE 
+    invar['RUEpot'] = array(IOxls.get_lsparami(ParamP, 'RUE')) * stressTRUE 
     invar['RUEactu'] = invar['RUEpot'] * stressHRUE * stressNRUE* stressFIX
     invar['PARaPlanteU'] = array(ls_epsi) * 0.95 * meteo_j['I0'] * 3600. * 24 / 1000000. * surfsolref  # facteur 0.95 pour reflectance / PARa used for calculation
     dM = invar['PARaPlanteU'] * invar['RUEactu'] + invar['graineC']
     # dM2 = array(dpar) * array(get_lsparami(ParamP, 'RUE'))
 
     # allocation
-    froot = sh.rootalloc(riri.get_lsparami(ParamP, 'alloc_rootB'), riri.get_lsparami(ParamP, 'alloc_rootA'), invar['MS_aer_cumul'])  # fraction aux racines
+    froot = sh.rootalloc(IOxls.get_lsparami(ParamP, 'alloc_rootB'), IOxls.get_lsparami(ParamP, 'alloc_rootA'), invar['MS_aer_cumul'])  # fraction aux racines
     for nump in range(nbplantes):
         if invar['germination'][nump] < 2:  # tout aux racines avant apparition de la premiere feuille
             froot[nump] = 0.99
 
 
-    Frac_remob = array(riri.get_lsparami(ParamP, 'frac_remob'))
+    Frac_remob = array(IOxls.get_lsparami(ParamP, 'frac_remob'))
     invar['CreservPiv'] = Frac_remob * invar['MS_pivot'] #fonction du compart pivot a t-1
     invar['remob'] = sh.Cremob(array(IOxls.dic2vec(nbplantes, invar['DemCp'])), invar['R_DemandC_Shoot'], invar['MS_pivot'], Frac_remob)  # vraiment marginal
     invar['CreservPiv'] -= invar['remob']
-    rac_fine = dM * froot * array(riri.get_lsparami(ParamP, 'frac_rac_fine'))  # * rtd.filtre_ratio(invar['R_DemandC_Shoot'])
-    pivot = dM * froot * (1 - array(riri.get_lsparami(ParamP, 'frac_rac_fine'))) - invar['remob']
+    rac_fine = dM * froot * array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))  # * rtd.filtre_ratio(invar['R_DemandC_Shoot'])
+    pivot = dM * froot * (1 - array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))) - invar['remob']
     aer = dM - rac_fine - pivot #+ invar['remob']
     aer[aer==0.] += invar['remob'][aer==0.] # pour cas ou organes en croissance apres coupe, mais sans feuille (demande mini = remob)
     ffeuil = array(IOxls.dic2vec(nbplantes, invar['DemCp_lf'])) / (array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + epsilon)  # fraction aux feuilles
@@ -110,8 +106,8 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     invar['MS_aer_cumul'] += aer
     invar['MS_tot'] = list(map(sum, IOtable.t_list(invar['Mtot'])))
     invar['MS_rac_fine'] = list(map(sum, IOtable.t_list(invar['Mrac_fine'])))  # vecteur des MSracines_fines cumule au temps t
-    invar['DiampivMax'] = sqrt(invar['MS_pivot'] * array(riri.get_lsparami(ParamP, 'DPivot2_coeff')))
-    # invar['RLTot'] = array(map(sum, IOtable.t_list(invar['Mrac_fine']))) * array(riri.get_lsparami(ParamP, 'SRL')) #somme de toutes les racinesfines produites par plante
+    invar['DiampivMax'] = sqrt(invar['MS_pivot'] * array(IOxls.get_lsparami(ParamP, 'DPivot2_coeff')))
+    # invar['RLTot'] = array(map(sum, IOtable.t_list(invar['Mrac_fine']))) * array(IOxls.get_lsparami(ParamP, 'SRL')) #somme de toutes les racinesfines produites par plante
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
     nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
     #nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.,seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
@@ -165,16 +161,16 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
 
 
     #reserve Piv
-    invar['NreservPiv'] = array(invar['Npivot']) * (Npc_piv - array(riri.get_lsparami(ParamP, 'NminPiv'))) / Npc_piv
+    invar['NreservPiv'] = array(invar['Npivot']) * (Npc_piv - array(IOxls.get_lsparami(ParamP, 'NminPiv'))) / Npc_piv
     invar['NreservPiv'][invar['NreservPiv'] < 0.] = 0.  # verifier que depasse pas zero!!
 
 
-    ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(invar['MS_aerien'])-array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(riri.get_lsparami(ParamP, 'ADIL')), b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(riri.get_lsparami(ParamP, 'BDIL')))
-    #ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(MS_aerien_tm1), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(riri.get_lsparami(ParamP, 'ADIL')), b1=array(riri.get_lsparami(ParamP, 'BDILi')), b2=array(riri.get_lsparami(ParamP, 'BDIL')))
+    ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(invar['MS_aerien'])-array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(IOxls.get_lsparami(ParamP, 'ADIL')), b1=array(IOxls.get_lsparami(ParamP, 'BDILi')), b2=array(IOxls.get_lsparami(ParamP, 'BDIL')))
+    #ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(MS_aerien_tm1), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(IOxls.get_lsparami(ParamP, 'ADIL')), b1=array(IOxls.get_lsparami(ParamP, 'BDILi')), b2=array(IOxls.get_lsparami(ParamP, 'BDIL')))
 
     ls_demandeN_aer = ls_demandeN_aer * 0.001 #+ 1e-15  # en kg N.plant-1
-    ls_demandN_piv = solN.demandeNroot(array(invar['MS_pivot']), pivot, Npc_piv, surfsolref, array(riri.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + epsilon #+ 1e-15  # en kg N.plant-1
-    ls_demandN_rac_fine = solN.demandeNroot(array(invar['MS_rac_fine']), rac_fine, Npc_rac_fine, surfsolref, array(riri.get_lsparami(ParamP, 'NoptFR'))) * 0.001 #+ 1e-15  # en kg N.plant-1
+    ls_demandN_piv = solN.demandeNroot(array(invar['MS_pivot']), pivot, Npc_piv, surfsolref, array(IOxls.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + epsilon #+ 1e-15  # en kg N.plant-1
+    ls_demandN_rac_fine = solN.demandeNroot(array(invar['MS_rac_fine']), rac_fine, Npc_rac_fine, surfsolref, array(IOxls.get_lsparami(ParamP, 'NoptFR'))) * 0.001 #+ 1e-15  # en kg N.plant-1
 
     ls_demandeN_bis = ls_demandeN_aer + ls_demandN_piv + ls_demandN_rac_fine #+ epsilon
     fracNaer = ls_demandeN_aer  / (ls_demandeN_bis + epsilon)
@@ -270,7 +266,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
     # Fixation et allocation
-    maxFix = sh.Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')) * array(riri.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  #invar['MS_aerien']# * invar['dTT']
+    maxFix = sh.Ndfa_max(invar['TT'], IOxls.get_lsparami(ParamP, 'DurDevFix')) * array(IOxls.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  #invar['MS_aerien']# * invar['dTT']
     stressHFix = array(ls_ftswStress['WaterTreshFix']) * maxFix  # effet hydrique
     invar['Qfix'] = sh.ActualFix(ls_demandeN_bis * 1000., invar['Nuptake_sol'], stressHFix)  # g N.plant-1
     invar['Ndfa'] = invar['Qfix'] / (invar['Qfix'] + invar['Nuptake_sol'] + 1e-15)
@@ -353,7 +349,7 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
 
 
-    # print invar['TT'], Ndfa_max(invar['TT'], riri.get_lsparami(ParamP, 'DurDevFix')), maxFix, stressHFix
+    # print invar['TT'], Ndfa_max(invar['TT'], IOxls.get_lsparami(ParamP, 'DurDevFix')), maxFix, stressHFix
     # print invar['TT'], ls_demandeN_bis, invar['Nuptake_sol'], stressHFix
     # print sum(mapN_Rain), sum(mapN_Irrig), sum(mapN_fertNO3), sum(mapN_fertNH4), meteo_j['Tsol']
     # print ls_demandeN_bis, ls_demandeN, Npc_temp, array(map(sum, ls_Act_Nuptake_plt)), invar['Naerien'] #pour convertir en g N
@@ -384,15 +380,15 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
                                                                               invar_sc['ax']['QDCmoyRac'])
 
     # calcul biomasse, diametres pivots indivs, QDC des racines, increment de longueur et SRL
-    daxPiv = rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], pivot, Frac_piv_sem=riri.get_lsparami(ParamP, 'Frac_piv_sem'),
-                              Frac_piv_loc=riri.get_lsparami(ParamP,
+    daxPiv = rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], pivot, Frac_piv_sem=IOxls.get_lsparami(ParamP, 'Frac_piv_sem'),
+                              Frac_piv_loc=IOxls.get_lsparami(ParamP,
                                                              'Frac_piv_loc'))  # rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], pivot)
     invar_sc['ax']['MaxPiv'] = IOxls.add_dic(daxPiv, invar_sc['ax']['MaxPiv'])
     invar_sc['ax']['DiampivMax'] = rt.calc_DiamPivMax(ParamP, invar_sc['ax']['MaxPiv'])
 
     invar_sc['ax']['OfrCRac'] = rt.distrib_dM_ax(invar_sc['ax']['fPARaPiv'], rac_fine,
-                                                 Frac_piv_sem=riri.get_lsparami(ParamP, 'Frac_piv_sem'),
-                                                 Frac_piv_loc=riri.get_lsparami(ParamP, 'Frac_piv_loc'))
+                                                 Frac_piv_sem=IOxls.get_lsparami(ParamP, 'Frac_piv_sem'),
+                                                 Frac_piv_loc=IOxls.get_lsparami(ParamP, 'Frac_piv_loc'))
     invar_sc['ax']['QDCRac'] = rt.calc_QDC_roots(invar_sc['ax']['OfrCRac'], invar_sc['ax']['DemCRac'])
     invar_sc['ax']['QDCmoyRac'] = rt.calc_QDCmoy_roots(invar_sc['ax']['QDCRac'], invar_sc['ax']['QDCmoyRac'],
                                                        invar_sc['ax']['AgePiv'], invar['Udevsol'])
@@ -418,8 +414,8 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     # print 'graine', graineC, dltot, invar['Surfcoty'], invar['Mcoty']#
 
-    dur2 = (array(riri.get_lsparami(ParamP, 'GDs2')) + array(riri.get_lsparami(ParamP, 'LDs2'))) / 20.  # en jours a 20 degres!
-    dur3 = (array(riri.get_lsparami(ParamP, 'GDs3')) + array(riri.get_lsparami(ParamP, 'LDs3'))) / 20.  # en jours a 20 degres!
+    dur2 = (array(IOxls.get_lsparami(ParamP, 'GDs2')) + array(IOxls.get_lsparami(ParamP, 'LDs2'))) / 20.  # en jours a 20 degres!
+    dur3 = (array(IOxls.get_lsparami(ParamP, 'GDs3')) + array(IOxls.get_lsparami(ParamP, 'LDs3'))) / 20.  # en jours a 20 degres!
     invar['dRLenSentot'], invar['dMSenRoot'] = rt.calc_root_senescence(invar['dRLen2'], invar['dRLen3'], dur2, dur3,
                                                                        array(invar['SRL']))
     invar['RLTotNet'] = array(invar['RLTotNet']) + dltot - invar['dRLenSentot']

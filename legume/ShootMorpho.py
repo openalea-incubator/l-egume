@@ -274,7 +274,7 @@ def add_surfcoty(invar, m_lais, m_laiPlt, lsFeuilBilanR, carto, ParamP, origin_g
     """ ajout de surf cotyledon a m_lais, m_laiPlt, lsFeuilBilanR """
     age = invar['TT']
     Mcoty = invar['MS_coty']
-    DurGraine = riri.get_lsparami(ParamP, 'DurGraine')
+    DurGraine = IOxls.get_lsparami(ParamP, 'DurGraine')
 
     for nump in range(len(carto)):
         vox = riri.WhichVoxel(array(carto[nump]), origin_grid, na, dxyz)
@@ -937,7 +937,7 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
 
 def reduce_ParamP(ParamP, nom):
     """ pour extraire une espece du ParamP """
-    ls_name = riri.get_lsparami(ParamP, 'name')
+    ls_name = IOxls.get_lsparami(ParamP, 'name')
     newParamP, lsid_reduce = [], []
     for i in range(len(ls_name)):
         if ParamP[i]['name']==nom:

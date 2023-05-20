@@ -212,7 +212,7 @@ def init_scene_fromLpy(ParamP, inis, cote, nbcote, station, lsidP, type='damier8
 
     # 3) discretisation au niveau aerien
     # creation des grid3D pour calcul de rayonnement
-    ls_gammagroup = list(map(int, riri.get_lsparami(ParamP, 'gammagroup')))
+    ls_gammagroup = list(map(int, IOxls.get_lsparami(ParamP, 'gammagroup')))
     setp = list(set(ls_gammagroup))  # set equivalent fonction r.unique!
     n_gamagroup = len(setp)
 
@@ -252,7 +252,7 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP):
     if opt_residu == 1:  # initialisatio de residus
 
         # number of groupes?
-        ls_groupres = list(map(int, riri.get_lsparami(ParamP, 'groupe_resid')))
+        ls_groupres = list(map(int, IOxls.get_lsparami(ParamP, 'groupe_resid')))
         setg = list(set(ls_groupres))  # set equivalent fonction r.unique!
         n_groupres = len(setg)
         nbplantes = len(ls_groupres)

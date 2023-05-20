@@ -175,6 +175,15 @@ def read_met_file(meteo_path, ongletM):
     return meteo
 
 
+def get_lsparami(ParamP, param):
+    """ recupere une liste des parametre param de chaque plante de L-egume """
+    v = []
+    nbplt = len(ParamP)
+    for i in range(nbplt):
+        v.append(ParamP[i][param])
+    
+    return v
+
 def modif_param(gx, ongletP, ongletScenar, idscenar, idlist=1, mn_sc=None):
     """ met a jour ParamP d'un genotype gx pour les variables et valeurs indiques dans ongletScnar """
     """ fait rien si ongletScenar='default' ou iscenar<0 ou onglet correspond pas a celui a modifier; sinon va modifier selon fichier scenario"""

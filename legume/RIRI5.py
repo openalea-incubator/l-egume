@@ -13,13 +13,6 @@ from copy import deepcopy
 from numpy.random import seed, normal
 import numpy as np
 
-def get_lsparami(ParamP, param):
-    """ recupere une liste des parametre param de chaque plante de L-egume """
-    v = []
-    for i in range(len(ParamP)):
-        v.append(ParamP[i][param])
-    return v
-# a caser sans doute dans un autre fichier
 
 def def_na_lims(pattern8, dz_ini, Hmax,opt='3D'):
     """ calcul nb de voxels par direction et limites des voxels dans la grille #pattern, dz et Hmax en cm"""
