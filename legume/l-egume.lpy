@@ -29,6 +29,8 @@ try:
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
+
+
 try:
     from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
 except:
@@ -85,7 +87,7 @@ deltalevsd = 15
 
 
 cote = 40.#7.#80.#100.#100#25.#25.#cm
-nbcote = 8#2#1#10
+nbcote = 8#1#2#10
 optdamier = 4
 typearrangement='damier8'#'homogeneous'#'damier8_sp2'#'random8'#'damier16'#'random16'
 idscenar1 = -1 #1#21#1#inferieur a zero=defaut et fait rien
@@ -485,7 +487,7 @@ def Start():
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr, vCC
     S, Tsol = initial.init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, pattern8, opt_residu, obstarac_)
 
-    vCC = initial.init_plant_residues_fromParamP(S, opt_residu, ParamP)
+    vCC = initial.init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN)
     #mat_res = 0.*S.m_1 #en faire 
     ls_groupe_resid = list(map(int, IOxls.get_lsparami(ParamP, 'groupe_resid')))
     setr = list(set(ls_groupe_resid)) #set equivalent fonction r.unique!

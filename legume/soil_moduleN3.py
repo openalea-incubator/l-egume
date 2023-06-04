@@ -220,12 +220,14 @@ class SoilN(Soil):
         self.bilanN['cumMinN'].append(sum3(dN_NH4) / self.soilSurface() *10000)
         self.bilanC['cumMinC'].append(sum3(dC_NH4) / self.soilSurface() *10000)
 
-    def init_residues(self, vCNRESt=[], vAmount=[], vProps=[], vWC=[], vCC=[], forced_Cres=None):
+    def init_residues(self,  parSN, vCNRESt=[], vAmount=[], vProps=[], vWC=[], vCC=[], forced_Cres=None):
         """ initialisation des compartiments en relation avec gestion des residus """
         #dictionnaire de parametres des residus
         self.parResi = {}
         self.parResi['CNRESt'], self.parResi['CNBio'], self.parResi['KRES'], self.parResi['YRES'], self.parResi['KBio'], self.parResi['HRES'] = [],[],[],[],[],[]
-        self.parResi['TRefg'] = 15. #reference temperature 
+        
+        # same temperature and humidity response for all residues (Recous et al., 1995, p147)
+        self.parResi['TRefg'] = parSN['TRefg']#15. #reference temperature
         self.parResi['FTEMHAg'] = 12. #asymptotic value of FTR (seen as a logistic response) p147
         self.parResi['FTEMHg'] = 0.103 #(K-1) p147
         self.parResi['FTEMHB'] = 52. #from eq 8.3

@@ -21,13 +21,13 @@ import time
 import pandas as pd
 
 try:
-    from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
     #import soil_moduleN3 as solN
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
 try:
-    from .riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
+    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
 except:
     import RIRI5 as riri
 
@@ -245,7 +245,7 @@ def init_scene_fromLpy(ParamP, inis, cote, nbcote, station, lsidP, type='damier8
 
 
 
-def init_plant_residues_fromParamP(S, opt_residu, ParamP):
+def init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN):
     """ separate initialisation of plant residue from plant files / lystem"""
     # initialise soil residues from a ParamP of plants + update ParamP[nump]['CNRES']
 
@@ -291,7 +291,7 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP):
         # S.init_residues(vCNRESt, vAmount, vProps, vWC, vCC)
 
         print('soil init', CNRES, vAmount, vProps, WC, CC)
-        S.init_residues(CNRES, vAmount, vProps, WC, CC)
+        S.init_residues(par_SN, CNRES, vAmount, vProps, WC, CC)
 
         print('ls_CRES', np.shape(S.ls_CRES))
         print('ls_CBio', np.shape(S.ls_CBio))
