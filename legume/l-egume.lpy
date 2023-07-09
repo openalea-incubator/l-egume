@@ -229,211 +229,11 @@ class Plt_seed(object):
 #def init_plant_residues_fromParamP(S, opt_residu, ParamP):
 #    #deplace dans fichier inititalisation
 
+#def init_variables_plantes(ParamP, nbplantes, na):
+#    #deplace dans fichier inititalisation
 
-def init_variables_plantes(ParamP, nbplantes, na):
-    global epsilon
-    # 1) INVAR
-    #dico des variables interne instantanes par plante  utilises dans differents calculs ou preparant des sorties
-    
-    ## SurfPlante: liste (par nump) de liste de surface de feuille verte au temps t 
-    ## PARaPlante: liste (par nump) de liste de PARa feuille verte au temps t
-    ## PARiPlante: liste (par nump) de liste de PARi feuille verte+senescente au temps t
-    ## parap (anciens dpar / ls_parap): liste de delta de PARa du jour par plante (feuilles vertes) (utilise pour modulation racines notamment)
-    ## parip: liste de delta de PARa du jour par plante (feuilles vertes+senescente)
-    ## Hplante : liste de hauteur max des plantes
-    ## Dplante: liste de diametre max des plantes
-    ## Mrac_fine: Liste (par step/jour) de liste de delta de MSracines fines par plante
-    ## Mpivot: Liste (par step/jour) de liste de delta de MSpivot par plante
-    ## Maerien: Liste (par step/jour) de liste de delta de MSaerien par plante
-    ## MS_rac_fine: liste des MSracines_fines cumule au temps t par plante
-    ## MS_pivot: liste des MSpivot cumule au temps t par plante
-    ## MS_aerien: liste des MSaerien cumule au temps t par plante
-    ## MS_aer_cumul: liste des MSaerien cumule, SANS REMISE A ZERO A LA COUPE, pour calcul d'allocation aux racines.
-    ## RLTot: liste de total fine root length par plante(m)
-    ## Rdepth: liste de profondeur max du pivot par plante (cm)
-    ## DiampivMax: liste de diametre max des pivot par plante
-    ## countSh: Liste de nb tiges I cumule emis par plante depuis levee (tout A emis de B) - Compteur de Tige I
-    ## countShExp: Liste de nb tiges I cumule emis par plante depuis levee par voie B->BDA - Compteur de bourgeons au niveau de la courrone  
-    ## NBsh : Liste par plante de nb tiges (I ou II) avec nb phytomeres>50% du max
-    ## NBI : Liste par plante de nombre de phytomere maxi sur tiges I ayant >75% du max
-    ## NBD1 : Liste par plante de nombre de bourgeons dormants D()
-    ## NBB : Liste par plante de nombre de bourgeons actifs B()
-    ## NBBexp : Liste par plante de nombre de bourgeons actifs B() de statut exp = generateur de nouveaux axes
-    ## lsA : Liste par plante de numero de nsh (B() et A()) actifs ou non
-    ## lsAPrev : Liste par plante de numero de nsh (B() et A()) actifs ou non au step n-1 : utilise pour maintenir en dormance les D()
-    ## lsApexMort : Liste par plante de numero de nsh (A()) mort
-    ## DemandN_Feuil : Liste par plante de quantite d'N des feuille pour satisfaire 1 INN = 1 (g.plant-1)
-    ## DemandN_Pet : Liste par plante de quantite d'N des petioles pour satisfaire 1 INN = 1 (g.plant-1)
-    ## DemandN_Stem : Liste par plante de quantite d'N des tiges pour satisfaire 1 INN = 1 (g.plant-1)
-    ## DemandN_Tot : Liste par plante de quantite d'N totales pour satisfaire 1 INN = 1 (g.plant-1)
-    ## R_DemandC_Root : Liste par plante de ratio offre/demande C pour croissance des racines
-    ## RLen1, Len2,RLen3,RLen4,RLentot : Liste par plante de longueur cumulee de racine d'ordre 1, 2, 3 et total (m)
-    ## SRL: Liste par plante de specific root length (m.g-1)
-    ## phmgPet: Liste par plante d'effet maximum d'allongement du a la photomorphogenese (petioles)
-    ## phmgEntr: Liste par plante d'effet maximum d'allongement du a la photomorphogenese (entrenoeuds)
-    ## phmgPet_m: Liste par plante d'effet maximum de reduction de croissance du a la photomorphogenese (petioles)
-    ## phmgEntr_m: Liste par plante d'effet maximum de reduction de croissance du a la photomorphogenese (entrenoeuds)
-    ## dMSenFeuil: Liste par plante des delta de biomasse de feuille senescent (g.plant-1)
-    ## dMSenTige: Liste par plante des delta de biomasse de tige (entre-noeud et petiole) senescent (g.plant-1)
-    ## R_DemandC_Shoot: Liste par plante de ratio offre/demande C pour croissance minimu des tiges
-    ## NBphyto: Liste par plante de nbr de phytomeres compte sur la nase des entre-noeuds presents
-    ## germinaltion: liste of a logical value: 0=no germination, 1=germination, 2=1feuille visible
-    ## TTphyllo: liste of phyllochronic time by plant
-    
-    #! RLentot va remplacer RLTot!
-    
-    
-    invar = {'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'PARaPlanteU':[],'Hplante':[], 'Dplante':[], 'RLTot':[], 'RDepth':[], 'parap':[], 'parip':[], 'Mrac_fine':[], 'Mpivot':[], 'Maerien':[], 'Mfeuil':[],'MS_coty':[],'MS_rac_fine':[], 'MS_pivot':[], 'MS_aerien':[],'MS_feuil':[],'MS_aer_cumul':[], 'Mtot':[], 'MS_tot':[], 'DiampivMax':[], 'countSh':[], 'NBsh':[], 'NBI':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'DemandN_TotAer':[], 'NBD1':[], 'NBB':[], 'countShExp':[],'lsA':[],'lsAPrev':[],'lsApexMort':[], 'NBBexp':[], 'R_DemandC_Root':[],'RLen1':[], 'RLen2':[],'RLen3':[],'RLentot':[],'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[],'firstleaf':[], 'Naerien':[], 'Npc_aer':[], 'Npc_piv':[], 'Npc_rac_fine':[],'Nuptake_sol':[],'NNI':[], 'Ndfa':[], 'Qfix':[], 'TT':[],'TTsol':[], 'dTT':[], 'dTTsol':[], 'dMSenFeuil':[],'dMSenTige':[], 'R_DemandC_Shoot':[],'RUEactu':[], 'DemCp':[],'DemCp_lf':[], 'DemCp_in':[], 'DemCp_pt':[], 'L_Sp':[],'remob':[],'Nrac_fine':[], 'Npivot':[],'dRLen2':[],'dRLen3':[],'dMSenRoot':[],'dRLenSentot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'Surfcoty':[],'NBphyto':[],'germination':[],'MS_graine':[], 'Ngraine':[],'dMSgraine':[],'dNgraine':[], 'NBapexAct':[],'NreservPiv':[],'rgeq':[], 'transpi':[], 'cumtranspi':[],'aliveB':[],'isGelDam':[],'dMSmortGel_aer':[],'dNmortGel_aer':[],'dTTphyllo':[],'TTphyllo':[], 'Udev':[],'Udevstress':[],'Udevsol':[],'TTudev':[],'RUEpot':[],'countGelD':[],'graineC':[],'graineN':[], 'Ncoty':[], 'Mtige':[], 'MS_tige':[], 'MS_aerienNonRec':[], 'MS_aerienRec':[], 'NaerienNonRec':[], 'NaerienRec':[],'dMSenPiv':[],'dMSenNonRec':[],'CreservPiv':[],'perteN_NonRec':[], 'perteN_Piv':[], 'perteN_aerien':[],'Npc_aerNonRec':[],'Msenaerien':[], 'MS_senaerien':[],'dMSmortPlant_aer':[],'dMSmortPlant_pivot':[],'dMSmortPlant_racfine':[],'dNmortPlant_aer':[],'dNmortPlant_pivot':[],'dNmortPlant_racfine':[],'alivePiv':[],'alive':[],'ChangeRoot':[], 'ChangeDepth':[], 'RLentotfromRootMass':[], 'RLentotfromDev':[], 'ConcNmoy':[] } 
-    
-    for i in range(nbplantes): invar['SurfPlante'].append([]); invar['PARaPlante'].append([]); invar['PARiPlante'].append([]); invar['lsA'].append([]);invar['lsAPrev'].append([]);invar['lsApexMort'].append([])
-    
-    for i in range(nbplantes): invar['Hplante'].append(0.); invar['Dplante'].append(0.);invar['RLTot'].append(0.); invar['RDepth'].append(0.);invar['parap'].append(0.); invar['parip'].append(0.);invar['PARaPlanteU'].append(0.);invar['DiampivMax'].append(0.1); invar['countSh'].append(0);invar['NBsh'].append(0.);invar['NBI'].append(0.);invar['DemandN_Feuil'].append(0.);invar['DemandN_Pet'].append(0.);invar['DemandN_Stem'].append(0.);invar['DemandN_Tot'].append(0.);invar['NBD1'].append(0);invar['NBB'].append(0); invar['countShExp'].append(0);invar['NBBexp'].append(0); invar['R_DemandC_Root'].append(0);invar['RLen1'].append(0);invar['RLen2'].append(0);invar['RLen3'].append(0);invar['RLentot'].append(0);invar['SRL'].append(100.);invar['phmgPet'].append([1.]);invar['phmgEntr'].append([1.]);invar['phmgPet_m'].append([1.]);invar['phmgEntr_m'].append([1.]);invar['firstleaf'].append(float("inf"));invar['MS_aer_cumul'].append(0.); invar['NNI'].append(1.); invar['Ndfa'].append(1.); invar['TT'].append(0.);invar['TTsol'].append(0.);invar['dTT'].append(0.);invar['dTTsol'].append(0.);invar['dMSenFeuil'].append(0.);invar['dMSenTige'].append(0.);invar['R_DemandC_Shoot'].append(1.);invar['DemCp'].append(0.);invar['DemCp_lf'].append(0.);invar['DemCp_in'].append(0.);invar['DemCp_pt'].append(0.);invar['MS_pivot'].append(0.);invar['remob'].append(0.);invar['RLTotNet'].append(0); invar['MS_rac_fineNet'].append(0);invar['perteN_rac_fine'].append(0);invar['NBphyto'].append(0);invar['germination'].append(0);invar['dMSgraine'].append(0.);invar['dNgraine'].append(0.);invar['NBapexAct'].append(0); invar['NreservPiv'].append(0);invar['rgeq'].append(0);invar['cumtranspi'].append(0.);invar['aliveB'].append(0.);invar['isGelDam'].append(0);invar['dMSmortGel_aer'].append(0.);invar['dNmortGel_aer'].append(0.);invar['dTTphyllo'].append(0.);invar['TTphyllo'].append(0.);invar['Udev'].append(0.);invar['Udevstress'].append(0.);invar['Udevsol'].append(0.);invar['TTudev'].append(0.);invar['countGelD'].append(10.);invar['graineC'].append(0.);invar['graineN'].append(0.);invar['MS_aerienRec'].append(0.);invar['NaerienRec'].append(0.);invar['dMSenPiv'].append(0.);invar['dMSenNonRec'].append(0.);invar['CreservPiv'].append(0);invar['perteN_NonRec'].append(0);invar['perteN_Piv'].append(0);invar['perteN_aerien'].append(0);invar['dMSmortPlant_aer'].append(0);invar['dMSmortPlant_pivot'].append(0);invar['dMSmortPlant_racfine'].append(0);invar['dNmortPlant_aer'].append(0);invar['dNmortPlant_pivot'].append(0);invar['dNmortPlant_racfine'].append(0);invar['alivePiv'].append(0);invar['alive'].append(0);invar['ChangeRoot'].append(0);invar['ChangeDepth'].append(0);invar['RLentotfromRootMass'].append(0);invar['RLentotfromDev'].append(0);invar['ConcNmoy'].append(0);
-    
-    
-    
-    PG = array(IOxls.get_lsparami(ParamP, 'PMG'))/1000.
-    invar['MS_graine'] = PG.tolist()
-    invar['Mtot'].append(PG.tolist())
-    invar['Ngraine'] = array(PG)*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.
-    
-    
-    #invar['Maerien'].append(array(PG)*0.)
-    #invar['Mpivot'].append(array(PG)*0.)
-    #invar['Mfeuil'].append(array(PG)*0.)
-    #invar['Mrac_fine'].append(array(PG)*0.)
-    
-    #initialisation des compartiments avec des epsilon pour pas que ca bug pas?
-    epsilon = 10e-10#10e-15
-    frac_coty_ini = array(IOxls.get_lsparami(ParamP, 'frac_coty_ini')) #0.5 ##a passer en parametre?
-    PG = array(PG)*epsilon
-    
-    invar['Maerien'].append(array(PG)*frac_coty_ini) #4/5 va aerien
-    invar['MS_coty'] = array(PG)*frac_coty_ini #dans les cotyledons
-    invar['Mfeuil'].append(array(PG)*frac_coty_ini*0.98) #tout aerien dans feuil
-    invar['Mtige'].append(array(PG)*frac_coty_ini*0.01) #
-    invar['Mrac_fine'].append(array(PG)*(1.-frac_coty_ini)*0.98)#tout racinaire dans rac fine #array(IOxls.get_lsparami(ParamP, 'frac_rac_fine')))
-    invar['Mpivot'].append(array(PG)*(1.-frac_coty_ini)*(1-0.98))#(1. - array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))))
-    invar['MS_aerienNonRec'] = array(PG)*frac_coty_ini*0.01
-    invar['Msenaerien'].append(array(PG)*0.)
-    
-    invar['Naerien'] = array(PG)*frac_coty_ini*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['Ncoty'] = array(PG)*frac_coty_ini*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['Nrac_fine'] = array(PG)*(1.-frac_coty_ini)*array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['Npivot'] = array(PG)*(1.-frac_coty_ini)*(1. - array(IOxls.get_lsparami(ParamP, 'frac_rac_fine')))*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.#meme teneur racine et shoot
-    invar['NaerienNonRec'] = array(PG)*frac_coty_ini*0.01*array(IOxls.get_lsparami(ParamP, 'Npc_ini'))/100.
-    
-    
-    #Mtige pas explicite pour le moment
-    
-    # 2) INVAR_SC: variables a autres echelle que plante (un dico par echelle des surface, surface verte, PARa cumules)
-    ## 3 echelles: plante = 'plt', tige ramifiee ='sh', Axe = 'ax'
-    ## Surf: 
-    ## SurfVerte: 
-    ## PARaF:
-    ## MaxPiv: dictionnaire par cle d'axe de biomasse cumulee par pivot
-    ## DiampivMax: dictionnaire par cle d'axe de diametre max de pivot
-    ## AgePiv: dictionnaire par cle d'axe d'age des pivot en TT
-    
-    invar_sc = {'plt':{}, 'sh':{}, 'ax':{}}
-    #reorganiser invar sur la base de ces 3 echelles??
-    invar_sc['ax']['MaxPiv']={}
-    invar_sc['ax']['DiampivMax']={}
-    invar_sc['ax']['AgePiv']={}
-    invar_sc['ax']['DemCRac']={}
-    invar_sc['ax']['OfrCRac']={}
-    invar_sc['ax']['QDCRac']={}
-    invar_sc['ax']['QDCmoyRac']={} #QD moyen integre dans le temps par pivot
-    invar_sc['ax']['StressHRac']={}
-    invar_sc['ax']['PonderStressHRac']={}
-    invar_sc['ax']['StressHmoyRac']={}#stress hydrique moyen des racines par pivot integre dans le temps
-    invar_sc['ax']['NRac']={}#liste de nb d'apex par ordre pour chaque pivot
-    invar_sc['ax']['dlRac']={}#delta de longueur des racines par ordre
-    invar_sc['ax']['cumlRac']={}#cumul de longueur de racine par ordre
-    
-    #pour stocker NI max
-    invar_sc['sh']['MaxNI']={}#dev max des axes primaires -> pour gerer vitesse de redemarrage des pivots
-    
-    #3) Autres variables globales utilisees ds calcul
-    ## lsAxes: liste d'apex I(axes) actifs (utilise dans calcLeafStemRatio)
-    ## lsApex: liste d'apex I et II actifs (utilise dans calcNB_NI et cumul_lenIN)
-    ## lsApexStop : liste d'apex I et II a l'arret 
-    ## lsApexAll : liste de tous les apex I et II
-    ## lsOrgans: liste des organes (Lf/Stp/In/Pet) sur tous les axes (utilise dans cumul_lenIN, calcOffreC, calcDemandeC) (ancien lsActiveAxes)
-    lsAxes = []
-    lsApex = []
-    lsApexStop = []
-    lsApexAll = []
-    lsOrgans =[['TT','organ','nump', 'nsh', 'rank', 'rankp', 'strate', 'surf', 'PARaF','statut','age','ordre','l','Long','DOY','cutNB', 'Larg']]
-    savelsOrgans=[]
-    lsFeuilBilanR = [['nump', 'nsh', 'rank', 'rankp','status', 'surf','id_grid', 'X','Y','Z','Vox2','Vox1','Vox0','sVox','paraF']]
-    
-    #for i in range(nbplantes): lsOrgans.append([]) #faire une liste d'organe par plante??
-    
-    
-    #4)#initialisation des ls_systrac (#pour recuperer les enveloppes de racine par plante) et ls_roots_prev
-    ls_systrac = {} 
-    for i in range(nbplantes):ls_systrac[i]=[]
-    ls_roots_prev = [] #to keep ls_roots in memory
-    
-    
-    #5) initialisation des indices de stress par plante a 1. (devrait passer dans invar)
-    ls_ftswStress = {'WaterTreshExpSurf':[], 'WaterTreshDevII':[] ,'WaterTreshDevI':[], 'WaterTreshFix':[],'WaterTreshRUE':[]}
-    ls_NNIStress = {'NTreshRUE':[], 'NTreshExpSurf':[], 'NTreshDev':[], 'NTreshDevII':[]}
-    ls_TStress = {'stressTRUE':[]}
-    for i in range(nbplantes): ls_ftswStress['WaterTreshExpSurf'].append(1.);ls_ftswStress['WaterTreshDevII'].append(1.);ls_ftswStress['WaterTreshDevI'].append(1.);ls_ftswStress['WaterTreshFix'].append(1.);ls_ftswStress['WaterTreshRUE'].append(1.);ls_NNIStress['NTreshRUE'].append(1.);ls_NNIStress['NTreshExpSurf'].append(1.);ls_NNIStress['NTreshDev'].append(1.);ls_NNIStress['NTreshDevII'].append(1.);ls_TStress['stressTRUE'].append(1.);
-    
-    #6) Variables de profil plante (surface/eaclairement/N)
-    
-    LAIprofil, SurfprofilPlant = {}, []
-    for i in range(0, na[2]):  LAIprofil[i]=0.#initialise variables globales de profils
-    for i in range(nbplantes): SurfprofilPlant.append(deepcopy(LAIprofil))#liste de LAIprofil par plante
-    
-    deltaI_I0 = 0.05 #0.1 #delta entre classe d'aclairement relatif
-    nbI_I0 = int(1./deltaI_I0) #nb classes d'eclairement relatif
-    I_I0Classes = arange(deltaI_I0/2., 1.+deltaI_I0/2., deltaI_I0) #eclairememnt relatif moyen par classe
-    I_I0profilLfPlant = [] #liste de surface de feuille par classe d'eclairement relatif
-    for i in range(nbplantes): I_I0profilLfPlant.append(zeros(nbI_I0))
-    I_I0profilPetPlant = deepcopy(I_I0profilLfPlant) #liste de longueur cumulee de petiole par classe d'eclairement relatif
-    I_I0profilInPlant = deepcopy(I_I0profilLfPlant) #liste de longueur cumulee d'entre-noeuds par classe d'eclairement relatif
-    
-    NaClasses = ParamP[0]['Na0']*sh.Na_N0(I_I0Classes)#N0(INN=1.)*Na_N0(I_I0Classes)
-    NlClasses = ParamP[0]['NL0Pet']*sh.Na_N0(I_I0Classes)
-    NlinClasses = ParamP[0]['NL0Sh']*sh.Na_N0(I_I0Classes)
-    # actuellement pas utilise -> serait a retirer proprement
-    
-    
-    #variable de profil racine (a passer en dico?)
-    res_root = [] 
-    
-    
-    #RLProfil, RprospectProfil, rp0, rpp0 = [],[], {}, [] #liste de root length profil par horizon de sol; liste de profil des rayons de la racine primaire;rp0 et rpp0 sont les profils initiaux d'une plante, utilise pour faciliter l'instanciation de la liste de plantes
-    #for i in range(0, ncouches_sol): rp0[i]=0.; rpp0.append(0.)
-    #for i in range(nbplantes): RLProfil.append(deepcopy(rp0)); RprospectProfil.append(deepcopy(rpp0))
-    
-    
-    return invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev
-
-
-
-
-def init_outputs(ParamP, nbplantes,ncouches_sol):
-    
-    # 1) OUTVAR
-    #dico de sorties
-    outvar = {'colnames':[],'pattern':[],'TT':[],'TTsol':[], 'SurfPlante':[], 'PARaPlante':[], 'PARiPlante':[], 'epsi':[], 'Hplante':[], 'Dplante':[],'dMSaer':[],'RLTot':[], 'RDepth':[], 'MS_aerien':[],'MS_feuil':[],'MS_tot':[], 'countSh':[], 'demandC':[], 'Leaf_Stem':[], 'NBsh':[], 'NBI':[],'time':[],'FTSW':[],'Etransp':[], 'DemandN_Feuil':[], 'DemandN_Pet':[], 'DemandN_Stem':[],'DemandN_Tot':[], 'Npc':[], 'NBD1':[], 'NBB':[], 'countShExp':[], 'NBBexp':[], 'R_DemandC_Root':[], 'SRL':[],'phmgPet':[],'phmgEntr':[],'phmgPet_m':[],'phmgEntr_m':[], 'Naerien':[], 'Npc_aer':[], 'DemandN_Tot_Aer':[], 'Nuptake_sol':[], 'NNI':[], 'Ndfa':[], 'Qfix':[],'dMSenFeuil':[], 'dMSenTige':[],'MS_pivot':[],'MS_rac_fine':[],'R_DemandC_Shoot':[],'RUE':[],'BilanC_PARa':[], 'BilanC_RUE':[],'BilanCdMStot':[], 'BilanCdMrac_fine':[], 'BilanCdMpivot':[], 'BilanCdMaer':[],'BilanCdMSenFeuil':[],'BilanCdMSenTige':[], 'DemCp':[],'remob':[],'Npc_piv':[], 'Npc_rac_fine':[], 'dRLenSentot':[], 'dMSenRoot':[], 'RLTotNet':[], 'MS_rac_fineNet':[],'perteN_rac_fine':[],'NBphyto':[], 'cutNB':[],'NBapexAct':[],'transpi':[], 'cumtranspi':[],'transpi':[], 'cumtranspi':[],'aliveB':[],'dMSmortGel':[],'dNmortGel':[],'TTphyllo':[],'dTT':[],'Udevstress':[],'Udev':[],'TTudev':[],'RUEpot':[],'MS_aerienNonRec':[], 'MS_aerienRec':[], 'NaerienNonRec':[],'NaerienRec':[],'Ncoty':[],'MS_tige':[],'graineC':[],'graineN':[],'dMSenPiv':[],'dMSenNonRec':[],'BilanCdMSenNonRec':[],'BilanCdMSenPiv':[],'CreservPiv':[],'NreservPiv':[],'perteN_NonRec':[], 'perteN_Piv':[], 'perteN_aerien':[],'Npc_aerNonRec':[],'MS_senaerien':[],'dMSmortPlant_aer':[],'dMSmortPlant_pivot':[],'dMSmortPlant_racfine':[],'dNmortPlant_aer':[],'dNmortPlant_pivot':[],'dNmortPlant_racfine':[],'alivePiv':[],'alive':[],'ChangeRoot':[],'RLentotfromRootMass':[], 'RLentotfromDev':[], 'ConcNmoy':[]}
-    
-    outvar['pattern'].append(['pattern',0]+[surfsolref]*nbplantes)
-    outvar['colnames'].append(['V1','steps']+IOxls.get_lsparami(ParamP, 'name')) #ajout des noms d'omglet en 1ere ligne
-    
-    # 2) Variables dynamique localisee du sol
-    #id couches sorties sol (grand rhizotron)
-    id_out = list(range(0,ncouches_sol))# tous les horizons verticaux#[0,1,4,11,17,25]# 5,10,25,60,90,130 cm, id de voxel dans le sol
-    nomprof = ['5', '10', '15', '20', '25', '30','35', '40', '45', '50', '55', '60','65', '70', '75', '80', '85', '90','95', '100', '105', '110', '115', '120','125', '130','135', '140', '145', '150', '155', '160','165', '170', '175', '180', '185', '190','195', '200'] #a adapter selon dz_sol..
-    out_HR = [['var','DOY']+nomprof[0:ncouches_sol]]#[['DOY','HP5', 'HP10', 'HP25', 'HP60', 'HP90', 'HP130']]
-    
-    
-    return outvar, id_out, out_HR
-
+#def init_outputs(ParamP, nbplantes,ncouches_sol):
+#    #deplace dans fichier inititalisation
 
 
 
@@ -447,7 +247,6 @@ def Start():
     ##seed nombre aleatoires
     global Rseed, ls_seeds
     random.seed(Rseed)
-    #seed(Rseed)
     
     #DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station = init_glob_variables_sim(meteo, mng, DOYdeb)
     DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station = initial.init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta)
@@ -500,7 +299,7 @@ def Start():
     #initialisation des variables d'etat plante
     global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress,ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev
     
-    invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev = init_variables_plantes(ParamP, nbplantes, na)
+    invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev = initial.init_variables_plantes(ParamP, nbplantes, na)
     
     
     #initialisation des variables d'echange avec exterieur pour couplages sol/rayonnement
@@ -523,7 +322,7 @@ def Start():
     
     #initialisation des sorties
     global outvar, id_out, out_HR
-    outvar, id_out, out_HR = init_outputs(ParamP, nbplantes, ncouches_sol)
+    outvar, id_out, out_HR = initial.init_outputs(ParamP, nbplantes, ncouches_sol, surfsolref)
     
     
     
