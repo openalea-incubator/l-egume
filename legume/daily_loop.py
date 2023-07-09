@@ -5,6 +5,7 @@ import IOxls
 import ShootMorpho as sh
 import RootDistrib as rtd
 import RootMorpho2 as rt
+from copy import deepcopy
 
 try:
     from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
@@ -111,6 +112,7 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     invar['NBsh'], invar['NBI'] = sh.calcNB_NI(lsApex, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)
     nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.25, seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
     #nbsh_2, nb1_2 = sh.calcNB_NI(lsApexAll, nbplantes, seuilcountTige=0.,seuilNItige=0.25)  # recalcul sur tous les axes pour eviter bug des arret de tiges
+
 
     #print('nbsh',invar['NBsh'], nbsh_2)
     for nump in range(nbplantes):
@@ -416,11 +418,21 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
 
     dur2 = (array(IOxls.get_lsparami(ParamP, 'GDs2')) + array(IOxls.get_lsparami(ParamP, 'LDs2'))) / 20.  # en jours a 20 degres!
     dur3 = (array(IOxls.get_lsparami(ParamP, 'GDs3')) + array(IOxls.get_lsparami(ParamP, 'LDs3'))) / 20.  # en jours a 20 degres!
-    invar['dRLenSentot'], invar['dMSenRoot'] = rt.calc_root_senescence(invar['dRLen2'], invar['dRLen3'], dur2, dur3,
-                                                                       array(invar['SRL']))
-    invar['RLTotNet'] = array(invar['RLTotNet']) + dltot - invar['dRLenSentot']
+    invar['dRLenSentot'], invar['dMSenRoot'] = rt.calc_root_senescence(invar['dRLen2'], invar['dRLen3'], dur2, dur3, array(invar['SRL']))
+    invar['RLentotfromDev'] = array(invar['RLentotfromDev']) + dltot - invar['dRLenSentot']
     invar['MS_rac_fineNet'] = array(invar['MS_rac_fineNet']) + rac_fine - invar['dMSenRoot']
-    invar['SRL'] = invar['RLTotNet'] / (invar['MS_rac_fineNet'][0] + 10e-15)
+    invar['SRL'] = invar['RLentotfromDev'] / (invar['MS_rac_fineNet'][0] + 10e-15)
+
+    paramSRLmin = array(IOxls.get_lsparami(ParamP, 'SRLmin'))
+    invar['RLentotfromRootMass'] = invar['MS_rac_fine'] * paramSRLmin
+    invar['RLTotNet'] = deepcopy(invar['RLentotfromDev'])
+
+    #update RLTotNet / RLtoyNet si option
+    for nump in range(nbplantes):
+        if invar['SRL'][nump] < paramSRLmin[nump]:
+            invar['RLTotNet'][nump] = invar['RLentotfromRootMass'][nump]
+            invar['SRL'][nump] = paramSRLmin[nump]
+
 
     invar['perteN_rac_fine'] = invar['dMSenRoot'] * invar['Npc_rac_fine'] / 100.
     # sortir une variable cumule d'N des rac mortes? -> compement a invar['Nrac_fine'] qui comprend les deux
@@ -558,7 +570,9 @@ def increment_dailyOutput(outvar, invar, DOY, nbplantes, start_time, ls_epsi, ae
     outvar['dNmortPlant_aer'].append(['dNmortPlant_aer', DOY] + invar['dNmortPlant_aer'].tolist())
     outvar['dNmortPlant_pivot'].append(['dNmortPlant_pivot', DOY] + invar['dNmortPlant_pivot'].tolist())
     outvar['dNmortPlant_racfine'].append(['dNmortPlant_racfine', DOY] + invar['dNmortPlant_racfine'].tolist())
-
+    outvar['RLentotfromRootMass'].append(['RLentotfromRootMass', DOY] + invar['RLentotfromRootMass'].tolist())
+    outvar['RLentotfromDev'].append(['RLentotfromDev', DOY] + array(invar['RLentotfromDev']).tolist())
+    outvar['ConcNmoy'].append(['ConcNmoy', DOY] + invar['ConcNmoy'])
 
 
     # !! ces 4 sorties lucas ne sont pas au format attentdu!
