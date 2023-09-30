@@ -811,7 +811,7 @@ def cumul_lenIN(tab, tabL, I_I0profilInPlant_, deltaI_I0, nbI_I0):
     # a continuer avec un profil de longueur par I_I0
 
 
-#initialiation plante/scene
+#initialiation plante
 def MaturBud(delaiMaturBud, NIparent, delta=4):
     """ genere ecart de stade des B() (en phyllocrones) selon stade de developpement tige parente et delaiMaturBud
     - delta= borne min/max d'ecart par defaut +-4phyllo"""
@@ -825,8 +825,131 @@ def MaturBud(delaiMaturBud, NIparent, delta=4):
     # MaturBud(delaiMaturBud=12, NIparent=15, delta=2)
     # delta : passer ds fichier d'initialisation?
 
+
+################
+# Planter - initialisation scene
+
+def planter_coordinates(type, cote, nbcote):
+    """
+
+    :param type:
+    :param cote:
+    :param nbcote:
+    :return: carto, list of nd.arrays for the 3D coordiantes of each plant in the scene
+    """
+    distplantes = cote / nbcote  # 1. #cm
+
+    # pour grand rhizotron
+    # yyy = [-12.25, 4.4, 21.05]
+    # xxx = [-10.75, -8.35, -5.95, -3.55, -1.15, 1.25, 3.65, 6.05, 8.45, 10.85]
+
+    if type == 'row4':  # pour carre 4 rangs heterogenes
+        Param_, carto = row4(1, 2, Lrow=cote, nbprow=nbcote)
+    elif type == 'random8' or type == 'random8':
+        # pour tirage random
+        carto = random_planter(nbcote * nbcote, cote, cote)
+    elif type=="ilot7":
+        carto = Ilot7(distplantes)
+    elif type=="damier8" or type=="damier16" or type=="damier9" or type=="homogeneous":
+        # pour carre distance homogene
+        carto = regular_square(nbcote, distplantes)
+    elif type=="damier8_sp1" or type=="damier16_sp1" or type=="damier8_sp2" or type=="damier16_sp2":
+        # pour carre distance homogene
+        carto = regular_square(nbcote, distplantes)
+        #doit etre reduit apres avec reduce
+    else:
+        print("unknown type for planter coordinates")
+        carto = []
+
+    return carto
+
+
+
+def Ilot7(distplantes):
+    ## coord pour ilot 7 plantes
+    carto = [np.array([0.,0.,0.]), np.array([distplantes,0.,0.]),np.array([-distplantes,0.,0.]),np.array([0.5*distplantes,0.866*distplantes,0.]),np.array([-0.5*distplantes,0.866*distplantes,0.]), np.array([0.5*distplantes,-0.866*distplantes,0.]), np.array([-0.5*distplantes,-0.866*distplantes,0.])]#, array([-10.,0.,0.]), array([0.,7.,0.])] #liste des localisations (1pt par plante) -> a lire en fichier #LF - cos (pi/3) = 0.5   sin (pi/3) = 0.866
+    return carto
+
+
+def regular_square(nbcote, distplantes):
+    "regular square planter - used with damier8 / homogeneous "
+    yyy = [distplantes / 2.]
+    for i in range(1, nbcote): yyy.append(yyy[-1] + distplantes)
+    xxx = yyy
+
+    carto = []
+    for i in range(len(xxx)):
+        for j in range(len(yyy)):
+            carto.append(np.array([xxx[i], yyy[j], 0.]))
+
+    return carto
+
+
+def planter_order_ParamP(ls_g, type, nbcote, opt):
+    """
+
+    :param ls_g:
+    :param type:
+    :param nbcote:
+    :param opt:
+    :return: ParamP, list of plant parameter dictionnaries for each plant in the scene
+    """
+
+    if type == 'homogeneous':  # cas d'un couvert monospe homogene: prend premier parametrage
+        ParamP = [ls_g[0]] * nbcote * nbcote
+    elif type == 'damier8' or type == 'random8' or type == 'damier8_sp1' or type == 'damier8_sp2':  # damier binaire 64 plantes
+        if nbcote == 8:
+            ParamP = damier8(ls_g[0], ls_g[1], opt=opt)
+        else:
+            # if opt_verbose==1:
+            print('Error! :' + type + ' option is for a 64 plant design')
+    elif type == 'damier16' or type == 'random16' or type == 'damier16_sp1' or type == 'damier16_sp2':  # damier binaire 256 plantes
+        if nbcote == 16:
+            ParamP = damier16(ls_g[0], ls_g[1], opt=opt)
+        else:
+            # if opt_verbose==1:
+            print('Error! :' + type + ' option is for a 256 plant design')
+    elif type == 'damier9' :  # damier 3sp 81 plantes
+        if nbcote == 9:
+            ParamP = damier9_3sp(ls_g, opt=opt)
+        else:
+            # if opt_verbose==1:
+            print('Error! :' + type + ' option is for a 81 plant design')
+    elif type == 'damier10' :  # damier 3sp 81 plantes
+        if nbcote == 10:
+            ParamP = damier10_5sp(ls_g, opt=opt)
+        else:
+            # if opt_verbose==1:
+            print('Error! :' + type + ' option is for a 100 plant design')
+    elif type == 'damier8_4' :  # damier 3sp 81 plantes
+        if nbcote == 8:
+            ParamP = damier8_4sp(ls_g, opt=opt)
+        else:
+            # if opt_verbose==1:
+            print('Error! :' + type + ' option is for a 64 plant design')
+    elif type == 'row4' or 'row4_sp1' or 'row4_sp2':  # 4 rangs - 500pl.m-2
+        ParamP, cart_ = row4(ls_g[0], ls_g[1], nbprow=nbcote, opt=opt)
+    else:
+        # defautl= force nb plante comme nbcote pour premier id des parametres
+        ParamP = [ls_g[0]] * nbcote
+
+    return ParamP
+
+
+
+
+
+def random_planter(nbplt, cotex, cotey):
+    """ random plant position with scene defined by cotex and cotey"""
+    carto=[]
+    for i in range(nbplt):
+        carto.append(np.array([random.uniform(0., cotex), random.uniform(0., cotey), 0.]))
+
+    return carto
+
+
 def damier8(p, vois, opt=4):
-    # cree un melange binaire homogene de 64 plantes avec differentes options de proportions
+    # cree liste de plante ordonnee pour un melange binaire homogene de 64 plantes avec differentes options de proportions
     if opt == 4:  # 50/50
         motif = [p, vois, p, vois, p, vois, p, vois]
     elif opt == 0:  # 0/100
@@ -851,7 +974,6 @@ def damier8(p, vois, opt=4):
         res = res + motif[i:8] + motif[0:i]
 
     return res
-    #dans un fichier d'initialiation?
 
 
 def damier16(p, vois, opt=4):
@@ -880,30 +1002,41 @@ def damier16(p, vois, opt=4):
         res = res + motif[i:16] + motif[0:i]
 
     return res
-    #dans un fichier d'initialiation?
 
 
-def regular_square_planter(nbcote, distplantes):
-    "regular square planter - used with damier8 / homogeneous "
-    yyy = [distplantes / 2.]
-    for i in range(1, nbcote): yyy.append(yyy[-1] + distplantes)
-    xxx = yyy
+def damier9_3sp(ls_g, opt=4):
+    # cree liste de plante de 3 sp. ordonnee pour un melange binaire homogene de 81 plantes avec differentes options de proportions
+    if opt == 4:  # 50/50
+        motif = [ls_g[0], ls_g[1], ls_g[2], ls_g[0], ls_g[1], ls_g[2], ls_g[0], ls_g[1], ls_g[2]]
 
-    carto = []
-    for i in range(len(xxx)):
-        for j in range(len(yyy)):
-            carto.append(array([xxx[i], yyy[j], 0.]))
+    res = []
+    for i in range(9):
+        res = res + motif[i:9] + motif[0:i]
 
-    return carto
+    return res
 
+def damier10_5sp(ls_g, opt=4):
+    # cree liste de plante de 5 sp. ordonnee pour un melange binaire homogene de 100 plantes avec differentes options de proportions
+    if opt == 4:  # 50/50
+        motif = [ls_g[0], ls_g[1], ls_g[2], ls_g[3], ls_g[4], ls_g[0], ls_g[1], ls_g[2], ls_g[3], ls_g[4]]
 
-def random_planter(nbplt, cotex, cotey):
-    """ random plant position with scene defined by cotex and cotey"""
-    carto=[]
-    for i in range(nbplt):
-        carto.append(array([random.uniform(0., cotex), random.uniform(0., cotey), 0.]))
+    res = []
+    for i in range(10):
+        res = res + motif[i:10] + motif[0:i]
 
-    return carto
+    return res
+
+def damier8_4sp(ls_g, opt=4):
+    # cree liste de plante de 4 sp. ordonnee pour un melange 4 Sp homogene de 64 plantes avec differentes options de proportions
+    if opt == 4:  # 50/50
+        motif = [ls_g[0], ls_g[1], ls_g[0], ls_g[1], ls_g[0], ls_g[1], ls_g[0], ls_g[1]]
+        motif2 = [ls_g[2], ls_g[3], ls_g[2], ls_g[3], ls_g[2], ls_g[3], ls_g[2], ls_g[3]]
+
+    res = []
+    for i in range(8/2):
+        res = res + motif + motif2
+
+    return res
 
 
 def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
@@ -926,7 +1059,7 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
     carto = []
     for i in range(len(xxx)):
         for j in range(len(yyy)):
-            carto.append(array([xxx[i], yyy[j], 0.]))  # +origin
+            carto.append(np.array([xxx[i], yyy[j], 0.]))  # +origin
 
     return res ,carto
     #pourrait renvoyer carto aussi ds homogeneous et damier8....
@@ -985,6 +1118,13 @@ def ls_idvois_ordre1(n, cote, nblignes):
     # a faire dans R #11 et 23 plante / 0 marche
     # print("id vois", ls_idvois_ordre1(4,6,4)) #OK!
 #pour pour nump python, pas pour id R!
+
+
+
+
+
+
+
 
 def updateLargProfile(Lmax, Largmax, profilLeafI_Rlen, profilLeafI_Rlarg):
     """ A function to modify The relative LArg profile given Largmax for the Longest leaf - old parametrization way"""

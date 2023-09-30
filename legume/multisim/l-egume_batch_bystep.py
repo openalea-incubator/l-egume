@@ -25,16 +25,10 @@ import ShootMorpho as sh
 import daily_loop as loop
 import numpy as np
 
-try:
-    from .riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
-except:
-    import RIRI5 as riri
+from soil3ds import soil_moduleN as solN
+from soil3ds.plt_functions import *
+from riri5 import RIRI5 as riri
 
-try:
-    from .soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
-    #import soil_moduleN3 as solN
-except:
-    import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
 global foldin, fxls, ongletBatch
 # to define if used for multisimulation or non-regression tests
@@ -979,8 +973,8 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(processes=CPUnb)
     for i in range(1):#(int(nb_usms)):
         #pool.apply_async(runlsystem, args=(i,))   # Lance CPUnb simulations en meme temps, lorsqu'une simulation se termine elle est immediatement remplacee par la suivante
-        #runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
-        runlsystem_bystep(i)
+        runlsystem(i) #pour debug hors multisim (messages d'ereur visible)
+        #runlsystem_bystep(i)
         #runl2system_bystep(i, i+1)
         #runl2systemLight_bystep(i, i+1)
         #runl2systemLightSoil_bystep(i, i+1)

@@ -20,16 +20,8 @@ import string
 import time
 import pandas as pd
 
-try:
-    from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
-    #import soil_moduleN3 as solN
-except:
-    import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
-
-try:
-    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
-except:
-    import RIRI5 as riri
+from soil3ds import soil_moduleN as solN
+from riri5 import RIRI5 as riri
 
 import RootDistrib as rtd
 import RootMorpho2 as rt
@@ -157,38 +149,7 @@ def init_scene_fromLpy(ParamP, inis, cote, nbcote, station, lsidP, type='damier8
     # initialoise la scene L-egume: arrangement des plantes (carto), discretisation souterraine, discretisation aerienne
     # 1) CARTO
     distplantes = cote / nbcote  # 1. #cm
-
-    ## pour ilot
-    # carto = [array([0.,0.,0.]), array([distplantes,0.,0.]),array([-distplantes,0.,0.]),array([0.5*distplantes,0.866*distplantes,0.]),array([-0.5*distplantes,0.866*distplantes,0.]), array([0.5*distplantes,-0.866*distplantes,0.]), array([-0.5*distplantes,-0.866*distplantes,0.])]#, array([-10.,0.,0.]), array([0.,7.,0.])] #liste des localisations (1pt par plante) -> a lire en fichier #LF - cos (pi/3) = 0.5   sin (pi/3) = 0.866
-
-    # carto = [array([0.,0.,0.]), array([distplantes,0.,0.]),array([-distplantes,0.,0.]),array([0.5*distplantes,0.866*distplantes,0.]),array([-0.5*distplantes,0.866*distplantes,0.]), array([0.5*distplantes,-0.866*distplantes,0.]), array([-0.5*distplantes,-0.866*distplantes,0.]),array([2*distplantes,0.,0.]),array([-2*distplantes,0.,0.]),array([2*0.5*distplantes,2*0.866*distplantes,0.]),array([-2*0.5*distplantes,2*0.866*distplantes,0.]), array([2*0.5*distplantes,-2*0.866*distplantes,0.]), array([-2*0.5*distplantes,-2*0.866*distplantes,0.])] #carto13
-
-    ## pour champ en rangs
-    # yyy = [-15]*9+[0]*9+[15]*9
-    # xxx = range(-20,25,5)*3
-    # yyy = [-15]*9+[-7.5]*9+[0]*9+[7.5]*9+[15]*9+[22.49]*9
-    # xxx = range(-20,25,5)*6
-    # yyy = [-15]*5+[0]*5+[15]*5
-    # xxx = range(-20,25,10)*3
-    # yyy = [-15]*2+[0]*2+[15]*2
-    # xxx = range(-20,25,25)*3
-    # yyy = [-15]*1+[0]*1+[15]*1
-    # xxx = range(-20,25,60)*3
-    # yyy = [-15]*23+[-7.5]*23+[0]*23+[7.5]*23+[15]*23+[22.49]*23
-    # xxx = range(-20,25,2)*6
-
-    # pour grand rhizotron
-    # yyy = [-12.25, 4.4, 21.05]
-    # xxx = [-10.75, -8.35, -5.95, -3.55, -1.15, 1.25, 3.65, 6.05, 8.45, 10.85]
-
-    if type == 'row4':  # pour carre 4 rangs heterogenes
-        Param_, carto = sh.row4(1, 2, Lrow=cote, nbprow=nbcote)
-    elif type == 'random8' or type == 'random8':
-        # pour tirage random
-        carto = sh.random_planter(nbcote * nbcote, cote, cote)
-    else:
-        # pour carre distance homogene
-        carto = sh.regular_square_planter(nbcote, distplantes)
+    carto = sh.planter_coordinates(type, cote, nbcote)
 
     # reduit a une espece si veut simul separee
     if type == 'damier8_sp1' or type == 'damier8_sp2' or type == 'damier16_sp1' or type == 'damier16_sp2' or 'row4_sp1' or 'row4_sp2':
@@ -302,7 +263,7 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN):
 
 
 #def init_ParamP(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, seed_=0, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default', idscenar1=1, idscenar2=1, mn_sc=None):
-def init_ParamP_VGL(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default', idscenar1=1, idscenar2=1, mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, idscenar1_sd=None, idscenar2_sd=None):
+def init_ParamP_VGL_old(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, ongletScenar1='default', ongletScenar2='default', idscenar1=1, idscenar2=1, mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, idscenar1_sd=None, idscenar2_sd=None):
     """ """
 
     # 1) cree liste des paramtres plante (1 dico par plante)
@@ -468,6 +429,177 @@ def init_ParamP_VGL(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, delt
     nbplantes = len(ParamP)
     return ParamP, nbplantes, ls_seeds, lsidP, test_retard
 
+#pour liste espece
+def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, opt_scenar=0, ls_idscenar=[1, 1], mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, ls_idscenar_sd=[None, None]):
+    """ """
+    # nbcote = nombre de plante sur un cote en supposant repartition homogene
+
+    # 1) cree liste des paramtres plante (1 dico par plante)
+    ls_g =[] # liste des parametrage d'espece
+    for i in range(len(ls_Spe)):
+        ongletP = ls_Spe[i]
+        g = IOxls.read_plant_param(path_plante, ongletP)
+        if opt_scenar!=0: #0:'default' -> pas de changement
+            ongletScenar = ongletP # same name by convention
+            idscenar = ls_idscenar[i] # ordre des ls_Spe by convention
+            g = IOxls.modif_param(g, ongletP, ongletScenar, idscenar, mn_sc=mn_sc)
+
+        ls_g.append(g)
+
+
+    ParamP = sh.planter_order_ParamP(ls_g, type, nbcote, opt)
+
+    # 2) modif ParamP et ajout variabilite sd si opt_sd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
+    # test pour esp 1, Len avec sd=0.5
+    # ls_sdpar = [0.5] #ecart type parametre - a passer via un fichier d'entree comme scenar? autrement (multivarie ou directement dans fichier parametre plante?)
+    # ls_parname = ['Len'] #liste a recuperer via un fichier d'entree
+
+    if opt_sd == 2:  # new version: lecture des CV et calcul des SD a partir des parametres moyens
+
+        #recup nom des parmetres et sd par sp
+        ls_sdpar_g, ls_parname_g = [], []
+        for i in range(len(ls_Spe)):
+            ongletP = ls_Spe[i] # same name by convention
+            sd_fichier_g4 = pd.read_excel(path_variance_geno, sheet_name=ongletP)
+            ls_parname_g_i = list(sd_fichier_g4.columns)[1:]  # liste les noms de colonne a  partir de la deuxieme
+            idscenar_sd = ls_idscenar_sd[i] # ordre des ls_Spe by convention
+            CVs4 = sd_fichier_g4.loc[sd_fichier_g4["id_scenario"] == idscenar_sd][ls_parname_g_i][0:]
+            CVs4 = CVs4.iloc[0]
+            # calcul des sigma a partir des cv et moy
+            moyP4 = []
+            for p in ls_parname_g_i:
+                g = ls_g[i]
+                moyP4.append(g[p])
+
+            ls_sdpar_g_i = abs(CVs4 * np.array(moyP4))
+
+            ls_sdpar_g.append(ls_sdpar_g_i)
+            ls_parname_g.append(ls_parname_g_i)
+
+
+        # print(CVs5, CVs4)
+        # print(ls_sdpar_g5, ls_sdpar_g4)
+        # print(ls_parname_g5, ls_parname_g4)
+
+        # ParamP = IOxls.modif_ParamP_sd(ParamP, g4, ls_parname= ['Len'], ls_sdpar= [0.5])
+        # ParamP = IOxls.modif_ParamP_sd(ParamP, g5, ls_parname= ['Len'], ls_sdpar= [0.5])
+        # ParamP = IOxls.modif_ParamP_sd(ParamP, g4, ls_parname=  ls_parname_g4, ls_sdpar=ls_sdpar_g4)
+        # ParamP = IOxls.modif_ParamP_sd(ParamP, g5, ls_parname=  ls_parname_g5, ls_sdpar=ls_sdpar_g5)
+        # print(df1, df2)
+
+        if opt_covar == 1:
+            #recup matrice de covariance
+            ls_cor_mat = []
+            for i in range(len(ls_Spe)):
+                ongletP = ls_Spe[i] # same name by convention
+                covar_fichier_g4 = pd.read_excel(path_variance_matrix, sheet_name=ongletP)
+                idscenar_sd = ls_idscenar_sd[i]
+                cor_g4 = np.array(covar_fichier_g4[covar_fichier_g4['id_scenario'] == idscenar_sd]["correlation"])
+                size_mat4 = int(np.sqrt(len(cor_g4)))
+                cor_mat_i = cor_g4.reshape((size_mat4, size_mat4))
+
+                ls_cor_mat.append(cor_mat_i)
+
+
+            ls_df = []
+            for i in range(len(ls_Spe)):
+                ParamP, dfi = IOxls.modif_ParamP_sdMulti(ParamP, ls_g[i], ls_parname=ls_parname_g[i], ls_sdpar=ls_sdpar_g[i], corrmatrix=ls_cor_mat[i])
+                ls_df.append(dfi)
+
+        else:
+            # defaut = no matrix of covariance = independant
+            ls_df = []
+            for i in range(len(ls_Spe)):
+                ParamP, dfi = IOxls.modif_ParamP_sdMulti(ParamP, ls_g[i], ls_parname=ls_parname_g[i], ls_sdpar=ls_sdpar_g[i], corrmatrix= None)
+                ls_df.append(dfi)
+
+    elif opt_sd == 1:  # remet old file = lecture directe des valeurs de SD independament des valeurs moyennes
+
+        # recup nom des parmetres et sd par sp
+        ls_sdpar_g, ls_parname_g = [], []
+        for i in range(len(ls_Spe)):
+            ongletP = ls_Spe[i]  # same name by convention
+            sd_fichier_g4 = pd.read_excel(path_variance_geno, sheet_name=ongletP)
+            ls_parname_g_i = list(sd_fichier_g4.columns)[1:]  # liste les noms de colonne a  partir de la deuxieme
+            idscenar_sd = ls_idscenar_sd[i] # ordre des ls_Spe by convention
+            ls_sdpar_g_i = sd_fichier_g4.loc[sd_fichier_g4["id_scenario"] == idscenar_sd][ls_parname_g_i][0:]
+            ls_sdpar_g_i = ls_sdpar_g_i.iloc[0]
+
+            ls_sdpar_g.append(ls_sdpar_g_i)
+            ls_parname_g.append(ls_parname_g_i)
+
+
+        if opt_covar == 1:
+            # recup matrice de covariance
+            ls_cor_mat = []
+            for i in range(len(ls_Spe)):
+                ongletP = ls_Spe[i]  # same name by convention
+
+                covar_fichier_g4 = pd.read_excel(path_variance_matrix, sheet_name=ongletP)
+                idscenar_sd = ls_idscenar_sd[i]
+                cor_g4 = np.array(covar_fichier_g4[covar_fichier_g4['id_scenario'] == idscenar_sd]["correlation"])
+                size_mat4 = int(np.sqrt(len(cor_g4)))
+                cor_mat_i = cor_g4.reshape((size_mat4, size_mat4))
+
+                ls_cor_mat.append(cor_mat_i)
+
+
+            ls_df = []
+            for i in range(len(ls_Spe)):
+                ParamP, dfi = IOxls.modif_ParamP_sdMulti(ParamP, ls_g[i], ls_parname=ls_parname_g[i], ls_sdpar=ls_sdpar_g[i], corrmatrix=ls_cor_mat[i])
+                ls_df.append(dfi)
+
+        else:
+            # defaut = no matrix of covariance = independant
+            ls_df = []
+            for i in range(len(ls_Spe)):
+                ParamP, dfi = IOxls.modif_ParamP_sdMulti(ParamP, ls_g[i], ls_parname=ls_parname_g[i], ls_sdpar=ls_sdpar_g[i], corrmatrix=None)
+                ls_df.append(dfi)
+
+
+    # 3) ajout de parametre 'recalcule'
+    # roots
+    for nump in range(len(ParamP)):
+        # update des parametre racinaire
+        rt.update_root_params(ParamP[nump])  # 'lsDrac', 'nb_ordre_rac', 'lsVrac', 'lsDemanDRac', 'LDs'
+        # print 'LDs', ParamP[nump]['LDs2'], ParamP[nump]['LDs3'], ParamP[nump]['lsDrac'], ParamP[nump]['GDs2'], ParamP[nump]['GDs3']
+
+        ParamP[nump]['profilRoot'] = rt.rootTropism(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.)
+        # ParamP[nump]['profilRoot'] = rt.rootTropism_df(ParamP[nump]['IncRoot0'], ParamP[nump]['g_root'], segment=0.3, Long=300.) #plus lent!
+
+    # shoot profiles
+    ParamP = sh.update_shoot_params(ParamP)
+
+    # 4) random number generators per plant and test_retard vector
+    # seed_=1
+    # creation d'une liste d'objet random pour chaque plante (tirage random par plante et plus pour toutes les plantes)
+    ls_seeds = []
+    for nump in range(len(ParamP)):
+        ls_seeds.append(Plt_seed(nump + seed_))
+        # ls_seeds.append(Plt_seed(seed_))
+
+    test_retard = []
+    for nump in range(len(ParamP)):
+        test_retard.append(max(0, ls_seeds[nump].randgen.normal(deltalevmoy, deltalevsd)))
+        # max(0,random.gauss(deltalevmoy,deltalevsd))
+
+    # !! ls_seeds pas passe pour tirage multivarie opt_sd? -> non, tirage multivarie avec Rssed pour ttes les plantes ensemble
+
+    # 5) reduit a une espece si veut simul separee
+    lsidP = range(len(ParamP))  # default value = all
+    if type == 'damier8_sp1' or type == 'damier16_sp1' or type == 'row4_sp1':
+        ParamP, lsidP = sh.reduce_ParamP(ParamP, ls_Spe[0])
+        test_retard = sh.reduce_carto(test_retard, lsidP)
+        ls_seeds = sh.reduce_carto(ls_seeds, lsidP)
+    elif type == 'damier8_sp2' or type == 'damier16_sp2' or type == 'row4_sp2':
+        ParamP, lsidP = sh.reduce_ParamP(ParamP, ls_Spe[1])
+        test_retard = sh.reduce_carto(test_retard, lsidP)
+        ls_seeds = sh.reduce_carto(ls_seeds, lsidP)
+
+    # print('test_retard', test_retard)
+
+    nbplantes = len(ParamP)
+    return ParamP, nbplantes, ls_seeds, lsidP, test_retard
 
 
 def init_variables_plantes(ParamP, nbplantes, na):

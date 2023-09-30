@@ -49,7 +49,7 @@ elif opttest == 'exemple':
     foldin =  os.path.join(path_, 'input')#'multisim'
     foldout = os.path.join(path_, 'output')
     fxls = 'liste_usms_exemple.xls'
-    ongletBatch = 'exemple'
+    ongletBatch = 'exemple'#'exemple_old' #
     #fscenar = 'liste_scenarios_exemple.xls'
 elif opttest == 'exemple_BA':
     # global foldin, fxls, ongletBatch, fscenar

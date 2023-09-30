@@ -16,7 +16,7 @@ except:
 sys.path.insert(0, path_)
 import IOxls
 import IOtable
-
+import pandas as pd
 import getopt
 #import zipfile
 
@@ -71,9 +71,15 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     # testsim[name].ongletP = str(ls_usms['ongletP'][i])
     path_plante = os.path.join(foldin, str(ls_usms['plante'][i]))#(path_, 'input', str(ls_usms['plante'][i]))
-    ongletP = str(ls_usms['ongletP'][i])
-    ongletPvois = str(ls_usms['ongletVoisin'][i])
     testsim[name].path_plante = path_plante
+    path_lsplt = os.path.join(foldin, str(ls_usms['lsplt'][i]))
+    mixID = str(ls_usms['mixID'][i])
+    tabSpe = pd.read_excel(path_lsplt, sheet_name=mixID)
+    ls_Spe = tabSpe["ongletP"].tolist()
+    #garde onglet pour les noms
+    ongletP = ls_Spe[0] #str(ls_usms['ongletP'][i])
+    ongletPvois = ls_Spe[1] #str(ls_usms['ongletVoisin'][i])]
+
 
     path_scenar = os.path.join(foldin, fscenar)#(path_, 'input', fscenar)
     testsim[name].mn_sc = path_scenar
@@ -87,10 +93,20 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     # la, lire scenario et changer parametres
     idscenar1 = int(ls_usms['scenario1'][i])
     idscenar2 = int(ls_usms['scenario2'][i])
+    idscenar3 = int(ls_usms['scenario3'][i])
+    idscenar4 = int(ls_usms['scenario4'][i])
+    idscenar5 = int(ls_usms['scenario5'][i])
+    idscenar6 = int(ls_usms['scenario6'][i])
+
     idscenar1_sd = int(ls_usms['scenario1_sd'][i])
     idscenar2_sd = int(ls_usms['scenario2_sd'][i])
-    ongletScenar2 = ongletPvois  # fait porter les changements sur fichier parametre voisin
-    ongletScenar1 = ongletP
+    idscenar3_sd = int(ls_usms['scenario3_sd'][i])
+    idscenar4_sd = int(ls_usms['scenario4_sd'][i])
+    idscenar5_sd = int(ls_usms['scenario5_sd'][i])
+    idscenar6_sd = int(ls_usms['scenario6_sd'][i])
+
+    #ongletScenar2 = ongletPvois  # fait porter les changements sur fichier parametre voisin
+    #ongletScenar1 = ongletP
 
     # sol
     path_sol = os.path.join(foldin, str(ls_usms['sol'][i]))#(path_, 'input', str(ls_usms['sol'][i]))
@@ -106,11 +122,10 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].path_station = path_station
     testsim[name].ongletSta = ongletSta
 
-    # nbcote=7 # a passer ext
-    # testsim[name].ParamP = [g4]*int(ls_usms['nbplt'][i])#nbcote*nbcote
+
     optdamier = int(ls_usms['damier'][i])
     nbcote = int(ls_usms['nbcote'][i])
-    ### testsim[name].ParamP = damier8(g4,g5,opt=optdamier)
+
     if str(ls_usms['arrangement'][i]) == 'damier8':
         arrang = 'damier' + str(optdamier)
     if str(ls_usms['arrangement'][i]) == 'damier16':
@@ -120,21 +135,26 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     else:
         arrang = str(ls_usms['arrangement'][i]) + str(optdamier)
 
+    # nommix reste prevu pour melange a 2 !! -> reprendre avec Ls_Spe
     nommix = '_' + ongletP + '-' + ongletPvois + '_' + arrang + '_scenario' + str(idscenar2) + '-' + str(idscenar1)
 
-    testsim[name].ongletP = ongletP
-    testsim[name].ongletPvois = ongletPvois
+    #testsim[name].ongletP = ongletP
+    #testsim[name].ongletPvois = ongletPvois
+    testsim[name].ls_Spe = ls_Spe
     testsim[name].nbcote = nbcote
-    testsim[name].opt_sd = int(ls_usms['opt_sd'][i])  # 1
+    testsim[name].opt_sd = int(ls_usms['opt_sd'][i])  # option lue dans ls_usm
+    testsim[name].opt_scenar = int(ls_usms['opt_scenar'][i])  # option lue dans ls_usm
     testsim[name].cote = float(ls_usms['cote'][i])
     testsim[name].deltalevmoy = float(ls_usms['retard'][i])
     testsim[name].deltalevsd = float(ls_usms['sd_retard'][i])
     testsim[name].typearrangement = str(ls_usms['arrangement'][i])
     testsim[name].optdamier = optdamier
-    testsim[name].idscenar1 = idscenar1
-    testsim[name].idscenar2 = idscenar2
-    testsim[name].ongletScenar2 = ongletScenar2
-    testsim[name].ongletScenar1 = ongletScenar1
+    testsim[name].ls_idscenar = [idscenar1, idscenar2, idscenar3, idscenar4, idscenar5, idscenar6]
+    #testsim[name].idscenar1 = idscenar1
+    #testsim[name].idscenar2 = idscenar2
+    testsim[name].ls_idscenar_sd = [idscenar1_sd, idscenar2_sd, idscenar3_sd, idscenar4_sd, idscenar5_sd, idscenar6_sd]
+    #testsim[name].ongletScenar2 = ongletScenar2
+    #testsim[name].ongletScenar1 = ongletScenar1
     testsim[name].idscenar1_sd = idscenar1_sd
     testsim[name].idscenar2_sd = idscenar2_sd
     testsim[name].Rseed = seednb
@@ -173,7 +193,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     arr = str(ls_usms['arrangement'][i])
     if arr == 'row4':  # carre rang heterogene
         nbplantes = nbcote * 4
-    elif arr == 'damier8' or arr == 'damier16' or arr == 'homogeneous' or arr == 'random8' :  # carre homogene
+    elif arr == 'damier8' or arr == 'damier16' or arr == 'homogeneous' or arr == 'random8' or arr == 'damier9' or arr == 'damier10' or arr == 'damier8_4':  # carre homogene
         nbplantes = nbcote * nbcote
     elif arr == 'damier8_sp1' or arr == 'damier8_sp2' or arr == 'damier16_sp1' or arr == 'damier16_sp2':
         #prends pour le moment que le cas 4 (50/50)
@@ -188,6 +208,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     testsim[name].axiom = a  # passe un axial tree, pas de chaine de caractere
 
+    #pareil : nom prevu pour 2 sp -> reprendre
     if int(ls_usms['opt_sd'][i]) == 1 or int(ls_usms['opt_sd'][i]) == 2:
         sdname = '_SD' + str(idscenar2_sd) + '-' + str(idscenar1_sd)
     else:

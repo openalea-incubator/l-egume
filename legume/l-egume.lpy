@@ -57,6 +57,7 @@ import zipfile
 opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres, 2: fournit CV et calcul SD #1: lecture directe des val de sd independamment de la moy
 opt_covar = 1 # #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
+opt_scenar = 0 #Active option for modifying mean paramter values (0: inactive/default; 1: active)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
 opt_ReadstressN = 0 # Force stress N to read input values - for debugging/calibration
@@ -88,15 +89,12 @@ deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
 
-cote = 40.#7.#80.#100.#100#25.#25.#cm
-nbcote = 8#1#2#10
+cote = 40#240.#7.#80.#100.#100#25.#25.#cm
+nbcote = 8#9#1#2#10
 optdamier = 4
-typearrangement='damier8'#'homogeneous'#'damier8_sp2'#'random8'#'damier16'#'random16'
-idscenar1 = -1 #1#21#1#inferieur a zero=defaut et fait rien
-idscenar2 = -1 #1#21#21#1##1#inferieur a zero=defaut et fait rien
-idscenar1_sd = 1#3#
-idscenar2_sd = 1#3#
-
+typearrangement='damier8'#'damier8_sp2'#'damier9'#'homogeneous'#'random8'#'damier16'#'random16'
+ls_idscenar = [1, 1]#[1, 1, 1] #
+ls_idscenar_sd = [1, 1]#[1, 1, 1] #
 
 tresh_LA = 0.0015 # 0.0010=10cm2 #seuil de surface des feuilles pour separer les folioles dans la grille 3D
 obstarac_ = None #array([[-0.5]*5, [-0.5]*5, [-0.75]*5, [-1.]*5, [-1.]*5]).transpose() #matice 2D de valeurs de profondeur d'obstacle en m #None #
@@ -121,20 +119,25 @@ inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
-ongletP = 'Fix2'#'Fet'#'Orca'#'TB'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
-ongletPvois = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+#ongletP = 'Fix2'#'Fet'#'Orca'#'TB'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
+#ongletPvois = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
+path_lsplt = os.path.join(path_leg,'exemple_ls_plt.xls')
+mixID = "mix1"
+tabSpe = pd.read_excel(path_lsplt, sheet_name=mixID)
+ls_Spe = tabSpe["ongletP"].tolist()
+#ls_Spe = ['Fix2', 'nonFixSimTest', 'Fet']
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
 mn_path = os.path.join(path_leg,'management_exemple.xls')#'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
-ongletMn = 'Lusignan30IrrN'#'Lusignan30Irr'#'Lusignan30IrrN2'#'DigitLuz10'#'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
+ongletMn = 'Lusignan30IrrN'#'Lusignan30Irr'#'Lusignan30'#'Lusignan30IrrN2'#'DigitLuz10'#'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
 #mn_path = os.path.join(path_leg,'management_auto_exemple.xls')# exemple pour auto
 #ongletMn = 'exemple'
 if opt_Mng == 0:
     mng = IOxls.read_met_file(mn_path, ongletMn)
 elif opt_Mng == 1: #Automatic management file
     mng_auto = IOxls.read_plant_param(mn_path, ongletMn)
-    mng = mna.Build_mng_auto(meteo, mng_auto, path_plante, ongletP, DOYdeb, opt_optT)
+    mng = mna.Build_mng_auto(meteo, mng_auto, path_plante, ls_Spe[0], DOYdeb, opt_optT)
 
 
 #lecture des parametres du sol
@@ -145,8 +148,8 @@ par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg e
 
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'scenarios_planMorris.xls')#'liste_scenarios_exemple.xls')#(path_leg,'liste_scenarios.xls')'Fet'#
-ongletScenar1 = 'Fix2'#'Orca'#'TB'#'default'#'nonFixSimTest'#'default'#'formica'#
-ongletScenar2 = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
+#ongletScenar1 = 'Fix2'#'Orca'#'TB'#'default'#'nonFixSimTest'#'default'#'formica'#
+#ongletScenar2 = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Orca2'#'default'#'OrcaVois'#'default'#'nonFix1'#'default'#'formica'#
 
 # lecture scenario variabilite intra et variables associees
 path_variance_geno = os.path.join(path_leg, 'exemple_sd.xls')
@@ -261,8 +264,9 @@ def Start():
     #optdamier = 4
     #typearrangement='damier8' 
     
-    ParamP, nbplantes, ls_seeds, lsidP, test_retard = initial.init_ParamP_VGL(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=Rseed ,type=typearrangement, opt=optdamier, ongletScenar1=ongletScenar1, ongletScenar2=ongletScenar2,idscenar1=idscenar1, idscenar2=idscenar2, mn_sc=mn_sc, opt_sd=opt_sd, opt_covar=opt_covar, path_variance_geno=path_variance_geno, path_variance_matrix=path_variance_matrix, idscenar1_sd=idscenar1_sd, idscenar2_sd=idscenar2_sd)
-
+    
+    ParamP, nbplantes, ls_seeds, lsidP, test_retard = initial.init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=Rseed ,type=typearrangement, opt=optdamier, opt_scenar=opt_scenar, ls_idscenar=ls_idscenar, mn_sc=mn_sc, opt_sd=opt_sd, opt_covar=opt_covar, path_variance_geno=path_variance_geno, path_variance_matrix=path_variance_matrix, ls_idscenar_sd=ls_idscenar_sd)
+    
     
     #print 'Len ', IOxls.get_lsparami(ParamP, 'Len')
     #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
@@ -281,7 +285,7 @@ def Start():
     
     carto, distplantes, pattern8, Lsol, largsol, surfsolref, dz_sol, ncouches_sol, prof_sol_max, discret_solXY, lims_sol, ls_gammagroup, setp, n_gamagroup, na, dxyz, lims_aer, origin_grid, surf_refVOX, m_lais, m_lais_construct, m_laiPlt, triplets, ls_dif, res_trans, res_abs_i, res_rfr = initial.init_scene_fromLpy(ParamP, inis, cote, nbcote, station, lsidP, type=typearrangement)
     
-    
+    print('carto', len(carto), carto)
     
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr, vCC
@@ -1010,7 +1014,7 @@ module attente(n) #pour attendre initialisation des variables avant de represent
 module pattern(pos) #pour sol surface
 
 
-Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)][Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)][Sd(138)][Sd(139)][Sd(140)][Sd(141)][Sd(142)][Sd(143)]#[Sd(144)][Sd(145)][Sd(146)][Sd(147)][Sd(148)][Sd(149)][Sd(150)][Sd(151)][Sd(152)][Sd(153)][Sd(154)][Sd(155)][Sd(156)][Sd(157)][Sd(158)][Sd(159)][Sd(160)][Sd(161)][Sd(162)][Sd(163)][Sd(164)][Sd(165)][Sd(166)][Sd(167)][Sd(168)][Sd(169)][Sd(170)][Sd(171)][Sd(172)][Sd(173)][Sd(174)][Sd(175)][Sd(176)][Sd(177)][Sd(178)][Sd(179)][Sd(180)][Sd(181)][Sd(182)][Sd(183)][Sd(184)][Sd(185)][Sd(186)][Sd(187)][Sd(188)][Sd(189)][Sd(190)][Sd(191)][Sd(192)][Sd(193)][Sd(194)][Sd(195)][Sd(196)][Sd(197)][Sd(198)][Sd(199)][Sd(200)][Sd(201)][Sd(202)][Sd(203)][Sd(204)][Sd(205)][Sd(206)][Sd(207)][Sd(208)][Sd(209)][Sd(210)][Sd(211)][Sd(212)][Sd(213)][Sd(214)][Sd(215)][Sd(216)][Sd(217)][Sd(218)][Sd(219)][Sd(220)][Sd(221)][Sd(222)][Sd(223)][Sd(224)][Sd(225)][Sd(226)][Sd(227)][Sd(228)][Sd(229)][Sd(230)][Sd(231)][Sd(232)][Sd(233)][Sd(234)][Sd(235)][Sd(236)][Sd(237)][Sd(238)][Sd(239)][Sd(240)][Sd(241)][Sd(242)][Sd(243)][Sd(244)][Sd(245)][Sd(246)][Sd(247)][Sd(248)][Sd(249)][Sd(250)][Sd(251)][Sd(252)][Sd(253)][Sd(254)][Sd(255)]
+Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)]#[Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)][Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)][Sd(138)][Sd(139)][Sd(140)][Sd(141)][Sd(142)][Sd(143)]#[Sd(144)][Sd(145)][Sd(146)][Sd(147)][Sd(148)][Sd(149)][Sd(150)][Sd(151)][Sd(152)][Sd(153)][Sd(154)][Sd(155)][Sd(156)][Sd(157)][Sd(158)][Sd(159)][Sd(160)][Sd(161)][Sd(162)][Sd(163)][Sd(164)][Sd(165)][Sd(166)][Sd(167)][Sd(168)][Sd(169)][Sd(170)][Sd(171)][Sd(172)][Sd(173)][Sd(174)][Sd(175)][Sd(176)][Sd(177)][Sd(178)][Sd(179)][Sd(180)][Sd(181)][Sd(182)][Sd(183)][Sd(184)][Sd(185)][Sd(186)][Sd(187)][Sd(188)][Sd(189)][Sd(190)][Sd(191)][Sd(192)][Sd(193)][Sd(194)][Sd(195)][Sd(196)][Sd(197)][Sd(198)][Sd(199)][Sd(200)][Sd(201)][Sd(202)][Sd(203)][Sd(204)][Sd(205)][Sd(206)][Sd(207)][Sd(208)][Sd(209)][Sd(210)][Sd(211)][Sd(212)][Sd(213)][Sd(214)][Sd(215)][Sd(216)][Sd(217)][Sd(218)][Sd(219)][Sd(220)][Sd(221)][Sd(222)][Sd(223)][Sd(224)][Sd(225)][Sd(226)][Sd(227)][Sd(228)][Sd(229)][Sd(230)][Sd(231)][Sd(232)][Sd(233)][Sd(234)][Sd(235)][Sd(236)][Sd(237)][Sd(238)][Sd(239)][Sd(240)][Sd(241)][Sd(242)][Sd(243)][Sd(244)][Sd(245)][Sd(246)][Sd(247)][Sd(248)][Sd(249)][Sd(250)][Sd(251)][Sd(252)][Sd(253)][Sd(254)][Sd(255)]
 
 #Axiom: [pattern(0)sol(S)]plantation(nbplantes-1)
 
@@ -2165,12 +2169,31 @@ Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, Lcut,statut,ordre):
         
         if ordre ==2:
             col = 3#2
-            
+        
         #insere pour mixtures
-        if int(ParamP[nump]['type'])==1:
+        #if int(ParamP[nump]['type'])==1:
+        #    col=2
+        #else:
+        #    col=6
+        
+        #insere pour couleur melanges de 2 a 6 Sp
+        if ParamP[nump]['name'] == ls_Spe[0]:
             col=2
-        else:
-            col=6
+        if len(ls_Spe)>1:
+            if ParamP[nump]['name'] == ls_Spe[1]:
+              col=6
+            if len(ls_Spe)>2:
+                if ParamP[nump]['name'] == ls_Spe[2]:
+                  col=5
+                if len(ls_Spe)>3:
+                    if ParamP[nump]['name'] == ls_Spe[3]:
+                      col=3
+                    if len(ls_Spe)>4:
+                        if ParamP[nump]['name'] == ls_Spe[4]:
+                          col=1
+                        if len(ls_Spe)>5:
+                          if ParamP[nump]['name'] == ls_Spe[5]:
+                            col=7
         
         #insere pour gradient de distrib: gradient selon valeur d'un parametre
         if opt_sd==1 or opt_sd==2:
