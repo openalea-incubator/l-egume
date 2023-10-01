@@ -4,7 +4,7 @@ import IOtable
 import IOxls
 import ShootMorpho as sh
 import RootDistrib as rtd
-import RootMorpho2 as rt
+import RootMorpho as rt
 from copy import deepcopy
 
 try:

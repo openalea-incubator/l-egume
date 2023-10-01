@@ -24,7 +24,7 @@ from soil3ds import soil_moduleN as solN
 from riri5 import RIRI5 as riri
 
 import RootDistrib as rtd
-import RootMorpho2 as rt
+import RootMorpho as rt
 import ShootMorpho as sh
 import IOtable
 import IOxls
