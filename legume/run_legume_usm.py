@@ -123,17 +123,17 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].ongletSta = ongletSta
 
 
-    optdamier = int(ls_usms['damier'][i])
+    optdamier = int(ls_usms['optdamier'][i])
     nbcote = int(ls_usms['nbcote'][i])
 
-    if str(ls_usms['arrangement'][i]) == 'damier8':
+    if str(ls_usms['typearrangement'][i]) == 'damier8':
         arrang = 'damier' + str(optdamier)
-    if str(ls_usms['arrangement'][i]) == 'damier16':
+    if str(ls_usms['typearrangement'][i]) == 'damier16':
         arrang = 'damidouble' + str(optdamier)
-    elif str(ls_usms['arrangement'][i]) == 'row4':
+    elif str(ls_usms['typearrangement'][i]) == 'row4':
         arrang = 'row' + str(optdamier)
     else:
-        arrang = str(ls_usms['arrangement'][i]) + str(optdamier)
+        arrang = str(ls_usms['typearrangement'][i]) + str(optdamier)
 
     # nommix reste prevu pour melange a 2 !! -> reprendre avec Ls_Spe
     nommix = '_' + ongletP + '-' + ongletPvois + '_' + arrang + '_scenario' + str(idscenar2) + '-' + str(idscenar1)
@@ -145,9 +145,9 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_sd = int(ls_usms['opt_sd'][i])  # option lue dans ls_usm
     testsim[name].opt_scenar = int(ls_usms['opt_scenar'][i])  # option lue dans ls_usm
     testsim[name].cote = float(ls_usms['cote'][i])
-    testsim[name].deltalevmoy = float(ls_usms['retard'][i])
-    testsim[name].deltalevsd = float(ls_usms['sd_retard'][i])
-    testsim[name].typearrangement = str(ls_usms['arrangement'][i])
+    testsim[name].deltalevmoy = float(ls_usms['deltalevmoy'][i])
+    testsim[name].deltalevsd = float(ls_usms['deltalevsd'][i])
+    testsim[name].typearrangement = str(ls_usms['typearrangement'][i])
     testsim[name].optdamier = optdamier
     testsim[name].ls_idscenar = [idscenar1, idscenar2, idscenar3, idscenar4, idscenar5, idscenar6]
     #testsim[name].idscenar1 = idscenar1
@@ -166,6 +166,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].opt_residu = int(dic_opt['opt_residu'])  # si 0, pas activation de mineralisation
     testsim[name].opt_sd = int(dic_opt['opt_sd'])  # 1 #genere distribution des valeurs de parametres
     testsim[name].opt_covar = int(dic_opt['opt_covar'])  #definie matrice de cavariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
+    testsim[name].opt_shuffle = int(dic_opt['opt_shuffle']) # 1: for random order of plant species in ParamP ; 0: reular order
     testsim[name].opt_stressN = int(dic_opt['opt_stressN'])  # Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
     testsim[name].opt_stressW = int(dic_opt['opt_stressW'])  # Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
     testsim[name].opt_ReadstressN = int(dic_opt['opt_ReadstressN'])  # Force stress N to read input values - for debugging/calibration
@@ -190,7 +191,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     # mise a jour derivartionLength & axiom
     testsim[name].derivationLength = int(ls_usms['DOYend'][i]) - int(ls_usms['DOYdeb'][i])  # derivationLength variable predefinie dans L-py
-    arr = str(ls_usms['arrangement'][i])
+    arr = str(ls_usms['typearrangement'][i])
     if arr == 'row4':  # carre rang heterogene
         nbplantes = nbcote * 4
     elif arr == 'damier8' or arr == 'damier16' or arr == 'homogeneous' or arr == 'random8' or arr == 'damier9' or arr == 'damier10' or arr == 'damier8_4':  # carre homogene
@@ -230,11 +231,13 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     return testsim #dico avec {nom:lsystem}
 
 
-def runlsystem(lsys, name):
+def runlsystem(lsys, name, clear=1):
     """ run the lsystem from a dict with its name"""
     try:
         lsys[name].derive()
-        lsys[name].clear()
+        if clear==1:
+            lsys[name].clear()
+
         print((''.join((name, " - done"))))
     except Exception as e:
         print(e)

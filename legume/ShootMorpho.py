@@ -829,12 +829,13 @@ def MaturBud(delaiMaturBud, NIparent, delta=4):
 ################
 # Planter - initialisation scene
 
-def planter_coordinates(type, cote, nbcote):
+def planter_coordinates(type, cote, nbcote, orientRow='X'):
     """
 
     :param type:
     :param cote:
     :param nbcote:
+    :param orientRow:
     :return: carto, list of nd.arrays for the 3D coordiantes of each plant in the scene
     """
     distplantes = cote / nbcote  # 1. #cm
@@ -843,14 +844,16 @@ def planter_coordinates(type, cote, nbcote):
     # yyy = [-12.25, 4.4, 21.05]
     # xxx = [-10.75, -8.35, -5.95, -3.55, -1.15, 1.25, 3.65, 6.05, 8.45, 10.85]
 
-    if type == 'row4':  # pour carre 4 rangs heterogenes
-        Param_, carto = row4(1, 2, Lrow=cote, nbprow=nbcote)
-    elif type == 'random8' or type == 'random8':
+    if type == 'row4' or type=='row4_sp1' or type=='row4_sp2':  # pour carre 4 rangs heterogenes
+        Param_, carto = row4([1, 2], Lrow=cote, nbprow=nbcote, orientRow=orientRow)
+    elif type == 'row4_Nsp' :  # pour carre 4 rangs heterogenes
+        Param_, carto = row4_Nsp([1, 2], Lrow=cote, nbprow=nbcote, orientRow=orientRow)
+    elif type == 'random8' or type=="random9" or type=="random8_4" or type=="random10":
         # pour tirage random
         carto = random_planter(nbcote * nbcote, cote, cote)
     elif type=="ilot7":
         carto = Ilot7(distplantes)
-    elif type=="damier8" or type=="damier16" or type=="damier9" or type=="homogeneous":
+    elif type=="damier8" or type=="damier16" or type=="damier9" or type=="homogeneous" or type=="damier8_4" or type=="damier10" :
         # pour carre distance homogene
         carto = regular_square(nbcote, distplantes)
     elif type=="damier8_sp1" or type=="damier16_sp1" or type=="damier8_sp2" or type=="damier16_sp2":
@@ -885,13 +888,15 @@ def regular_square(nbcote, distplantes):
     return carto
 
 
-def planter_order_ParamP(ls_g, type, nbcote, opt):
+def planter_order_ParamP(ls_g, type, nbcote, opt, shuffle=0):
     """
 
     :param ls_g:
     :param type:
     :param nbcote:
     :param opt:
+    :param speby_row:
+    :param shuffle:
     :return: ParamP, list of plant parameter dictionnaries for each plant in the scene
     """
 
@@ -909,29 +914,35 @@ def planter_order_ParamP(ls_g, type, nbcote, opt):
         else:
             # if opt_verbose==1:
             print('Error! :' + type + ' option is for a 256 plant design')
-    elif type == 'damier9' :  # damier 3sp 81 plantes
+    elif type == 'damier9' or type == 'random9':  # damier 3sp 81 plantes
         if nbcote == 9:
             ParamP = damier9_3sp(ls_g, opt=opt)
         else:
             # if opt_verbose==1:
             print('Error! :' + type + ' option is for a 81 plant design')
-    elif type == 'damier10' :  # damier 3sp 81 plantes
+    elif type == 'damier10' or type == 'random10':  # damier 3sp 81 plantes
         if nbcote == 10:
             ParamP = damier10_5sp(ls_g, opt=opt)
         else:
             # if opt_verbose==1:
             print('Error! :' + type + ' option is for a 100 plant design')
-    elif type == 'damier8_4' :  # damier 3sp 81 plantes
+    elif type == 'damier8_4' or type == 'random8_4':  # damier 3sp 81 plantes
         if nbcote == 8:
             ParamP = damier8_4sp(ls_g, opt=opt)
         else:
             # if opt_verbose==1:
             print('Error! :' + type + ' option is for a 64 plant design')
-    elif type == 'row4' or 'row4_sp1' or 'row4_sp2':  # 4 rangs - 500pl.m-2
-        ParamP, cart_ = row4(ls_g[0], ls_g[1], nbprow=nbcote, opt=opt)
+    elif type == 'row4' or type == 'row4_sp1' or type == 'row4_sp2':  # 4 rangs - 2 spe
+        ParamP, cart_ = row4(ls_g, nbprow=nbcote, opt=opt)
+    elif type == 'row4_Nsp' :  # 4 rangs - N spe
+        ParamP, cart_  = row4_Nsp(ls_g, nbprow=nbcote, opt=opt)
     else:
         # defautl= force nb plante comme nbcote pour premier id des parametres
         ParamP = [ls_g[0]] * nbcote
+
+    if shuffle==1:
+        # shuffle list in place
+        np.random.shuffle(ParamP)
 
     return ParamP
 
@@ -1033,20 +1044,20 @@ def damier8_4sp(ls_g, opt=4):
         motif2 = [ls_g[2], ls_g[3], ls_g[2], ls_g[3], ls_g[2], ls_g[3], ls_g[2], ls_g[3]]
 
     res = []
-    for i in range(8/2):
+    for i in range(int(8/2)):
         res = res + motif + motif2
 
     return res
 
 
-def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
+def row4(ls_g, Lrow=50., nbprow=125,  opt=0, orientRow='X'):
     """ cree un melange 50/50 alterne ou pur sur 4 rangs distance interow chanmp"""
     if opt == 2:  # 50/50
-        motif = [p, vois, p, vois]
+        motif = [ls_g[0], ls_g[1], ls_g[0], ls_g[1]]
     elif opt == 0:  # 0/100
-        motif = [vois, vois, vois, vois]
+        motif = [ls_g[1], ls_g[1], ls_g[1], ls_g[1]]
     elif opt == 4:  # 100/0
-        motif = [p, p, p, p]
+        motif = [ls_g[0], ls_g[0], ls_g[0], ls_g[0]]
 
     res = []
     for i in range(nbprow):
@@ -1054,18 +1065,87 @@ def row4(p, vois, Lrow=50., nbprow=125,  opt=0):
 
     inter = Lrow / 4.
     onrow = Lrow / nbprow
-    xxx = arange(0., Lrow, onrow)+onrow/2.
+    xxx = np.arange(0., Lrow, onrow)+onrow/2.
     yyy = [0. * inter + inter/2.] + [1. * inter + inter/2.] + [2. * inter + inter/2.] + [3. * inter + inter/2.]  # 4 rangs
     carto = []
     for i in range(len(xxx)):
         for j in range(len(yyy)):
-            carto.append(np.array([xxx[i], yyy[j], 0.]))  # +origin
+            if orientRow=='X': #row parralel to X axis
+                carto.append(np.array([xxx[i], yyy[j], 0.]))  # +origin
+            elif orientRow=='Y': #row parralel to Y axis
+                carto.append(np.array([yyy[j], xxx[i], 0.]))  # +origin
+            else:
+                print("unknown orientRow")
 
     return res ,carto
     #pourrait renvoyer carto aussi ds homogeneous et damier8....
     #res ,carto=row4(1, 2, Lrow=50., nbprow=125,  opt=0)
     # dans un fichier d'initialiation?
     #prevoir nbprow different par esp... et melange on row...
+
+
+
+def row4_Nsp(ls_g, Lrow=50., nbprow=125,  opt=0, orientRow='X'):
+    """ """
+    if opt==0: # equipropotion on all rows
+        speby_row = []
+    elif opt==23: #5 spe ; two first on first row, 3 others on second row
+        speby_row = [[0,1], [2,3,4], [0,1], [2,3,4]]
+    elif opt==21: #3 spe ; two first on first row, 1 others on second row
+        speby_row = [[0,1], [2], [0,1], [2]]
+    else: #all other cases
+        speby_row = []
+
+    #!! pas prop equiprobable entre espece si nb esp different par rang!
+    #
+
+    if speby_row == []:
+        ls_g1 = ls_g
+        ls_g2 = ls_g
+        ls_g3 = ls_g
+        ls_g4 = ls_g
+    else : #list of species by row speby_row provided as 4 lists of IDs in ls_g
+        ls_g1 = [ls_g[i] for i in speby_row[0]]
+        ls_g2 = [ls_g[i] for i in speby_row[1]]
+        ls_g3 = [ls_g[i] for i in speby_row[2]]
+        ls_g4 = [ls_g[i] for i in speby_row[3]]
+
+    row1, row2, row3, row4 = [], [], [], []
+    for i in range(nbprow):
+        row1 += ls_g1
+        row2 += ls_g2
+        row3 += ls_g3
+        row4 += ls_g4
+
+    print('row1', ls_g1, row1)
+
+    #equi prop / opt pas utilise
+    res = []
+    for i in range(nbprow):
+        motif = [row1[i], row2[i], row3[i], row4[i]]
+        res = res + motif
+
+
+    inter = Lrow / 4.
+    onrow = Lrow / nbprow
+    xxx = np.arange(0., Lrow, onrow)+onrow/2.
+    yyy = [0. * inter + inter/2.] + [1. * inter + inter/2.] + [2. * inter + inter/2.] + [3. * inter + inter/2.]  # 4 rangs
+    carto = []
+    for i in range(len(xxx)):
+        for j in range(len(yyy)):
+            if orientRow=='X': #row parralel to X axis
+                carto.append(np.array([xxx[i], yyy[j], 0.]))  # +origin
+            elif orientRow=='Y': #row parralel to Y axis
+                carto.append(np.array([yyy[j], xxx[i], 0.]))  # +origin
+            else:
+                print("unknown orientRow")
+
+
+    return res ,carto
+
+
+
+
 
 
 def reduce_ParamP(ParamP, nom):

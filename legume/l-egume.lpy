@@ -47,6 +47,7 @@ import zipfile
 opt_residu = 1 #si 0, pas activation de mineralisation
 opt_sd = 0 #1 #genere distribution des valeurs de parametres, 2: fournit CV et calcul SD #1: lecture directe des val de sd independamment de la moy
 opt_covar = 1 # #definie matrice de covariance a lire dans path_variance_matrix (0 opt_sd generere tirages independants)
+opt_shuffle = 0 # 1: for random order of plant species in ParamP ; 0: reular order 
 opt_scenar = 0 #Active option for modifying mean paramter values (0: inactive/default; 1: active)
 opt_stressN = 1 #Active stress N; 1 = stress NNI actif (0= calcule, mais pas applique)
 opt_stressW = 1 #Active stressW; 1 = stress FTSW actif (0= calcule, mais pas applique)
@@ -74,16 +75,16 @@ opt_external_coupling = 0 # 1 for environmental coupling out of lpy; 0 for inter
 
 #initialisation des variables globale de simulation
 DOYdeb = 60#100#49#159#124#
-DOYend = 180#335#202#231#335#610#120#250#244#282#
+DOYend = 125#335#180#202#231#335#610#120#250#244#282#
 Rseed = 0#2#0 #random seed
 deltalevmoy = 30 #degre.jours
 deltalevsd = 15
 
 
 cote = 40#240.#7.#80.#100.#100#25.#25.#cm
-nbcote = 8#9#1#2#10
-optdamier = 4
-typearrangement='damier8'#'damier8_sp2'#'damier9'#'homogeneous'#'random8'#'damier16'#'random16'
+nbcote = 8#4#16#8#10#9#1#2#
+optdamier = 4#21#
+typearrangement='damier8'#'homogeneous'#'row4_Nsp'#'row4'#'row_Nsp'#'row4_sp2'#'random10'#'random9'#'random8_4'#'damier9'#'damier8_4'#'damier10'#'random8'#'damier8_sp2'#'damier16'#'random16'
 ls_idscenar = [1, 1]#[1, 1, 1] #
 ls_idscenar_sd = [1, 1]#[1, 1, 1] #
 
@@ -114,10 +115,10 @@ path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres
 #ongletP = 'Fix2'#'Fet'#'Orca'#'TB'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
 #ongletPvois = 'nonFixSimTest'#'Fet'#'Orca'#'TB'#'Fet'#'Orca2'#'OrcaVois'#'Fet'#'giga'#'solnu'#'nonFix1'#'nonFix0'#'alfalfa'#'geno_test'#'G3'#
 path_lsplt = os.path.join(path_leg,'exemple_ls_plt.xls')
-mixID = "mix1"
+mixID = "mix_default" #'mix3' #'mix5'
 tabSpe = pd.read_excel(path_lsplt, sheet_name=mixID)
 ls_Spe = tabSpe["ongletP"].tolist()
-#ls_Spe = ['Fix2', 'nonFixSimTest', 'Fet']
+#ls_Spe = ['Fix2', 'nonFixSimTest', 'Fet','TB','Orca']#['Fix2', 'nonFixSimTest', 'Fet','TB']#['Fix2', 'nonFixSimTest', 'Fet']
 
 
 ## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
@@ -239,7 +240,7 @@ class Plt_seed(object):
 def Start():
     
     #initialisation des variables globale de simulation
-    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, mn_sc, station, path_station, ongletSta
+    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, mn_sc, station, path_station, ongletSta, epsilon
     
     ##seed nombre aleatoires
     global Rseed, ls_seeds
@@ -256,11 +257,11 @@ def Start():
     #optdamier = 4
     #typearrangement='damier8' 
     
+    print('lspe', ls_Spe)
+    ParamP, nbplantes, ls_seeds, lsidP, test_retard = initial.init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=Rseed ,type=typearrangement, opt=optdamier, opt_scenar=opt_scenar, ls_idscenar=ls_idscenar, mn_sc=mn_sc, opt_sd=opt_sd, opt_covar=opt_covar, path_variance_geno=path_variance_geno, path_variance_matrix=path_variance_matrix, ls_idscenar_sd=ls_idscenar_sd, opt_shuffle=opt_shuffle)
     
-    ParamP, nbplantes, ls_seeds, lsidP, test_retard = initial.init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=Rseed ,type=typearrangement, opt=optdamier, opt_scenar=opt_scenar, ls_idscenar=ls_idscenar, mn_sc=mn_sc, opt_sd=opt_sd, opt_covar=opt_covar, path_variance_geno=path_variance_geno, path_variance_matrix=path_variance_matrix, ls_idscenar_sd=ls_idscenar_sd)
     
-    
-    #print 'Len ', IOxls.get_lsparami(ParamP, 'Len')
+    #print('name2 ', IOxls.get_lsparami(ParamP, 'name'))
     #si graminee, trajectoire normalisee feuille L=1 - 1 par parametre plante
     ls_pointes1 = []
     for nump in range(nbplantes):
@@ -297,7 +298,7 @@ def Start():
     #initialisation des variables d'etat plante
     global invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress,ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev
     
-    invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev = initial.init_variables_plantes(ParamP, nbplantes, na)
+    invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans,lsFeuilBilanR , ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev, epsilon = initial.init_variables_plantes(ParamP, nbplantes, na)
     
     
     #initialisation des variables d'echange avec exterieur pour couplages sol/rayonnement
@@ -898,7 +899,7 @@ def End(lstring,lscene):
     
     if outf['outsdfile'] != 0. and opt_sd != 0:# valeur de parametres par plante 
         #ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
-        sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ongletP)
+        sd_fichier_g4=pd.read_excel(path_variance_geno, sheet_name=ls_Spe[0])
         ls_parname = ['name']+list(sd_fichier_g4.columns) [1:] #liste les noms de colonne a  partir de la deuxieme; suppose la meme pour les 2 sp
         nbp = len(IOxls.get_lsparami(ParamP, 'name'))
         res_sd = {'nump':range(0,nbp)}
@@ -1006,7 +1007,7 @@ module attente(n) #pour attendre initialisation des variables avant de represent
 module pattern(pos) #pour sol surface
 
 
-Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)]#[Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)][Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)][Sd(138)][Sd(139)][Sd(140)][Sd(141)][Sd(142)][Sd(143)]#[Sd(144)][Sd(145)][Sd(146)][Sd(147)][Sd(148)][Sd(149)][Sd(150)][Sd(151)][Sd(152)][Sd(153)][Sd(154)][Sd(155)][Sd(156)][Sd(157)][Sd(158)][Sd(159)][Sd(160)][Sd(161)][Sd(162)][Sd(163)][Sd(164)][Sd(165)][Sd(166)][Sd(167)][Sd(168)][Sd(169)][Sd(170)][Sd(171)][Sd(172)][Sd(173)][Sd(174)][Sd(175)][Sd(176)][Sd(177)][Sd(178)][Sd(179)][Sd(180)][Sd(181)][Sd(182)][Sd(183)][Sd(184)][Sd(185)][Sd(186)][Sd(187)][Sd(188)][Sd(189)][Sd(190)][Sd(191)][Sd(192)][Sd(193)][Sd(194)][Sd(195)][Sd(196)][Sd(197)][Sd(198)][Sd(199)][Sd(200)][Sd(201)][Sd(202)][Sd(203)][Sd(204)][Sd(205)][Sd(206)][Sd(207)][Sd(208)][Sd(209)][Sd(210)][Sd(211)][Sd(212)][Sd(213)][Sd(214)][Sd(215)][Sd(216)][Sd(217)][Sd(218)][Sd(219)][Sd(220)][Sd(221)][Sd(222)][Sd(223)][Sd(224)][Sd(225)][Sd(226)][Sd(227)][Sd(228)][Sd(229)][Sd(230)][Sd(231)][Sd(232)][Sd(233)][Sd(234)][Sd(235)][Sd(236)][Sd(237)][Sd(238)][Sd(239)][Sd(240)][Sd(241)][Sd(242)][Sd(243)][Sd(244)][Sd(245)][Sd(246)][Sd(247)][Sd(248)][Sd(249)][Sd(250)][Sd(251)][Sd(252)][Sd(253)][Sd(254)][Sd(255)]
+Axiom: [attente(1)][Sd(0)][Sd(1)][Sd(2)][Sd(3)][Sd(4)][Sd(5)][Sd(6)][Sd(7)][Sd(8)][Sd(9)][Sd(10)][Sd(11)][Sd(12)][Sd(13)][Sd(14)][Sd(15)][Sd(16)][Sd(17)][Sd(18)][Sd(19)][Sd(20)][Sd(21)][Sd(22)][Sd(23)][Sd(24)][Sd(25)][Sd(26)][Sd(27)][Sd(28)][Sd(29)][Sd(30)][Sd(31)][Sd(32)][Sd(33)][Sd(34)][Sd(35)][Sd(36)][Sd(37)][Sd(38)][Sd(39)][Sd(40)][Sd(41)][Sd(42)][Sd(43)][Sd(44)][Sd(45)][Sd(46)][Sd(47)][Sd(48)][Sd(49)][Sd(50)][Sd(51)][Sd(52)][Sd(53)][Sd(54)][Sd(55)][Sd(56)][Sd(57)][Sd(58)][Sd(59)][Sd(60)][Sd(61)][Sd(62)][Sd(63)]#[Sd(64)][Sd(65)][Sd(66)][Sd(67)][Sd(68)][Sd(69)][Sd(70)][Sd(71)][Sd(72)][Sd(73)][Sd(74)][Sd(75)][Sd(76)][Sd(77)][Sd(78)][Sd(79)][Sd(80)][Sd(81)][Sd(82)][Sd(83)][Sd(84)][Sd(85)][Sd(86)][Sd(87)][Sd(88)][Sd(89)][Sd(90)][Sd(91)][Sd(92)][Sd(93)][Sd(94)][Sd(95)][Sd(96)][Sd(97)][Sd(98)][Sd(99)]#[Sd(100)][Sd(101)][Sd(102)][Sd(103)][Sd(104)][Sd(105)][Sd(106)][Sd(107)][Sd(108)][Sd(109)][Sd(110)][Sd(111)][Sd(112)][Sd(113)][Sd(114)][Sd(115)][Sd(116)][Sd(117)][Sd(118)][Sd(119)][Sd(120)][Sd(121)][Sd(122)][Sd(123)][Sd(124)][Sd(125)][Sd(126)][Sd(127)][Sd(128)][Sd(129)][Sd(130)][Sd(131)][Sd(132)][Sd(133)][Sd(134)][Sd(135)][Sd(136)][Sd(137)][Sd(138)][Sd(139)][Sd(140)][Sd(141)][Sd(142)][Sd(143)][Sd(144)][Sd(145)][Sd(146)][Sd(147)][Sd(148)][Sd(149)][Sd(150)][Sd(151)][Sd(152)][Sd(153)][Sd(154)][Sd(155)][Sd(156)][Sd(157)][Sd(158)][Sd(159)][Sd(160)][Sd(161)][Sd(162)][Sd(163)][Sd(164)][Sd(165)][Sd(166)][Sd(167)][Sd(168)][Sd(169)][Sd(170)][Sd(171)][Sd(172)][Sd(173)][Sd(174)][Sd(175)][Sd(176)][Sd(177)][Sd(178)][Sd(179)][Sd(180)][Sd(181)][Sd(182)][Sd(183)][Sd(184)][Sd(185)][Sd(186)][Sd(187)][Sd(188)][Sd(189)][Sd(190)][Sd(191)][Sd(192)][Sd(193)][Sd(194)][Sd(195)][Sd(196)][Sd(197)][Sd(198)][Sd(199)][Sd(200)][Sd(201)][Sd(202)][Sd(203)][Sd(204)][Sd(205)][Sd(206)][Sd(207)][Sd(208)][Sd(209)][Sd(210)][Sd(211)][Sd(212)][Sd(213)][Sd(214)][Sd(215)][Sd(216)][Sd(217)][Sd(218)][Sd(219)][Sd(220)][Sd(221)][Sd(222)][Sd(223)][Sd(224)][Sd(225)][Sd(226)][Sd(227)][Sd(228)][Sd(229)][Sd(230)][Sd(231)][Sd(232)][Sd(233)][Sd(234)][Sd(235)][Sd(236)][Sd(237)][Sd(238)][Sd(239)][Sd(240)][Sd(241)][Sd(242)][Sd(243)][Sd(244)][Sd(245)][Sd(246)][Sd(247)][Sd(248)][Sd(249)][Sd(250)][Sd(251)][Sd(252)][Sd(253)][Sd(254)][Sd(255)]
 
 #Axiom: [pattern(0)sol(S)]plantation(nbplantes-1)
 
@@ -2211,6 +2212,11 @@ Lf(nump, nsh, age, azi,rank, rankp, l, tt_omb, Lcut,statut,ordre,noise):
         
         #choix du geom
         if int(ParamP[nump]['type'])==1 or int(ParamP[nump]['type'])==2 : #legume or non fixing-legume
+            if opt_Trud == 1: #corrige leafshape effect pour feuille detaillee de legumineuse
+                cor_lF = sqrt(ParamP[nump]['leafshape'] / 0.5)
+                Long = Long * (1/cor_lF)
+                Larg  = Larg * (1/cor_lF)
+            
             geom = o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil']+noise[1], nfol=nf, anginit=ParamP[nump]['IncPet']+noise[0], opt_Trud=opt_Trud)
             #print o3d.leg_leaf_lucas(Long, Larg, gamma=ParamP[nump]['gammaFeuil'], nfol=nf, anginit=ParamP[nump]['IncPet'], geom=False)
             #geom = o3d.mesh_leaflet(Long, Larg,alpha=15, n=8)

@@ -430,7 +430,7 @@ def init_ParamP_VGL_old(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, 
     return ParamP, nbplantes, ls_seeds, lsidP, test_retard
 
 #pour liste espece
-def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, opt_scenar=0, ls_idscenar=[1, 1], mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, ls_idscenar_sd=[None, None]):
+def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, opt_scenar=0, ls_idscenar=[1, 1], mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, ls_idscenar_sd=[None, None], opt_shuffle=0):
     """ """
     # nbcote = nombre de plante sur un cote en supposant repartition homogene
 
@@ -447,7 +447,7 @@ def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_se
         ls_g.append(g)
 
 
-    ParamP = sh.planter_order_ParamP(ls_g, type, nbcote, opt)
+    ParamP = sh.planter_order_ParamP(ls_g, type, nbcote, opt, opt_shuffle)
 
     # 2) modif ParamP et ajout variabilite sd si opt_sd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
     # test pour esp 1, Len avec sd=0.5
@@ -702,7 +702,7 @@ def init_variables_plantes(ParamP, nbplantes, na):
     # for i in range(0, ncouches_sol): rp0[i]=0.; rpp0.append(0.)
     # for i in range(nbplantes): RLProfil.append(deepcopy(rp0)); RprospectProfil.append(deepcopy(rpp0))
 
-    return invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, lsFeuilBilanR, ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev
+    return invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, lsFeuilBilanR, ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev, epsilon
 
 
 def init_outputs(ParamP, nbplantes, ncouches_sol, surfsolref):
