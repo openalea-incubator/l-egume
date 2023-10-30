@@ -23,11 +23,7 @@ To install and use *L-egume*, you need first to install the dependencies.
  
 #### 1.1.1 Install the dependencies on Windows 10 64 bit
 
-<<<<<<< HEAD
 1. Install Python 3.7 or 3.9 using Anaconda 
-=======
-1. Install Python  3.7 using Anaconda 
->>>>>>> master
 
     * go to https://www.anaconda.com/download/ 
     * click on "64-Bit Graphical Installer", 
@@ -55,16 +51,6 @@ To install and use *L-egume*, you need first to install the dependencies.
 
 __Note__: We suppose you already installed the dependencies for your operating system. Otherwise follow these [instructions](prerequisites "Prerequisites").
 
-<<<<<<< HEAD
-=======
-		
-	* To correct lpy console display bug:
-		- go to envs\nom_environnement\library\bin
-		- create a new file 'mylpy.bat'
-		- write inside the following command line:
-			python -c "from openalea.lpy.gui.lpystudio import main ; main()"
-		- you can now launch lpy studio from your acivated conda environment using  “mylpy”
->>>>>>> master
 
 #### 1.2.1 Install *riri5* and *soil3ds* environmental models
 
@@ -90,12 +76,6 @@ To install *soil3ds* :
 	python setup.py develop
 	```
 
-<<<<<<< HEAD
-=======
-* open and activate a conda environment with installed dependencies,
-* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/openalea-incubator/l-egume/),
-* run command: `python setup.py install --user`.
->>>>>>> master
 
 #### 1.2.2 Install *L-egume* plant model in "develop" mode (recommended: will handle shortcuts)
 
@@ -106,7 +86,6 @@ changes to take effect immediately.
 To install *L-egume* in "develop" mode:
 
 * open and activate a conda environment with installed dependencies,
-<<<<<<< HEAD
 * go to your local copy of project *L-egume* (you can get the latest version from https://github.com/glouarn/l-egume/),
 * or get a copy of the latest model version (from a Git console: git clone -b Develop https://github.com/glouarn/l-egume.git)
 * run command: 
@@ -114,10 +93,6 @@ To install *L-egume* in "develop" mode:
 	python setup.py develop
 	```
 
-=======
-* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/openalea-incubator/l-egume/),
-* run command: `python setup.py develop --user`.
->>>>>>> master
 
 ### 1.3 Running
 
@@ -157,7 +132,6 @@ See the user guide for a step by step explanation of how to set and run model *L
 To build the user and reference guides:
 
 * install the model (see [Installation of the model](installing "Installing")), 
-<<<<<<< HEAD
 * open and activate the *envtest* conda environment
 * to install sphinx, run command: 
 	```bash
@@ -172,12 +146,6 @@ To build the user and reference guides:
 * (To be done...`),
 
 
-=======
-* open a command line interpreter,
-* go to the top directory of your local copy of the project,
-* (To be done: run this command: `python setup.py build_sphinx`),
-* and direct your browser to file `doc/_build/html/index.html`.
->>>>>>> master
 
 ## 3. Testing
 
@@ -198,17 +166,6 @@ To run the test :
 * [Sphinx](http://sphinx-doc.org/): building of the documentation, 
 
 
-<<<<<<< HEAD
-=======
-First, send an email to <gaetan.louarn @ inrae.fr> to be added to the project.  
-
-Then,
- 
-* check for open issues or open a fresh issue to start a discussion around a
-  feature idea or a bug: https://sourcesup.renater.fr/tracker/?group_id=3957.
-* If you feel uncomfortable or uncertain about an issue or your changes, feel
-  free to email <gaetan.louarn @ inrae.fr>.
->>>>>>> master
 
 ## Contact
 
