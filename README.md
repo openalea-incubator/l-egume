@@ -23,7 +23,7 @@ To install and use *L-egume*, you need first to install the dependencies.
  
 #### 1.1.1 Install the dependencies on Windows 10 64 bit
 
-1. Install Python  3.7 using Anaconda 
+1. Install Python 3.7 or 3.9 using Anaconda 
 
     * go to https://www.anaconda.com/download/ 
     * click on "64-Bit Graphical Installer", 
@@ -35,54 +35,49 @@ To install and use *L-egume*, you need first to install the dependencies.
 		
 2. Create and Activate a conda environment using  'Anaconda Prompt':
 	* Open an 'Anaconda Prompt' console
-	* Create a new environment (e.g. py37_64) using the following command lines:
-		conda create -n py37_64 -c fredboudon -c conda-forge openalea.lpy openalea.mtg openalea.plantscan3D 
-		conda install openalea.lpy -c fredboudon -c conda-forge
+	* Create a new environment (e.g. *envtest*) using the following command lines:
+		```bash
+		conda create -n envtest python=3.9 xlrd=2.0.1 numpy=1.20.3 scipy=1.7.3 pandas=1.3.4 openalea.lpy openalea.mtg alinea.caribu -c conda-forge -c fredboudon
+		```
+		
 	* Activate the new environment using the following command line:
-		activate py37_64
-
-
-3. Install scipy package (v1.1.0):  
-    * in your acivated conda environment, install successively : 
-		conda install -c anaconda scipy
-		
-4. Install xlrd package (v1.2.0):  
-    * in your acivated conda environment, install successively : 
-		conda install -c conda-forge xlrd
-
-
-5. Install OpenAlea L-py:  
-
-    * go to https://github.com/openalea/lpy to check latest install recommendations for PlantGL
-
-		
-	* To correct lpy console display bug:
-		- go to envs\nom_environnement\library\bin
-		- create a new file 'mylpy.bat'
-		- write inside the following command line:
-			python -c "from openalea.lpy.gui.lpystudio import main ; main()"
-		- you can now launch lpy studio from your acivated conda environment using  “mylpy”
+		```bash
+		activate *envtest*
+		```
 
 
 	
-### 1.2 Installing
+### 1.2 Installing VGL submodels
 
 __Note__: We suppose you already installed the dependencies for your operating system. Otherwise follow these [instructions](prerequisites "Prerequisites").
 
-You can install *L-egume* either in "install" or "develop" mode.
 
-#### 1.2.1 Install *L-egume* in "install" mode
+#### 1.2.1 Install *riri5* and *soil3ds* environmental models
 
-Install *L-egume* in "install" mode if you're not going to develop, edit or debug 
-it, i.e. you just want to used it as third party package.
 
-To install *L-egume* in "end-user" mode:
+To install *riri5* :
 
-* open and activate a conda environment with installed dependencies,
-* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/openalea-incubator/l-egume/),
-* run command: `python setup.py install --user`.
+* open and activate the *envtest* conda environment with installed dependencies ,
+* go to your local copy of project *riri5* (from https://github.com/glouarn/riri5),
+* or get a copy of the latest model version (from a Git console: git clone -b Develop https://github.com/glouarn/riri5.git)
+* run command: 
+	```bash
+	python setup.py develop
+	```
 
-#### 1.2.2 Install *L-egume* in "develop" mode (recommended: will handle shortcuts)
+
+To install *soil3ds* :
+
+* open and activate the *envtest* conda environment with installed dependencies ,
+* go to your local copy of project *soil3ds* (from https://github.com/glouarn/soil3ds),
+* or get a copy of the latest model version (from a Git console: git clone -b Develop https://github.com/glouarn/soil3ds.git)
+* run command: 
+	```bash
+	python setup.py develop
+	```
+
+
+#### 1.2.2 Install *L-egume* plant model in "develop" mode (recommended: will handle shortcuts)
 
 Install *L-egume* in "develop" mode if you want to get *L-egume* installed and then 
 be able to frequently edit the code and not have to re-install *L-egume* to have the 
@@ -91,19 +86,40 @@ changes to take effect immediately.
 To install *L-egume* in "develop" mode:
 
 * open and activate a conda environment with installed dependencies,
-* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/openalea-incubator/l-egume/),
-* run command: `python setup.py develop --user`.
+* go to your local copy of project *L-egume* (you can get the latest version from https://github.com/glouarn/l-egume/),
+* or get a copy of the latest model version (from a Git console: git clone -b Develop https://github.com/glouarn/l-egume.git)
+* run command: 
+	```bash
+	python setup.py develop
+	```
+
 
 ### 1.3 Running
 
-To run a simulation example, two options:
 
-* 1. open Lpy platform,
-	 load l-egume.lpy file from legume folder,
-	 Use Run or animate button to launch a simulation
-  2. Run l-egume from a python script (see l-egume_batch_mixture8.py in multisim folder for an example; require mutiprocessing)
+* open and activate the *envtest* conda environment with installed models
 
-See the user guide for a step by step explanation of how to set and run model *L-egume*.
+To run a simulation example, three options:
+
+* 1. Run l-egume from the L-py GUI,
+	 launch 'lpy' from the *envtest* conda environment 
+	 open/load 'l-egume.lpy' file from l-egume folder,
+	 Use Run or Animate button to launch a simulation from within L-py GUI
+	 
+  2. Run l-egume from the command line: 
+		- default example:
+		```bash
+		python run_legume_usm.py
+		```
+		- run of a specific Unit of Simulation (USM):
+		```bash
+		python run_legume_usm.py -f 'usm_xlsfile' -i 'inputs_folder' -b 'usm_spreasheet_name' -u 'usmID' -o 'outputs_folder'
+		```
+		
+  
+  3. Run multiple simulations: see l-egume_batch.py in multisim folder for an example (require mutiprocessing)
+
+See the user guide for a step by step explanation of how to set and run model *L-egume* (https://github.com/glouarn/TD_VGL).
 
 
 
@@ -116,23 +132,26 @@ See the user guide for a step by step explanation of how to set and run model *L
 To build the user and reference guides:
 
 * install the model (see [Installation of the model](installing "Installing")), 
-* open a command line interpreter,
-* go to the top directory of your local copy of the project,
-* (To be done: run this command: `python setup.py build_sphinx`),
-* and direct your browser to file `doc/_build/html/index.html`.
+* open and activate the *envtest* conda environment
+* to install sphinx, run command: 
+	```bash
+	conda install pytest sphinx sphinx-rtd-theme -c conda-forge
+	```
+* move to the *docs* folder within *l-egume* project
+* run command:
+	```bash
+	make html
+	```
+* and direct your browser to file `docs/_build/html/index.html`.
+* (To be done...`),
+
+
 
 ## 3. Testing
 
 The test allows to verify that the model implementation accurately 
 represents the developer’s conceptual description of the model and its solution.
 
-The test:
-
-* runs the model on 200 steps,
-* concatenates the outputs of the model in pandas dataframes,
-* writes the outputs dataframes to CSV files,
-* compares actual to expected outputs,
-* raises an error if actual and expected outputs are not equal up to a given tolerance.     
 
 To run the test :
 
@@ -146,20 +165,11 @@ To run the test :
 * [Python](http://www.python.org/), [NumPy](http://www.numpy.org/), [SciPy](http://www.scipy.org/), 
 * [Sphinx](http://sphinx-doc.org/): building of the documentation, 
 
-## Contributing
 
-First, send an email to <gaetan.louarn @ inrae.fr> to be added to the project.  
-
-Then,
- 
-* check for open issues or open a fresh issue to start a discussion around a
-  feature idea or a bug: https://sourcesup.renater.fr/tracker/?group_id=3957.
-* If you feel uncomfortable or uncertain about an issue or your changes, feel
-  free to email <gaetan.louarn @ inrae.fr>.
 
 ## Contact
 
-For any question, send an email to <lgrass-request@groupes.renater.fr>.
+For any question, send an email to <gaetan.louarn @ inrae.fr>.
 
 ## Versioning
 

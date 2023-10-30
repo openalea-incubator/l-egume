@@ -5,7 +5,8 @@ import scipy
 def XyzToPol (coordxy) :
     """ converti les coordonnees carthesiennes d'un point (x,y,z) en coordonnees polaires (r,azi,incli)"""
     x,y,z = coordxy[0], coordxy[1], coordxy[2]
-    r = scipy.sqrt(x*x+y*y+z*z)
+    xy2 = x*x+y*y
+    r = scipy.sqrt(xy2+z*z)
     if r==0 :
         incli =0
     else :
@@ -13,9 +14,9 @@ def XyzToPol (coordxy) :
     if (x==0 and y==0):
         azi = 0
     elif (y>=0) :
-        azi = scipy.arccos(x/scipy.sqrt(x*x+y*y))
+        azi = scipy.arccos(x/scipy.sqrt(xy2))
     else :
-        azi = -scipy.arccos(x/scipy.sqrt(x*x+y*y))
+        azi = -scipy.arccos(x/scipy.sqrt(xy2))
     return scipy.array([r,azi,incli])
 
 
@@ -61,7 +62,12 @@ def produit_vectoriel (u, v) :
 
 def normalised_v(vec):
     """ mise a 1 de la norme de vec """
-    if vec[2] >= 0. :
+    if vec[2] > 0. :
+        z = scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
+        y = z*vec[1]/vec[2]
+        x = z*vec[0]/vec[2]
+    elif vec[2] == 0. :
+        vec[2] = 10e-12
         z = scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
         y = z*vec[1]/vec[2]
         x = z*vec[0]/vec[2]
@@ -71,7 +77,7 @@ def normalised_v(vec):
         x = z*vec[0]/vec[2]
 
     return scipy.array([x,y,z])
-    #!!! gere pas bien le cas ou vec[2]=0!!
+
 
 def norme_v(vec):
     """ calcule la norme d'un vecteur """

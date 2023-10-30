@@ -141,8 +141,9 @@ def fracBBOX(fracs, m1):
 
 
 
-def updateRootDistrib(RLtot, syst_rac, lims):
+def updateRootDistrib(RLtot, syst_rac, lims, optNorm=0):
     """ Distribution de longueur totale de racine (RLtot, m) dans grille (lims) pour une liste de cylindre decrivant le volume d'une systeme racinaire"""
+    # for a single root system
     m_1 = ones([len(lims[2])-1, len(lims[1])-1,len(lims[0])-1])#matrice equivalente d'un objet sol
     if syst_rac==[]:#secondaires pas develope
         mL = deepcopy(m_1)*0.
@@ -168,8 +169,71 @@ def updateRootDistrib(RLtot, syst_rac, lims):
         for i in range(len(ls_fracs)):
             mL += ls_fracs[i]*L_roots[i]/(sum(ls_fracs[i])+10e-15)
 
+    #si renvoi distrib normalisee
+    if optNorm==1:
+        mL = mL / max(sum(mL),10e-15)#
+
     return mL
 
+def calc_ls_roots_fromNorm(ls_rootsN, RLtot):
+    """ to update RLtot absolute distribution keeping the same relative distributions """
+    # for a list of root systems
+    new_ls_roots = deepcopy(ls_rootsN)
+    for nump in range(len(new_ls_roots)):
+        new_ls_roots[nump] = new_ls_roots[nump] * RLtot[nump] #invar['RLTotNet'][nump] * 100
+
+    return new_ls_roots
+
+
+def propRootDistrib(ls_roots):
+    """ proportion of plant root length in each voxel for a list of root system grids"""
+    # for a list of root systems
+    ls_props = []
+    for nump in range(len(ls_roots)):
+        mat_ =  ls_roots[nump]/max(sum(ls_roots[nump]),10e-15)
+        ls_props.append(mat_)
+
+    return ls_props
+    #rq: inclu dans propRootDistrib_upZ
+
+def propRootDistrib_upZ(ls_roots, depth=None, dz_sol=5.):
+    """ proportion of plant root length in each voxel up to depth Z for a list of root system grids"""
+    # for a list of root systems
+    ls_props = []
+    for nump in range(len(ls_roots)):
+        if depth is None: #pas de profondeur renseignee = prend tout le profil
+            mat_ =  ls_roots[nump]/max(sum(ls_roots[nump]), 10e-15)
+            ls_props.append(mat_)
+        elif depth <= dz_sol: #premiere couche seulement
+            mat_ini = ls_roots[nump]
+            mat_keep = mat_ini[0,:,:]
+            mat_2 = mat_ini*0.
+            mat_2[0,:,:] = mat_keep
+            mat_ = mat_2 / max(sum(mat_2), 10e-15)
+            ls_props.append(mat_)
+        else:
+            mat_ini = ls_roots[nump]
+            row_to_keep = min(int(depth / dz_sol) + 1, mat_ini.shape[0])
+            mat_keep = mat_ini[0:row_to_keep, :, :]
+            mat_2 = mat_ini * 0.
+            mat_2[0:row_to_keep, :, :] = mat_keep
+            mat_ = mat_2 / max(sum(mat_2), 10e-15)
+            ls_props.append(mat_)
+
+    return ls_props
+    #ou defaut=30 cm?
+
+
+
+def VoxWithRoots(ls_roots):
+    """ 1 in voxels with plant roots for a list of root system grids """
+    ls_ones = []
+    for nump in range(len(ls_roots)):
+        mat_1 = deepcopy(ls_roots[nump])
+        mat_1[mat_1>0] = 1
+        ls_ones.append(mat_1)
+
+    return ls_ones
 
 # def VisuRootDistrib2D(RLmap, lims, zlim=None):
 #     #carte 2D
@@ -191,12 +255,13 @@ def updateRootDistrib(RLtot, syst_rac, lims):
 # #retire car dependence a r et rpy -> passer en rpy2 et dans un autre fichier si veut l'utiliser
 
 
-def build_ls_roots_mult(RLTot, dic_systrac, lims):
+def build_ls_roots_mult(RLTot, dic_systrac, lims, optNorm=0):
     """ """
+    #si optNorm == 1, renvoie des distributions normalisees
     #build_ls_roots_mult?? ou ca?
     ls_roots=[]
     for nump in range (len(RLTot)):#s'assurer que nump pris dans l'ordre??
-        ls_roots.append(updateRootDistrib(RLTot[nump], dic_systrac[nump], lims))
+        ls_roots.append(updateRootDistrib(RLTot[nump], dic_systrac[nump], lims, optNorm))
 
     return ls_roots
 
