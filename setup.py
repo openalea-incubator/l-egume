@@ -56,6 +56,6 @@ setup(
     #long_description = read('README.md'),
     license = "CeCILL-C",
     keywords = "Individual-based model ,FSPM, legume, morphogenesis, shoot, roots ",
-    url = "https://sourcesup.renater.fr/projects/l-egume/",
+    url = "https://github.com/glouarn/l-egume",
     download_url = "",
 )
