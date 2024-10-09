@@ -639,7 +639,7 @@ def sol_dicout_endsim(S, outvar, DOYdeb, DOYend, opt_residu=0):
     return dicout
 
 
-def write_vgl_outf(outf, path_out, ls_outf_names, ls_objw, ls_keyvar_pot, outfvar, l_string='', tag_loop=None):
+def write_vgl_outf(outf, path_out, ls_outf_names, ls_objw, ls_keyvar_pot, outfvar, l_string='', tag_loop=None, tag_env=None):
     """ write output csv files - call in End() """
 
     outvarfile, outBilanNfile, outHRfile, resrootfile, lsorgfile, outMngfile, outsdfile = ls_outf_names
@@ -711,8 +711,14 @@ def write_vgl_outf(outf, path_out, ls_outf_names, ls_objw, ls_keyvar_pot, outfva
         with open(path_tagloop, 'wb') as f:
             pickle.dump(tag_loop, f) #liste d'objets tag_loop_inputs
 
+        path_tagenv = os.path.join(path_out, 'tagenv.pkl')
+        with open(path_tagenv, 'wb') as f:
+            pickle.dump(tag_env, f)  # liste d'objets tag_loop_inputs
+
+
         ls_fileOUT.append(path_lstring)
         ls_fileOUT.append(path_tagloop)
+        ls_fileOUT.append(path_tagenv)
 
     return ls_fileOUT
 
