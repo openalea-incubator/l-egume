@@ -92,12 +92,14 @@ def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, patt
 
     # vecteurs d'initialisation du sol (pour 3 couches maxi)
     num_nb = list(map(int, inis['num_nb']))  # [6,6,18] #nbr de couche de chaque num de sol
-    ncouches_sol = int(inis['ncouches_sol'])#num_nb[0] + num_nb[1] + num_nb[2]
-    vsoilnumbers = [1] * num_nb[0] + [2] * num_nb[1] + [3] * num_nb[2]  # convention autorise 3 types d'horizon max
+    num_nb = num_nb + [0,0] #pour gerer 5 couches
+
+    ncouches_sol = int(inis['ncouches_sol'])#
+    vsoilnumbers = [1] * num_nb[0] + [2] * num_nb[1] + [3] * num_nb[2]  + [4] * num_nb[3] + [5] * num_nb[4] # convention autorise 3 types d'horizon max
     # vDA = [par_SN['DA'][0]]*num_nb[0] + [par_SN['DA'][1]]*num_nb[1] + [par_SN['DA'][2]]*num_nb[2] #densite apparente de sol
-    vCN = [par_SN['CN0_30']] * num_nb[0] + [par_SN['CN30_60']] * num_nb[1] + [par_SN['CN60_90']] * num_nb[2]  # maxi 3 horizons
-    vMO = [par_SN['MO0_30']] * num_nb[0] + [par_SN['MO30_60']] * num_nb[1] + [par_SN['MO60_90']] * num_nb[2]  # maxi 3 horizons
-    vARGIs = [par_SN['ARGIs0_30']] * num_nb[0] + [par_SN['ARGIs30_60']] * num_nb[1] + [par_SN['ARGIs60_90']] * num_nb[2]
+    vCN = [par_SN['CN0_30']] * num_nb[0] + [par_SN['CN30_60']] * num_nb[1] + [par_SN['CN60_90']] * (num_nb[2]+num_nb[3]+num_nb[4])  # maxi 5 horizons
+    vMO = [par_SN['MO0_30']] * num_nb[0] + [par_SN['MO30_60']] * num_nb[1] + [par_SN['MO60_90']] * (num_nb[2]+num_nb[3]+num_nb[4])  # maxi 5 horizons
+    vARGIs = [par_SN['ARGIs0_30']] * num_nb[0] + [par_SN['ARGIs30_60']] * num_nb[1] + [par_SN['ARGIs60_90']] * (num_nb[2]+num_nb[3]+num_nb[4])
     vCALCs = [par_SN['CALCs']] * ncouches_sol
     vNH4 = inis['NH4']  # [2.]*ncouches_sol # #!! kg d'N.ha-1 (entree de STICS)
     vNO3 = inis['NO3']  # [0.]*ncouches_sol

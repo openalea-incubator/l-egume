@@ -72,7 +72,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
 
     ini_path_ = os.path.join(foldin, str(ls_usms['inis'][i]))#(path_, 'input', str(ls_usms['inis'][i]))
     ongletIni_ = str(ls_usms['ongletIn'][i])
-    testsim[name].inis = IOxls.read_plant_param(ini_path_, ongletIni_)
+    inis = IOxls.read_plant_param(ini_path_, ongletIni_)
 
     # testsim[name].ongletP = str(ls_usms['ongletP'][i])
     path_plante = os.path.join(foldin, str(ls_usms['plante'][i]))#(path_, 'input', str(ls_usms['plante'][i]))
@@ -114,13 +114,22 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     #ongletScenar1 = ongletP
 
     # sol
-    path_sol = os.path.join(foldin, str(ls_usms['sol'][i]))#(path_, 'input', str(ls_usms['sol'][i]))
+    sol_file = str(ls_usms['sol'][i])
+    path_sol = os.path.join(foldin, sol_file)#(path_, 'input', str(ls_usms['sol'][i]))
     ongletS = str(ls_usms['ongletS'][i])
-    par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+
+    if sol_file[-4:] == '.xml': #fichier XML stics
+        par_sol, par_SN, inis = solN.read_soil_xmlSTICS(foldin, sol_file, ongletS)
+        #! inis a partir de XML avec certains forcages en dur!
+    else:  # fichier .xls VGL
+        par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+
     par_SN['concrr'] = 0.  # force eau de pluie dans ls test (a retirer)
     # testsim[name].ongletS = str(ls_usms['ongletS'][i])
+
     testsim[name].par_SN = par_SN
     testsim[name].par_sol = par_sol
+    testsim[name].inis = inis
 
     #station
     path_station = os.path.join(foldin, fsta)

@@ -112,7 +112,6 @@ inis_path = os.path.join(path_leg, 'Init_sol_exemple.xls')#'Initialisation_sol_e
 ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'DivLeg15'#
 inis = IOxls.read_plant_param(inis_path, ongletIn)
 
-
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 #ongletP = 'Fix2'#'Fet'#'Orca'#'TB'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
@@ -137,10 +136,17 @@ elif opt_Mng == 1: #Automatic management file
 
 
 #lecture des parametres du sol
-path_sol = os.path.join(path_leg,'Parametres_sol_exemple.xls')#'Parametres_sol_exemple2_debugL_glbis.xls')#
-ongletS = 'lusignan99'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#'DivLeg15'#
-par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+sol_file = 'Parametres_sol_exemple.xls' #'sols.xml'#'Parametres_sol_exemple2_debugL_glbis.xls'#
+ongletS = 'lusignan99'#'Lusignan-DivLeg'#'morpholeg'#'combileg2015vshallow'#'combileg16vshallow'#'ASCHYD11'#'DivLeg15'# nom du sol
+path_sol = os.path.join(path_leg,sol_file)
+
+if sol_file[-4:] == '.xml':
+    par_sol, par_SN, inis = solN.read_soil_xmlSTICS(path_leg, sol_file, ongletS)
+else: #fichier .xls ou .xlsx
+    par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+
 par_SN['concrr'] = 0.#force eau de pluie / irrig a zero N, sinon apport 300 kg en irrigue!
+
 
 #lecture scenario valeur moyenne (si changement de parametres)
 mn_sc = os.path.join(path_leg,'liste_scenarios.xls')#'liste_scenarios_exemple.xls')#'scenarios_planMorris.xls')#(path_leg,'liste_scenarios.xls')'Fet'#
@@ -295,6 +301,7 @@ def Start():
     
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr, vCC
+    print(meteo_j)
     S, Tsol = initial.init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, pattern8, opt_residu, obstarac_)
 
     vCC = initial.init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN)
