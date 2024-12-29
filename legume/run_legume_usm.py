@@ -21,6 +21,7 @@ import pandas as pd
 import getopt
 #import zipfile
 
+from soil3ds import soil_moduleN as solN #pour lecture sol xml
 
 
 
@@ -61,14 +62,28 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name] = lpy.Lsystem(path_lsys)  # objet l-system
 
     # testsim[name].ongletM = str(ls_usms['ongletM'][i])
-    meteo_path_ = os.path.join(foldin, str(ls_usms['meteo'][i]))#(path_, 'input', str(ls_usms['meteo'][i]))
+    meteo_file = str(ls_usms['meteo'][i])
     ongletM_ = str(ls_usms['ongletM'][i])
-    testsim[name].meteo = IOxls.read_met_file(meteo_path_, ongletM_)
+    meteo_path_ = os.path.join(foldin, meteo_file)
 
     # testsim[name].ongletMn = str(ls_usms['ongletMn'][i])
-    mn_path_ = os.path.join(foldin, str(ls_usms['mng'][i]))#(path_, 'input', str(ls_usms['mng'][i]))
+    mng_file = str(ls_usms['mng'][i])
     ongletMn_ = str(ls_usms['ongletMn'][i])
-    testsim[name].mng = IOxls.read_met_file(mn_path_, ongletMn_)
+    mn_path_ = os.path.join(foldin, mng_file)
+
+    if meteo_file[-4:] == '.xml':  # fichier xml STICS
+        meteo, mng, info_xml = IOxls.read_usmXML_fromSTICS(foldin, meteo_file, ongletM_)  # 'usms.xml', 'DivLegLuz15')
+        # print(info_xml)
+        # gere pas option mng_auto...
+    else:
+        # fichier .xls VGL
+        meteo = IOxls.read_met_file(meteo_path_, ongletM_)
+        mng = IOxls.read_met_file(mn_path_, ongletMn_)
+        # gere pas option mng_auto...
+
+    testsim[name].meteo = meteo
+    testsim[name].mng = mng
+
 
     ini_path_ = os.path.join(foldin, str(ls_usms['inis'][i]))#(path_, 'input', str(ls_usms['inis'][i]))
     ongletIni_ = str(ls_usms['ongletIn'][i])

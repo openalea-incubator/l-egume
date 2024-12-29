@@ -6,6 +6,9 @@ import pandas as pd
 #from rpy_options import set_options
 #set_options(RHOME='c:/progra~1/R/R-2.12.1')
 #from rpy import r
+import os
+import xml.etree.ElementTree as ET # for XML files
+
 
 def get_xls_col(sheet):
     """ recupere dans une feuille excel donnees par colone  """
@@ -128,7 +131,7 @@ def extract_list(dat, ls_id, ls_vals, L1=1):
 
 
 def read_plant_param(xls_path, onglet):
-    """ lit l'onglet d'un fichier xls pour cree un dico de parametre plante (L-egume)- se base sur 3 colones 'name', 'nb_par' (0 si sclaire, n si vecteur), 'id_par'
+    """ lit l'onglet d'un fichier xls pour cree un dico de parametre plante (L-egume / VGL)- se base sur 3 colones 'name', 'nb_par' (0 si sclaire, n si vecteur), 'id_par'
     ; presuppose que valeurs a mettre dans un vecteur sont deja ordonnees"""
     book=xlrd.open_workbook(xls_path)
     shc = get_xls_col(book.sheet_by_name(onglet))
@@ -153,7 +156,7 @@ def read_plant_param(xls_path, onglet):
 
 
 def read_sol_param(xls_path, onglet):
-    """ lecture du fichier sol dans par_SN et mise en forme du dictionnaire par_sol"""
+    """ lecture du fichier sol VGL dans par_SN et mise en forme du dictionnaire par_sol"""
     par_SN = read_plant_param(xls_path, onglet)
     par_sol = {}
     for i in range(len(par_SN['soil_number'])):
@@ -165,7 +168,7 @@ def read_sol_param(xls_path, onglet):
 
 
 def read_met_file(meteo_path, ongletM):
-    """ lecture de fichier meteo / Mng """
+    """ lecture de fichier meteo / Mng type VGL """
     #meteo_path = os.path.join(path_leg,'meteo_exemple2.xls')#r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
     #ongletM = 'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
     met = xlrd.open_workbook(meteo_path)
@@ -335,3 +338,246 @@ def sum_ls_dic(dic):
     for k in list(dic.keys()):
         dic[k] = sum(dic[k])
 
+
+
+#### to read STICS files
+
+
+def fill_metAN_fromSTICS(input_folder, tabSTICS):
+    """ Converts STICS meteo file table into VGL meteo dictionnary
+
+    :param input_folder: input folder containing the 'meteo_exemple.xls' file
+    :param tabSTICS: panda data.frame of the STICS meteo file of a given year
+    :return: VGL meteo dictionnary
+    """
+
+    # ! necessite 'meteo_exemple.xls' dans les inputs!!
+    path_m = os.path.join(input_folder, 'meteo_exemple.xls')  #
+
+    tab = tabSTICS
+    lentab = tab.shape[0]
+    if lentab==365:
+        basemet = read_met_file(path_m, 'default365') #deepcopy(met365)
+    elif lentab==366:
+        basemet = read_met_file(path_m, 'default366') #deepcopy(met366)
+    else:
+        print("annee meteo incomplete")
+
+    #an
+    basemet['year'] = tab['AN'].tolist()
+    #Tmin, Tmax, Tmoy
+    basemet['Tmin'] = tab['TN'].tolist() #degresC
+    basemet['Tmax'] = tab['TX'].tolist() #degresC
+    Tmoy = (tab['TN'] + tab['TX'])/2.
+    basemet['TmoyDay'] = Tmoy.tolist() #degresC
+    # Tsol
+    basemet['Tsol'] = Tmoy.tolist() #degresC #-> sans mesure, supose egal a air...
+    #Et0, PP
+    basemet['Et0'] = tab['ETPP'].tolist() #mm
+    basemet['Precip'] = tab['RR'].tolist() #mm
+    #RG, I0
+    RG = tab['RG']*100 # conversion J.cm-2 #!! unite a ce niveau
+    basemet['RG'] = RG.tolist() #J.cm-2
+    I0 = 0.48*RG/(3600*24)*10000 # conversion W PAR.m-2
+    basemet['I0'] = I0.tolist() #W PAR.m-2
+    #V et CO2 (not used)
+    basemet['V'] = tab['V'].tolist() #m.s-1
+    basemet['CO2'] = tab['CO2'].tolist() #ppm
+
+    #to to: prevoir filling quand ETPP manquant! + test unite RG
+
+    return basemet
+
+
+def fill_mng_fromSTICS(input_folder, mngSTICS, met):
+    """ Converts STICS tec file into VGL management dictionnary
+
+    :param input_folder: input folder containing the mngSTICS file
+    :param mngSTICS: name of the STICS tec file
+    :param met: VGL meteo dictionnary
+    :return: VGL management dictionnary, list of information extracted from XML file
+    """
+
+    #marche pour usm avec dates fixes d'intervention (pas management automatique)
+
+    # construction du fichier management base a partir de met et xml stics
+    # default base
+    basemng = {'Date': met['Date'], 'year': met['year'], 'month': met['month'], 'day': met['day'], 'DOY': met['DOY']}
+    basemng['Coupe'] = [0] * len(basemng['DOY']) #yes/no : 1/0
+    basemng['Irrig'] = [0] * len(basemng['DOY']) #mm
+    basemng['FertNO3'] = [0] * len(basemng['DOY']) #kg N/ha
+    basemng['FertNH4'] = [0] * len(basemng['DOY']) #kg N/ha
+    basemng['Hcut'] = [3.] * len(basemng['DOY']) #cm
+    basemng['WidthCut'] = [1000.] * len(basemng['DOY']) #cm # not used
+
+    #mise a jour avec coupe et ferti/irrig du managment
+    path_mng = os.path.join(input_folder, mngSTICS)
+    treem = ET.parse(path_mng)
+    rootm = treem.getroot()
+
+    ## dates de coupe en dur depuis xml
+    mngcut = rootm.find("./formalisme[@nom='special techniques']")
+    mngcutta = mngcut.find("./option/choix/option/choix/ta[@nom='cutting management']")
+
+    #nb_cut
+    nb_cut = int(mngcutta.attrib['nb_interventions'])
+    # recup des DOY et Hcut
+    ls_DOYcut = []
+    ls_Hcut = []
+    if nb_cut>0:
+        cuts_ = mngcutta.findall("./intervention/colonne[@nom='julfauche']")
+        for cut_ in cuts_:
+            ls_DOYcut.append(int(cut_.text))
+
+
+        cuts_ = mngcutta.findall("./intervention/colonne[@nom='hautcoupe']")
+        for cut_ in cuts_:
+            hcut = float(cut_.text)*100. -2. #cm
+            ls_Hcut.append(hcut)
+
+        #remplacement des DOYcut et Hcut dans basemng
+        for i in range(len(ls_DOYcut)):
+            idcut = ls_DOYcut[i]-1
+            if idcut < basemng['DOY'][-1]: # si bien dans la periode de simul
+                basemng['Coupe'][idcut] = 1
+                basemng['Hcut'][idcut] = ls_Hcut[i]
+
+    # to do: autres options de coupe: auto / TT ... a faire a partir de management auto VGL
+
+
+    ## irrigation
+    mngirr = rootm.find("./formalisme[@nom='irrigation']")
+    mngirrta = mngirr.find("./option/choix/ta[@nom='water inputs']")
+    #nb_irrig
+    nb_irrig = int(mngirrta.attrib['nb_interventions'])
+    ls_DOYirr = []
+    ls_amountirr = []
+    if nb_irrig>0:
+
+        irrs_ = mngirrta.findall("./intervention/colonne[@nom='julapI_or_sum_upvt']")
+        for irr_ in irrs_:
+            ls_DOYirr.append(int(irr_.text))
+
+        irrs_ = mngirrta.findall("./intervention/colonne[@nom='amount']")
+        for irr_ in irrs_:
+            ls_amountirr.append(float(irr_.text))
+
+        # remplacement des DOYirr et amount dans basemng
+        for i in range(len(ls_DOYirr)):
+            idcut = ls_DOYirr[i]-1
+            if idcut < basemng['DOY'][-1]: # si bien dans la periode de simul
+                basemng['Irrig'][idcut] = ls_amountirr[i]
+
+
+
+    ## fertilisation
+    mngfert = rootm.find("./formalisme[@nom='fertilisation']")
+    mngfertta = mngfert.find("./ta[@nom='mineral nitrogen inputs']")
+    #nb_fert
+    nb_fert = int(mngfertta.attrib['nb_interventions'])
+    ls_DOYfert = []
+    ls_Amountfert = []
+    ls_typefert = []
+    if nb_fert>0:
+
+        ferts_ = mngfertta.findall("./intervention/colonne[@nom='julapN_or_sum_upvt']")
+        for fert_ in ferts_:
+            ls_DOYfert.append(int(fert_.text))
+
+        ferts_ = mngfertta.findall("./intervention/colonne[@nom='absolute_value/%']")
+        for fert_ in ferts_:
+            ls_Amountfert.append(float(fert_.text))
+
+        ferts_ = mngfertta.findall("./intervention/colonne[@nom='engrais']")
+        for fert_ in ferts_:
+            ls_typefert.append(int(fert_.text))
+
+        # remplacement des DOYfert et amount dans basemng
+        for i in range(len(ls_DOYfert)):
+            idcut = ls_DOYfert[i] - 1
+            if idcut < basemng['DOY'][-1]:  # si bien dans la periode de simul
+                # id '1': ammonium nitrate
+                # id '2': UAN solution
+                # id '3': urea
+                # id '4': anydride ammonium
+                # id '5': ammonium sulfate
+                # id '6': calcium nitrate
+                # id '8': fixed efficiency fertilizer
+                # suppose doses toutes en kg N.ha-1 -> a verifier (pas poids masse absolue?)
+                if ls_typefert[i] in [4,5]: #100% ammonium
+                    basemng['FertNH4'][idcut] = ls_amountirr[i]
+                elif ls_typefert[i] in [6]: #100% nitrate
+                    basemng['FertNO3'][idcut] = ls_amountirr[i]
+                elif ls_typefert[i] in [1]: #50% nitrate / 50% ammonium
+                    basemng['FertNO3'][idcut] = 0.5*ls_amountirr[i]
+                    basemng['FertNH4'][idcut] = 0.5*ls_amountirr[i]
+                else:
+                    basemng['FertNH4'][idcut] = ls_amountirr[i] #! autres fertilisant pour le moment mis en ammonium
+
+                # check unite apport bien kg N.ha-1!
+
+    info_mng = [[nb_cut, ls_DOYcut, ls_Hcut], [nb_irrig, ls_DOYirr, ls_amountirr], [nb_fert, ls_DOYfert, ls_Amountfert, ls_typefert]]
+
+    return basemng, info_mng
+    #mng, info_mng = fill_mng_fromSTICS(path_leg, nom_mng, met)
+
+
+def read_usmXML_fromSTICS(input_folder, usm_file, usm_name):
+    """ Converts STICS usm file into input dictionnaries for VGL model
+
+    :param input_folder: input folder containing the STICS and 'meteo_exemple.xls' files
+    :param usm_file: name of the STICS usm file (.xml)
+    :param usm_name: name of STICS usm
+    :return: VGL meteo dictionnary, VGL management dictionnary, list of information extracted from XML files
+    """
+
+    # recumperer nom_m1 et nom_m2 dans fichier XML
+    # usm_file = 'usms.xml'
+    # usm_name = 'DivLegLuz15'
+
+    path_usm = os.path.join(input_folder, usm_file)
+    tree = ET.parse(path_usm)
+    root = tree.getroot()
+
+    # lecture noms fichiers dans usm xml
+    usm = root.find("./usm[@nom='" + usm_name + "']")
+    nom_m1 = usm.find("./fclim1").text
+    nom_m2 = usm.find("./fclim2").text
+    nom_sol = usm.find("./nomsol").text
+    # prend mng plante1 (stics cuture pure)
+    usmplt1 = usm.find("./plante[@dominance='1']")
+    nom_mng = usmplt1.find("./ftec").text
+    usmdoydeb = int(usm.find("./datedebut").text)
+    usmdoyend = int(usm.find("./datefin").text)
+
+    # lecture fichiers meteo STICS
+    # faire par anne puis fonction concat des dico
+    tab1 = pd.read_csv(os.path.join(input_folder, nom_m1), sep=' ', decimal='.', header=None)
+    tab1 = tab1.iloc[:, 0:13]  # garde les 13 colonnes
+    tab1.columns = ["NUM_POSTE", "AN", "MOIS", "JOUR", "DOY", "TN", "TX", "RG", "ETPP", "RR", "V", "VPD", "CO2"]
+    lentab1 = tab1.shape[0]
+
+    tab2 = pd.read_csv(os.path.join(input_folder, nom_m2), sep=' ', decimal='.', header=None)
+    tab2 = tab2.iloc[:, 0:13]  # garde les 13 colonnes
+    tab2.columns = ["NUM_POSTE", "AN", "MOIS", "JOUR", "DOY", "TN", "TX", "RG", "ETPP", "RR", "V", "VPD", "CO2"]
+    lentab2 = tab2.shape[0]
+
+    # conversion fichiers meteo pour VGL
+    met1 = fill_metAN_fromSTICS(input_folder, tab1)
+    met2 = fill_metAN_fromSTICS(input_folder, tab2)
+
+    # si 2 ans -> concatene les 2 annees
+    if nom_m1 != nom_m2:
+        met = add_dic(met2, met1)
+        met['DOY'] = list(range(1, len(met['DOY']) + 1))  # update DOY
+    else:
+        met = met1
+
+    # definition management
+    mng, info = fill_mng_fromSTICS(input_folder, nom_mng, met)
+    info.append([nom_sol, nom_m1, nom_m2, nom_mng, usmdoydeb, usmdoyend])
+
+    #renvoie pas le sol -> traite dans sol3ds
+    return met, mng, info
+    #met, mng, info = read_usmXML_fromSTICS(path_leg, 'usms.xml', 'DivLegLuz15')
+    #ajouter ecriture des fichiers en option

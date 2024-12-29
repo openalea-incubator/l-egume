@@ -100,18 +100,6 @@ forceOrder =  None #[0,1,1] #
 WidthCut = 1000.#5. #cm # pour coupe localisee rang / a reporter en lecture fichier management
 
 
-## lecture fichier meteo
-#faire une fonction??
-meteo_path = os.path.join(path_leg,'meteo_exemple.xls')#'meteo_exemple_debugL_gl.xls')##r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
-ongletM = 'Lusignan30'#'DigitLuz10'#'Lusignan30'#'Lusignan302ans'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
-meteo = IOxls.read_met_file(meteo_path, ongletM)
-
-
-## lecture fichier initialisation
-inis_path = os.path.join(path_leg, 'Init_sol_exemple.xls')#'Initialisation_sol_exemple.xls')
-ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'DivLeg15'#
-inis = IOxls.read_plant_param(inis_path, ongletIn)
-
 ## lecture fichier plante
 path_plante = os.path.join(path_leg,'Parametres_plante_exemple.xls')#'Parametres_plante_v5cLucas.xls')#'Parametres_plante_v18.xls')#'Parametres_plante_v9Lucas_debugL.xls')#r'H:\devel\grassland\grassland\L-gume\Parametres_plante_v5cLucas.xls' 
 #ongletP = 'Fix2'#'Fet'#'Orca'#'TB'##'giga'#'solnu'#'Fix1'#'Fix'#'timbale'#'formica'#'canto'##'alfalfa'#'geno_test'#'G3'#'C1'#'8_2'#'kayanne'#'leo'#'G1'#'timbale'##
@@ -123,17 +111,39 @@ ls_Spe = tabSpe["ongletP"].tolist()
 #ls_Spe = ['Fix2', 'nonFixSimTest', 'Fet','TB','Orca']#['Fix2', 'nonFixSimTest', 'Fet','TB']#['Fix2', 'nonFixSimTest', 'Fet']
 
 
-## lecture fichier management (2 types possibles selon opt_Mng: obs/auto)
-mn_path = os.path.join(path_leg,'management_exemple.xls')#'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
-ongletMn = 'Lusignan30IrrN'#'Lusignan30Irr'#'Lusignan30'#'Lusignan30IrrN2'#'DigitLuz10'#'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'illimite-sanscoupe'#'combileg15-irrigajusteeLUZTVMIN'#'combileg16-irrigajusteeMIN'#'Lusignan30'#'Avignon30IrrN'#'Avignon30'#
-#mn_path = os.path.join(path_leg,'management_auto_exemple.xls')# exemple pour auto
-#ongletMn = 'exemple'
-if opt_Mng == 0:
-    mng = IOxls.read_met_file(mn_path, ongletMn)
-elif opt_Mng == 1: #Automatic management file
-    mng_auto = IOxls.read_plant_param(mn_path, ongletMn)
-    mng = mna.Build_mng_auto(meteo, mng_auto, path_plante, ls_Spe[0], DOYdeb, opt_optT)
 
+## lecture fichier meteo
+meteo_file = 'meteo_exemple.xls' #'usms.xml'##'meteo_exemple_debugL_gl.xls')##r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
+ongletM = 'Lusignan30'#'DivLegLuz15'#'DigitLuz10'#'Lusignan30'#'Lusignan302ans'#'DivLeg15'#'morpholeg15'#'combileg15'#'combileg16'#'Avignon30'#'exemple'#'morpholeg15'#'testJLD'#'competiluz'#
+meteo_path = os.path.join(path_leg,meteo_file)
+
+## lecture fichier management (3 types possibles selon opt_Mng: obs/auto et STICS-XLM)
+mng_file = 'management_exemple.xls' #'management_exemple3_debugL_gl.xls')#r'H:\devel\grassland\grassland\L-gume\management_exemple.xls'
+ongletMn = 'Lusignan30IrrN'#'Lusignan30Irr'#'Lusignan30'#'Lusignan30IrrN2'#'DigitLuz10'#'Lusignan30IrrN2'#'Lusignan30IrrN2ans'#'DivLeg15'#'Lusignan30IrrN'#'combileg16-irrigajusteeMIN'#
+mn_path = os.path.join(path_leg, mng_file)
+
+
+#lecture
+if meteo_file[-4:] == '.xml': #fichier xml STICS
+    meteo, mng, info_xml = IOxls.read_usmXML_fromSTICS(path_leg, meteo_file, ongletM)#'usms.xml', 'DivLegLuz15')
+    #print(info_xml)
+    # gere pas option mng_auto...
+else:
+    # fichier .xls VGL
+    meteo = IOxls.read_met_file(meteo_path, ongletM)
+    
+    if opt_Mng == 0:
+        mng = IOxls.read_met_file(mn_path, ongletMn)
+    elif opt_Mng == 1: #Automatic management file
+        mng_auto = IOxls.read_plant_param(mn_path, ongletMn)
+        mng = mna.Build_mng_auto(meteo, mng_auto, path_plante, ls_Spe[0], DOYdeb, opt_optT)
+
+
+
+## lecture fichier initialisation
+inis_path = os.path.join(path_leg, 'Init_sol_exemple.xls')#'Initialisation_sol_exemple.xls')
+ongletIn = 'Lusignan30_5x5'#'Lusignan30'#'morpholeg_rhizo'#'combileg15'#'combileg16'#'Lusignan30Irr'#'Avignon30IrrN'#'Avignon30'#'DivLeg15'#
+inis = IOxls.read_plant_param(inis_path, ongletIn)
 
 #lecture des parametres du sol
 sol_file = 'Parametres_sol_exemple.xls' #'sols.xml'#'Parametres_sol_exemple2_debugL_glbis.xls'#
@@ -301,7 +311,6 @@ def Start():
     
     #initialisation du sol
     global S, Tsol, Uval, stateEV, b_,  obstarac_, ls_mat_res, setr, vCC
-    print(meteo_j)
     S, Tsol = initial.init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, pattern8, opt_residu, obstarac_)
 
     vCC = initial.init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN)
