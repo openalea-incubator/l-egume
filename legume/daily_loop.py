@@ -724,7 +724,7 @@ def write_vgl_outf(outf, path_out, ls_outf_names, ls_objw, ls_keyvar_pot, outfva
 
 
 def distrib_residue_mat_frominvar(ls_mat_res, S, ls_roots, profres, ParamP, invar, opt_stressGel):
-    """ Distribute senescing tissues in ls_mat_res - After plant senescence/per residu type - from invar and ParamP of legume model """
+    """ Distribute senescing tissues in ls_mat_res (g MS par voxl) - After plant senescence/per residu type - from invar and ParamP of legume model """
 
     dz_sol = S.dxyz[2][0]*100. #cm
     #couches2keep = min(int(profres / dz_sol) + 1, len(S.dxyz[2]))
@@ -776,6 +776,31 @@ def distrib_residue_mat_frominvar(ls_mat_res, S, ls_roots, profres, ParamP, inva
 
     return ls_mat_res
 
+def distrib_residue_mat_frommng(ls_mat_res, S, mng_j):
+    """ Distribute organic residues from management file in first soil layer - 3 default residues """
+
+    #quelle unite ls_mat_res? -> en g MS par voxl
+    # dans mng = en T MS.ha-1
+    # !! si plusieurs groupes de residus -> ok, tjrs les 3 derniers de la liste
+
+    # res1 (avant avant dernier)
+    mat_res = ls_mat_res[-3] * 0.
+    mat_res[0,:,:] = (mng_j['Res1']*1000/10000) *  S.soilSurface /(1000*float(len(S.dxyz[0])*len(S.dxyz[1]))) # T.ha-1-> kg.m-2 puis g par voxel de couche 1
+    ls_mat_res[-3] += mat_res
+
+    # res2 (avant dernier)
+    mat_res = ls_mat_res[-2] * 0.
+    mat_res[0, :, :] = (mng_j['Res2'] * 1000 / 10000) * S.soilSurface / (1000 * float(len(S.dxyz[0]) * len(S.dxyz[1])))  # T.ha-1-> kg.m-2 puis g par voxel de couche 1
+    ls_mat_res[-2] += mat_res
+
+    # res3 (dernier)
+    mat_res = ls_mat_res[-1] * 0.
+    mat_res[0, :, :] = (mng_j['Res3'] * 1000 / 10000) * S.soilSurface / (1000 * float(len(S.dxyz[0]) * len(S.dxyz[1])))  # T.ha-1-> kg.m-2 puis g par voxel de couche 1
+    ls_mat_res[-1] += mat_res
+
+    return ls_mat_res
+
+
 
 def merge_residue_mat(ls_mat_res, vCC, S):
     # ajout dans la matrice des residus au sol
@@ -789,7 +814,7 @@ def merge_residue_mat(ls_mat_res, vCC, S):
     return S
 
 
-def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, opt_residu, opt_stressGel):
+def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, mng_j, opt_residu, opt_stressGel):
     """ Distribute senescing tissues in ls_mat_res - After plant senescence/per residu type """
     # ajout dans la matrice des residus
 
@@ -842,6 +867,7 @@ def update_residue_mat(ls_mat_res, vCC, S, ls_roots, profres, ParamP, invar, opt
     #         ls_mat_res[groupe_resid * 4 + 3] += mat_res  # ajout au groupe 4 = feuille
 
     ls_mat_res = distrib_residue_mat_frominvar(ls_mat_res, S, ls_roots, profres, ParamP, invar, opt_stressGel)
+    ls_mat_res = distrib_residue_mat_frommng(ls_mat_res, S, mng_j) #ajout ferti organique
 
     # inclusion dans objet sol
     # if opt_residu == 1:  # option residu activee: mise a jour des cres

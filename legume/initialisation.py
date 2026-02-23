@@ -41,7 +41,7 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
     DOY = DOYdeb
     meteo_j = IOxls.extract_dataframe(meteo, ['DOY','TmoyDay', 'RG', 'Et0', 'Precip', 'Tmin', 'Tmax', 'Tsol'], 'DOY', val=DOY)
     meteo_j['I0'] = [0.48 * meteo_j['RG'][0] * 10000 / (3600 * 24)]  # flux PAR journalier moyen en W.m-2 / RG en j.cm-2
-    mng_j = IOxls.extract_dataframe(mng, ['Coupe', 'Irrig', 'FertNO3', 'FertNH4', 'Hcut'], 'DOY', val=DOY)
+    mng_j = IOxls.extract_dataframe(mng, ['Coupe', 'Irrig', 'FertNO3', 'FertNH4', 'Hcut', 'WidthCut','Res1','Res2','Res3'], 'DOY', val=DOY)
     for k in list(meteo_j.keys()): meteo_j[k] = meteo_j[k][0]
     for k in list(mng_j.keys()): mng_j[k] = mng_j[k][0]
     meteo_j['durjour'] = sh.DayLength(station['latitude'], sh.DecliSun(DOY % 365))
@@ -60,6 +60,7 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
     isRegrowth = False  # indicateur: est on a la pousse initiale ou bien plus tard?
     Hcut = 1.  # 3.#simple initialisation : est passe en lecture fichier management
     cutNB = 0
+    WidthCut = 1000 ##simple initialisation
 
     ## divers
     start_time, past_time = time.time(), 0.  # pour recuperer temps de calcul
@@ -75,7 +76,7 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
 
     # test_retard = [tir1, tir2] #pour gerer deux especes
 
-    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station
+    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, wasTTcut, isRegrowth, cutNB, Hcut, WidthCut, start_time, past_time, station
 
 
 
@@ -233,6 +234,13 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN):
                     # print ('par',CNRES, CC, WC, Nmires)
                     break  # s'arrete a premiere plante de ce groupe
 
+        #ajout en dur de 3 groupes de residus pour ferti organique surface depuis management avec valeurs par defaut (legumineuse, paille, fumier)
+        CNRES = CNRES + [14, 46, 16.6]
+        CC = CC + [0.42, 0.42, 0.42]
+        WC = WC + [0.7, 0.7, 0.85]
+        Nmires = Nmires + [0.0097, 0.0097, 0.1]
+
+
         if len(setg) == 1:  # si 1 seul grope, met qd meme un deuxieme residu de meme type pour pas planter
             for nump in range(nbplantes):
                 if ParamP[nump]['groupe_resid'] == setg[0]:
@@ -248,9 +256,10 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN):
 
         # distrib dans le sol en dur!
         nb_res = len(CNRES)  # 4 types de residus par espece (4 compatiment du papier) * 2 especes #pas utilise jusque la? (force donc cycles boucle pas? ou  ajuster a 1 moment?)
-        vAmount = [0.1] * nb_res  # [20.]# T Fresh Weight.ha-1 (equivalent QRES)
+        vAmount = [0.01] * nb_res  # [20.]# T Fresh Weight.ha-1 (equivalent QRES)
         Vprop1 = [1. / 3., 1. / 3., 1. / 3.] + 50 * [0.]  # distribution dans les horizons #-> change 27 en 50 pour etre sur d'avoir le nb d'horizon-> a adapter selon le vrai nbr d'horizons!!!
-        vProps = [Vprop1] * nb_res  # [Vprop1]#[Vprop1, Vprop1, Vprop1]
+        Vpropsurf = [1., 0., 0.] + 50 * [0.] #pour apports orga en surface
+        vProps = [Vprop1] * (nb_res-3) + [Vpropsurf]*3  # [Vprop1]#[Vprop1, Vprop1, Vprop1]
 
         # S.init_residues(vCNRESt, vAmount, vProps, vWC, vCC)
 

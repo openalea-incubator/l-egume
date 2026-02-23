@@ -97,7 +97,7 @@ TreshChangeRoot = 0.5 #cm # minimum to update ls_roots
 noiseGeom = [0.001, 0.001, 0.001] #[15., 20., 20.] #[35., 30., 30.] #[phyllotaxy, IncPet, gammaFeuil] #en degre -> pour bruit sur geometrie
 forceCarto = None #[np.array([1.,2.,0.]), np.array([11.,2.,0.]), np.array([7.,7.,0.])] # ! doit etre des float
 forceOrder =  None #[0,1,1] #
-WidthCut = 1000.#5. #cm # pour coupe localisee rang / a reporter en lecture fichier management
+#WidthCut = 1000.#5. #cm # pour coupe localisee rang / -> reporte en lecture fichier management
 
 
 ## lecture fichier plante
@@ -269,14 +269,14 @@ class Plt_seed(object):
 def Start():
     
     #initialisation des variables globale de simulation
-    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, test_retard, mn_sc, station, path_station, ongletSta, epsilon
+    global DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, WidthCut, start_time, past_time, test_retard, mn_sc, station, path_station, ongletSta, epsilon
     
     ##seed nombre aleatoires
     global Rseed, ls_seeds
     np.random.seed(Rseed)
     
     #DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station = init_glob_variables_sim(meteo, mng, DOYdeb)
-    DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station = initial.init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta)
+    DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut,wasTTcut, isRegrowth, cutNB, Hcut, WidthCut, start_time, past_time, station = initial.init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta)
     
     # initialisation des parametres plante
     global ParamP, nbplantes
@@ -468,6 +468,7 @@ def StartEach():
         
         # remises a zero
         Hcut = mng_j['Hcut']
+        WidthCut = mng_j['WidthCut']
         isTTcut = True
         wasTTcut = True
         isRegrowth = True
@@ -747,7 +748,7 @@ def EndEach(lstring,lscene):
         #step update soil residues senescence
         ##########
         
-        tag_inputs_residue_updt = [ls_mat_res, vCC, S, ls_roots, par_SN['PROFHUMs'], ParamP, invar, opt_residu, opt_stressGel] #input tag
+        tag_inputs_residue_updt = [ls_mat_res, vCC, S, ls_roots, par_SN['PROFHUMs'], ParamP, invar, mng_j, opt_residu, opt_stressGel] #input tag
         
         res_residue_step = loop.update_residue_mat(*tag_inputs_residue_updt)
         ls_mat_res, S = res_residue_step #unpacks results from a list and updates global variables
@@ -795,7 +796,7 @@ def EndEach(lstring,lscene):
     
     meteo_j = IOxls.extract_dataframe(meteo, ['DOY','TmoyDay','RG','Et0','Precip','Tmin','Tmax','Tsol'], 'DOY', val=DOY)
     meteo_j['I0'] = [0.48*meteo_j['RG'][0]*10000/(3600*24)]#flux PAR journalier moyen en W.m-2 / RG en j.cm-2
-    mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut'], 'DOY', val=DOY)
+    mng_j = IOxls.extract_dataframe(mng, ['Coupe','Irrig', 'FertNO3','FertNH4','Hcut','WidthCut','Res1','Res2','Res3'], 'DOY', val=DOY)
     if opt_verbose==1:
         print (DOY)
     
