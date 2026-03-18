@@ -8,8 +8,9 @@
 #########
 
 
-from numpy import linspace
-from scipy import array,ones,sum, shape, reshape
+#from numpy import linspace
+#from scipy import array,ones,sum, shape, reshape
+import numpy as np
 from copy import deepcopy
 
 #from rpy import r
@@ -26,9 +27,9 @@ def lims_soil(pattern8, dxyz, unit='cm'):
     elif unit=='m':
         cor_unit=1.
 
-    xlims = linspace(pattern8[0][0], pattern8[1][0],len(dxyz[0])+1)
-    ylims = linspace(pattern8[0][1], pattern8[1][1],len(dxyz[1])+1)
-    zlims = linspace(0, sum(dxyz[2])*cor_unit,len(dxyz[2])+1)
+    xlims = np.linspace(pattern8[0][0], pattern8[1][0],len(dxyz[0])+1)
+    ylims = np.linspace(pattern8[0][1], pattern8[1][1],len(dxyz[1])+1)
+    zlims = np.linspace(0, sum(dxyz[2])*cor_unit,len(dxyz[2])+1)
     lims = [xlims,ylims,zlims]
     return lims 
     # a mettre en fonction dans module sol?
@@ -38,8 +39,8 @@ def lims_soil(pattern8, dxyz, unit='cm'):
 
 def BBOX(p,r,H):
     "bounding box d'un cylindre avec p (centre face inferieure), rayon r, hauteur H"
-    p1 = p - array([r,r,0])
-    p2 = p + array([r,r,H])
+    p1 = p - np.array([r,r,0])
+    p2 = p + np.array([r,r,H])
     return p1, p2
 
 def VolBBOX(p1,p2):
@@ -115,7 +116,7 @@ def frac_voxelsBBox(pmin,pmax,lims):
                 frac =1.
 
             v.append(frac)
-        vv.append(array(v))
+        vv.append(np.array(v))
     return vv
 
 
@@ -144,7 +145,7 @@ def fracBBOX(fracs, m1):
 def updateRootDistrib(RLtot, syst_rac, lims, optNorm=0):
     """ Distribution de longueur totale de racine (RLtot, m) dans grille (lims) pour une liste de cylindre decrivant le volume d'une systeme racinaire"""
     # for a single root system
-    m_1 = ones([len(lims[2])-1, len(lims[1])-1,len(lims[0])-1])#matrice equivalente d'un objet sol
+    m_1 = np.ones([len(lims[2])-1, len(lims[1])-1,len(lims[0])-1])#matrice equivalente d'un objet sol
     if syst_rac==[]:#secondaires pas develope
         mL = deepcopy(m_1)*0.
         #ou met-on RLtot?
@@ -155,14 +156,14 @@ def updateRootDistrib(RLtot, syst_rac, lims, optNorm=0):
         Vols = []
         ls_fracs = []
         for i in range(len(syst_rac)):
-            pmin,pmax = BBOX(array([syst_rac[i][0], syst_rac[i][1], syst_rac[i][2]]),r=syst_rac[i][3],H=syst_rac[i][4])
+            pmin,pmax = BBOX(np.array([syst_rac[i][0], syst_rac[i][1], syst_rac[i][2]]),r=syst_rac[i][3],H=syst_rac[i][4])
             pminc,pmaxc =cor_points(pmin,pmax,lims)
             fracs = frac_voxelsBBox(pminc,pmaxc,lims)
             ls_fracs.append(fracBBOX(fracs, m_1))
             Vols.append(VolBBOX(pmin,pmax))
 
         #calcul des Longueur de racine par voxel
-        frac_roots = array(Vols)/sum(Vols) #fraction proportionnelle au volume => densite constante sauf dans zones d'overlap
+        frac_roots = np.array(Vols)/sum(Vols) #fraction proportionnelle au volume => densite constante sauf dans zones d'overlap
         L_roots = frac_roots*RLtot
 
         mL = deepcopy(m_1)*0.
@@ -171,7 +172,7 @@ def updateRootDistrib(RLtot, syst_rac, lims, optNorm=0):
 
     #si renvoi distrib normalisee
     if optNorm==1:
-        mL = mL / max(sum(mL),10e-15)#
+        mL = mL / max(np.sum(mL),10e-15)#
 
     return mL
 
@@ -209,7 +210,7 @@ def propRootDistrib_upZ(ls_roots, depth=None, dz_sol=5.):
             mat_keep = mat_ini[0,:,:]
             mat_2 = mat_ini*0.
             mat_2[0,:,:] = mat_keep
-            mat_ = mat_2 / max(sum(mat_2), 10e-15)
+            mat_ = mat_2 / max(np.sum(mat_2), 10e-15)
             ls_props.append(mat_)
         else:
             mat_ini = ls_roots[nump]
@@ -217,7 +218,7 @@ def propRootDistrib_upZ(ls_roots, depth=None, dz_sol=5.):
             mat_keep = mat_ini[0:row_to_keep, :, :]
             mat_2 = mat_ini * 0.
             mat_2[0:row_to_keep, :, :] = mat_keep
-            mat_ = mat_2 / max(sum(mat_2), 10e-15)
+            mat_ = mat_2 / max(np.sum(mat_2), 10e-15)
             ls_props.append(mat_)
 
     return ls_props

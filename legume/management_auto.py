@@ -16,7 +16,8 @@ sys.path.insert(0, path_leg)
 
 import IOxls
 import ShootMorpho as sh
-from scipy import array
+#from scipy import array
+import numpy as np
 
 #meteo
 #meteo_path = os.path.join(path_leg,'meteo_exemple.xls')#'meteo_exemple_debugL_gl.xls')##r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
@@ -60,7 +61,7 @@ def Build_mng_auto(meteo, mng, path_plante, ongletP, DOYdeb, opt_optT):
 
 
     #en fonction d'un vecteur de valeurs
-    tt = array(mng_auto['TT'])
+    tt = np.array(mng_auto['TT'])
 
     #calul des dates de coupes
     mng_auto['Coupe'] = [0]*len(mng_auto['TT'])

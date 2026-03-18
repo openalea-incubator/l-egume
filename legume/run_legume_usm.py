@@ -1,6 +1,7 @@
 
 #import the modules necessary to initiate the L-systems
-from openalea.lpy import *
+import openalea.lpy as lpy
+#from openalea.lpy import *
 
 import os
 import sys
@@ -20,11 +21,12 @@ import pandas as pd
 import getopt
 #import zipfile
 
+from soil3ds import soil_moduleN as solN #pour lecture sol xml
 
 
 
 #def lsystemInputOutput_usm(path_, fxls_usm, i=0, foldin = 'input', ongletBatch = 'exemple'):
-def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', i=0, path_OUT='output'):
+def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', i=0, path_OUT='output', update_usm_parameters=None):
     """" cree et update l-system en fonction du fichier usm """
 
     # lecture de la liste des usm
@@ -33,6 +35,10 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     usms = IOxls.xlrd.open_workbook(usm_path)
     ls_usms = IOtable.conv_dataframe(IOxls.get_xls_col(usms.sheet_by_name(ongletBatch)))
     #foldin = pour cas ou fichier d'usm dans un sous dossier different de input / tous les autres sont dans input
+
+    if update_usm_parameters is not None:
+        for key, value in update_usm_parameters.items():
+            ls_usms[key][i] = value
 
     #nom fichier en dur (pas en entree de la fonction) + onglet determine par geno
     fscenar = 'liste_scenarios.xls' #'liste_scenarios_exemple.xls'
@@ -53,21 +59,35 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     #names.append(name)
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
     path_lsys = os.path.join(path_, str(ls_usms['l_system'][i]))
-    testsim[name] = Lsystem(path_lsys)  # objet l-system
+    testsim[name] = lpy.Lsystem(path_lsys)  # objet l-system
 
     # testsim[name].ongletM = str(ls_usms['ongletM'][i])
-    meteo_path_ = os.path.join(foldin, str(ls_usms['meteo'][i]))#(path_, 'input', str(ls_usms['meteo'][i]))
+    meteo_file = str(ls_usms['meteo'][i])
     ongletM_ = str(ls_usms['ongletM'][i])
-    testsim[name].meteo = IOxls.read_met_file(meteo_path_, ongletM_)
+    meteo_path_ = os.path.join(foldin, meteo_file)
 
     # testsim[name].ongletMn = str(ls_usms['ongletMn'][i])
-    mn_path_ = os.path.join(foldin, str(ls_usms['mng'][i]))#(path_, 'input', str(ls_usms['mng'][i]))
+    mng_file = str(ls_usms['mng'][i])
     ongletMn_ = str(ls_usms['ongletMn'][i])
-    testsim[name].mng = IOxls.read_met_file(mn_path_, ongletMn_)
+    mn_path_ = os.path.join(foldin, mng_file)
+
+    if meteo_file[-4:] == '.xml':  # fichier xml STICS
+        meteo, mng, info_xml = IOxls.read_usmXML_fromSTICS(foldin, meteo_file, ongletM_)  # 'usms.xml', 'DivLegLuz15')
+        # print(info_xml)
+        # gere pas option mng_auto...
+    else:
+        # fichier .xls VGL
+        meteo = IOxls.read_met_file(meteo_path_, ongletM_)
+        mng = IOxls.read_met_file(mn_path_, ongletMn_)
+        # gere pas option mng_auto...
+
+    testsim[name].meteo = meteo
+    testsim[name].mng = mng
+
 
     ini_path_ = os.path.join(foldin, str(ls_usms['inis'][i]))#(path_, 'input', str(ls_usms['inis'][i]))
     ongletIni_ = str(ls_usms['ongletIn'][i])
-    testsim[name].inis = IOxls.read_plant_param(ini_path_, ongletIni_)
+    inis = IOxls.read_plant_param(ini_path_, ongletIni_)
 
     # testsim[name].ongletP = str(ls_usms['ongletP'][i])
     path_plante = os.path.join(foldin, str(ls_usms['plante'][i]))#(path_, 'input', str(ls_usms['plante'][i]))
@@ -109,13 +129,22 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     #ongletScenar1 = ongletP
 
     # sol
-    path_sol = os.path.join(foldin, str(ls_usms['sol'][i]))#(path_, 'input', str(ls_usms['sol'][i]))
+    sol_file = str(ls_usms['sol'][i])
+    path_sol = os.path.join(foldin, sol_file)#(path_, 'input', str(ls_usms['sol'][i]))
     ongletS = str(ls_usms['ongletS'][i])
-    par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+
+    if sol_file[-4:] == '.xml': #fichier XML stics
+        par_sol, par_SN, inis = solN.read_soil_xmlSTICS(foldin, sol_file, ongletS)
+        #! inis a partir de XML avec certains forcages en dur!
+    else:  # fichier .xls VGL
+        par_SN, par_sol = IOxls.read_sol_param(path_sol, ongletS)
+
     par_SN['concrr'] = 0.  # force eau de pluie dans ls test (a retirer)
     # testsim[name].ongletS = str(ls_usms['ongletS'][i])
+
     testsim[name].par_SN = par_SN
     testsim[name].par_sol = par_sol
+    testsim[name].inis = inis
 
     #station
     path_station = os.path.join(foldin, fsta)
@@ -183,6 +212,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     testsim[name].visu_leaf = int(dic_opt['visu_leaf'])  # 1# pour visualisation/interpretation feuilles slmt
     testsim[name].visu_sol = int(dic_opt['visu_sol'])  # 1# pour visualisation/interpretation sol
     testsim[name].visu_solsurf = int(dic_opt['visu_solsurf'])  # 0 pour visualisation du pattern
+    testsim[name].opt_Trud = int(dic_opt['opt_Trud'])  #0= default square primitive for legume leaves; 1 =To used a detailed leaf primitives for legume leaves (Tudeau leaf)
     testsim[name].frDisplay = int(dic_opt['frDisplay'])  # 1 #sauvegarde de la derniere vue
     testsim[name].movDisplay = int(dic_opt['movDisplay'])  # #sauvegarde toutes les vues pour faire un film
     testsim[name].opt_zip = int(dic_opt['opt_zip'])  # if 1, zip and delete the output csv files
@@ -194,6 +224,8 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     arr = str(ls_usms['typearrangement'][i])
     if arr == 'row4':  # carre rang heterogene
         nbplantes = nbcote * 4
+    elif arr == 'row4_sp1' or arr == 'row4_sp2' :
+        nbplantes = nbcote * 2
     elif arr == 'damier8' or arr == 'damier16' or arr == 'homogeneous' or arr == 'random8' or arr == 'damier9' or arr == 'damier10' or arr == 'damier8_4':  # carre homogene
         nbplantes = nbcote * nbcote
     elif arr == 'damier8_sp1' or arr == 'damier8_sp2' or arr == 'damier16_sp1' or arr == 'damier16_sp2':
@@ -202,7 +234,7 @@ def lsystemInputOutput_usm(fxls_usm, foldin = 'input', ongletBatch = 'exemple', 
     else:
         print('unknown arrangement and nbplant')
 
-    a = AxialTree()
+    a = lpy.AxialTree()
     a.append(testsim[name].attente(1))
     for j in range(0, nbplantes):
         a.append(testsim[name].Sd(j))

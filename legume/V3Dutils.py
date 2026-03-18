@@ -1,42 +1,43 @@
 ### set de fonctions utiles pour manipuler les coordonnees 3D et les vecteurs
 
-import scipy
+#import scipy
+import numpy as np
 
 def XyzToPol (coordxy) :
     """ converti les coordonnees carthesiennes d'un point (x,y,z) en coordonnees polaires (r,azi,incli)"""
     x,y,z = coordxy[0], coordxy[1], coordxy[2]
     xy2 = x*x+y*y
-    r = scipy.sqrt(xy2+z*z)
+    r = np.sqrt(xy2+z*z)
     if r==0 :
         incli =0
     else :
-        incli = scipy.arcsin(z/r)
+        incli = np.arcsin(z/r)
     if (x==0 and y==0):
         azi = 0
     elif (y>=0) :
-        azi = scipy.arccos(x/scipy.sqrt(xy2))
+        azi = np.arccos(x/np.sqrt(xy2))
     else :
-        azi = -scipy.arccos(x/scipy.sqrt(xy2))
-    return scipy.array([r,azi,incli])
+        azi = -np.arccos(x/np.sqrt(xy2))
+    return np.array([r,azi,incli])
 
 
 def PolToXyz (coordpol) :
     """ converti les coordonnees polaires (r,azi,incli) d'un point en coordonnees carthesiennes(x,y,z)"""
     r,azi,incli = coordpol[0], coordpol[1], coordpol[2]
-    z = r * scipy.sin(incli)
-    l = scipy.sqrt (r*r-z*z)
-    x = l * scipy.cos(azi)
-    y = l * scipy.sin (azi)
-    return scipy.array([x, y, z])
+    z = r * np.sin(incli)
+    l = np.sqrt (r*r-z*z)
+    x = l * np.cos(azi)
+    y = l * np.sin (azi)
+    return np.array([x, y, z])
 
 def RotateAxis (coordxy, r_azi, r_incli):
     """ calcule les nouvelles coord d'un point apres rotation autour des axes y (r_incli en radians) et z (r_azi en radians)"""
     #incli d'abord = rotation autour de y
-    Pol_ini = XyzToPol (scipy.array([coordxy[0], coordxy[2], -coordxy[1]]))
-    xyz_r = PolToXyz (scipy.array([Pol_ini[0],Pol_ini[1]+r_incli,Pol_ini[2]]))
+    Pol_ini = XyzToPol (np.array([coordxy[0], coordxy[2], -coordxy[1]]))
+    xyz_r = PolToXyz (np.array([Pol_ini[0],Pol_ini[1]+r_incli,Pol_ini[2]]))
     #azi ensuite = rotation autour de z
-    Pol_sec = XyzToPol (scipy.array([xyz_r[0],-xyz_r[2],xyz_r[1]]))
-    xyz_r2 = PolToXyz (scipy.array([Pol_sec[0],Pol_sec[1]+r_azi,Pol_sec[2]]))
+    Pol_sec = XyzToPol (np.array([xyz_r[0],-xyz_r[2],xyz_r[1]]))
+    xyz_r2 = PolToXyz (np.array([Pol_sec[0],Pol_sec[1]+r_azi,Pol_sec[2]]))
     return xyz_r2
 
 def Translate (coordxy, t):
@@ -57,34 +58,34 @@ def produit_scalaire (u, v) :
 
 def produit_vectoriel (u, v) :
     """produit vectoriel de deux cecteurs u et v"""
-    p = scipy.array([ u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0] ])
+    p = np.array([ u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0] ])
     return p
 
 def normalised_v(vec):
     """ mise a 1 de la norme de vec """
     if vec[2] > 0. :
-        z = scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
+        z = np.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
         y = z*vec[1]/vec[2]
         x = z*vec[0]/vec[2]
     elif vec[2] == 0. :
         vec[2] = 10e-12
-        z = scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
+        z = np.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
         y = z*vec[1]/vec[2]
         x = z*vec[0]/vec[2]
     else :
-        z = -scipy.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
+        z = -np.sqrt((vec[2]*vec[2])/((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0])))
         y = z*vec[1]/vec[2]
         x = z*vec[0]/vec[2]
 
-    return scipy.array([x,y,z])
+    return np.array([x,y,z])
 
 
 def norme_v(vec):
     """ calcule la norme d'un vecteur """
-    return scipy.sqrt((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0]))
+    return np.sqrt((vec[2]*vec[2])+(vec[1]*vec[1])+(vec[0]*vec[0]))
 
 def distance(p1, p2):
-    return scipy.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
+    return np.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
 
 def plane_eq(n, p):
     """compute the parameters a b c d (ax + by, +cz +d =0) of a plane defined by its normalised normal n and a point p"""
@@ -95,7 +96,7 @@ def plane_eq(n, p):
 def intersec_D_plane(plane_par, v, p0):
     """ compute the intersection bewteen a plane and a line defined by p0,v - return -1 if there is no intersection"""
     a,b,c,d = plane_par
-    n = scipy.array([a, b, c])
+    n = np.array([a, b, c])
     ps = produit_scalaire (n, v)
     if ps == 0:
         print("plane and line colinear")

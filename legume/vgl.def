@@ -39,8 +39,19 @@ From: ubuntu:18.04
     #install conda env.yml file
     /opt/miniconda/bin/conda install python=3.7 pip scipy pandas openalea.lpy xlrd -c conda-forge -c fredboudon 
     
+	# Clone and install riri5
+    git clone https://github.com/glouarn/riri5.git
+    cd riri5
+    python setup.py develop
+    cd -
+	
+	# Clone and install soil3ds
+    git clone https://github.com/glouarn/soil3ds.git
+    cd soil3ds
+    python setup.py develop
+    cd -
 
-    # Clone and install lgrass
+    # Clone and install legume
     git clone -b Develop https://github.com/glouarn/l-egume.git
     cd l-egume
     python setup.py develop

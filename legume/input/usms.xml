@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<usms version="10.0">
+  <usm nom="DivLegLuz15">
+    <datedebut>1</datedebut>
+    <datefin>730</datefin>
+    <finit>luz_ini.xml</finit>
+    <nomsol>Lusignan-DivLeg</nomsol>
+    <fstation>lusignan_sta.xml</fstation>
+    <fclim1>Lus.2014</fclim1>
+    <fclim2>Lus.2015</fclim2>
+    <culturean>0</culturean>
+    <nbplantes>1</nbplantes>
+    <codesimul>0</codesimul>
+    <plante dominance="1">
+      <fplt>alfalfa_v10_plt.xml</fplt>
+      <ftec>DivLegLuz15_tec.xml</ftec>
+      <flai>null</flai>
+      <fobs>null</fobs>
+    </plante>
+    <plante dominance="2">
+      <fplt>null</fplt>
+      <ftec>null</ftec>
+      <flai>null</flai>
+      <fobs>null</fobs>
+    </plante>
+  </usm>
+</usms>
+

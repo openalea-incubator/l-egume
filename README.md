@@ -4,11 +4,11 @@ README for L-egume
 
 This is L-egume model, a generic model of forage legume morphogenesis.
 
-See 
-Louarn, G., Faverjon, L. (2018). A generic individual-based model to simulate morphogenesis, C–N acquisition and population dynamics in contrasting forage legumes. Annals of botany, 121(5), 875-896.
-Faverjon, L. (2018). Calibration et evaluation d’un modele individu-centre generique de morphogenese des legumineuses fourrageres – Application a la prediction des equilibres inter-specifiques dans des communautes prairiales  experimentales. PhD Thesis. Univ. Poitiers.
+See :
+* Louarn, G., Faverjon, L. (2018). A generic individual-based model to simulate morphogenesis, C–N acquisition and population dynamics in contrasting forage legumes. Annals of botany, 121(5), 875-896.
+* Faverjon, L. (2018). Calibration et evaluation d’un modele individu-centre generique de morphogenese des legumineuses fourrageres – Application a la prediction des equilibres inter-specifiques dans des communautes prairiales  experimentales. PhD Thesis. Univ. Poitiers.
 
-
+<img src="legume/logo_l-egume.png" alt="alt text" width="60%"/>
 
 ## 1. Getting Started
 
@@ -59,7 +59,7 @@ To install *riri5* :
 
 * open and activate the *envtest* conda environment with installed dependencies ,
 * go to your local copy of project *riri5* (from https://github.com/glouarn/riri5),
-* or get a copy of the latest model version (from a Git console: git clone -b Develop https://github.com/glouarn/riri5.git)
+* or get a copy of the latest model version (from a Git console: git clone https://github.com/glouarn/riri5.git)
 * run command: 
 	```bash
 	python setup.py develop
@@ -70,7 +70,7 @@ To install *soil3ds* :
 
 * open and activate the *envtest* conda environment with installed dependencies ,
 * go to your local copy of project *soil3ds* (from https://github.com/glouarn/soil3ds),
-* or get a copy of the latest model version (from a Git console: git clone -b Develop https://github.com/glouarn/soil3ds.git)
+* or get a copy of the latest model version (from a Git console: git clone https://github.com/glouarn/soil3ds.git)
 * run command: 
 	```bash
 	python setup.py develop
