@@ -1,4 +1,4 @@
-from scipy import *
+#from scipy import *
 import IOtable
 import IOxls
 import string
@@ -27,7 +27,7 @@ def TempHoraire(h, Tmin, Tmax):
     """ interpolation cos des temperatures horaires"""
     """ Eq S33a - Evers et al 2010"""
     """ Temperature moyenne journaliere = (Tmin+Tmax/2)"""
-    Ta = 0.5*((Tmax+Tmin)+(Tmax+Tmin)*cos(pi*(h+8.)/12.))
+    Ta = 0.5*((Tmax+Tmin)+(Tmax+Tmin)*np.cos(np.pi*(h+8.)/12.))
     return Ta
 
 
@@ -36,20 +36,20 @@ def dTT(vT, p, optT=0):
     """ 3 options: 0=betaD journalier ; 1=betaH Horaire; 2=Tbase lineaire ; vT liste des temperatures"""
     Tref = 20. #reference temperature = 20 degreC
     if optT==0: #betaD
-        T = mean(vT)
+        T = np.mean(vT)
         return max((Tref - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
     elif optT==1: #betaH
         ls_betaH = []
         for T in vT:
             ls_betaH.append(betaT(p[1], p[2], p[3], T))
 
-        return max((Tref - p[0]) * mean(ls_betaH), 0.)
+        return max((Tref - p[0]) * np.mean(ls_betaH), 0.)
     elif optT==2:#Tbase lineaire
-        T = mean(vT)
+        T = np.mean(vT)
         return max((T - p[0]), 0.)
     elif optT==3:#olg bug
         #just for debuging and testing conformity with oler model verions!!! do not use
-        T = mean(vT)
+        T = np.mean(vT)
         return max((T - p[0]) * betaT(p[1], p[2], p[3], T), 0.)
 
 
@@ -62,7 +62,7 @@ def Calc_Daily_vT(meteo_j, opt_optT):
         #calcul vecteur des temperatures horaires air
         vT = []
         for h in range(24):
-            vT.append(sh.TempHoraire(h, Tmin=meteo_j['Tmin'], Tmax=meteo_j['Tmax']))
+            vT.append(TempHoraire(h, Tmin=meteo_j['Tmin'], Tmax=meteo_j['Tmax']))
         vTsol = [meteo_j['Tsol']]
 
     return vT, vTsol
@@ -72,12 +72,12 @@ def Calc_Daily_vT(meteo_j, opt_optT):
 def DecliSun(DOY):
     """ Declinaison (rad) du soleil en fonction du jour de l'annee """
     alpha = 2. * 3.14 * (DOY - 1) / 365.
-    return (0.006918 - 0.399912 * cos(alpha) + 0.070257 * sin(alpha))
+    return (0.006918 - 0.399912 * np.cos(alpha) + 0.070257 * np.sin(alpha))
 
 def DayLength(latitude, decli):
     """ photoperiode en fonction de latitude (degre) et declinaison du soleil (rad) """
-    lat = radians(latitude)
-    d = arccos(-tan(decli) * tan(lat))
+    lat = np.radians(latitude)
+    d = np.arccos(-np.tan(decli) * np.tan(lat))
     if d < 0:
         d = d + 3.14
 
@@ -93,17 +93,17 @@ def trilineaire(x, ratio0, ratiomax, parmaxeff, parnoeff):
 
 def monomoleculaire(x, Amax, k):
     #reponse saturante type mononmoleculaire
-    rate = Amax * (1- exp(-k*x))
+    rate = Amax * (1 - np.exp(-k*x))
     return rate
 
 #general growth functions
 def expansion(t, a, delai):
     "croissance sigmoidale"
-    return 1/(1+exp(-a*(t-delai)))
+    return 1/(1 + np.exp(-a*(t-delai)))
 
 def sigmo_stress(v,delai,x):
     "reponse sigmo a stress - FTSW ou INN"
-    return 1-1/(1+exp(v*(x-delai)))
+    return 1-1/(1 + np.exp(v*(x-delai)))
 
 def linear_stress(tresh, x):
     "linear response between 0 and tresh - 1 above - FTSW ou INN"
@@ -160,9 +160,9 @@ def NNI_resp(NNI, par):
 def Ndfa_max(ageTT, DurDevFix, Delfix=100.):
     """ Ndfa (prop d'N issu de fixation) max depend de stade - demare a 100 degree.days (Delfix -> a remonter en parametere)"""
     Delfix = 0.
-    slope = 1. / (array(DurDevFix) - Delfix)
+    slope = 1. / (np.array(DurDevFix) - Delfix)
     ordoOr = -Delfix * slope
-    val = slope * array(ageTT) + ordoOr
+    val = slope * np.array(ageTT) + ordoOr
     val[val > 1.] = 1.
     val[val < 0.] = 0.
     return val
@@ -177,7 +177,7 @@ def ActualFix(ls_demand, Nuptakes, MaxFix):
     for i in range(len(demande_residuelle)):
         fix.append(min(MaxFix[i], demande_residuelle[i]))
 
-    fix = array(fix)
+    fix = np.array(fix)
     fix[fix < 0] = 0.
     return fix
     # ls_demand = array([1.,2.,3.])
@@ -236,10 +236,10 @@ def calc_surfcoty(Mcoty, age, DurGraine, carto, ParamP, n_gamagroup, origin_grid
     """ distribution de surface coty dans grille 3D - depend de masse de coty et SLAcoty et graine; et zero apres DurGraine"""
     # valeur de 600 tiree essai RGR2015
     # peut passer SLAcoty en parametre et variable par plante
-    mcot = zeros([n_gamagroup, na[2], na[1], na[0]])
+    mcot = np.zeros([n_gamagroup, na[2], na[1], na[0]])
 
     for nump in range(len(carto)):
-        vox = riri.WhichVoxel(array(carto[nump]), origin_grid, na, dxyz)
+        vox = riri.WhichVoxel(np.array(carto[nump]), origin_grid, na, dxyz)
         if age[nump] <= DurGraine[nump]:  # cotyledons actifs pendant DurGraine
             surfcot = Mcoty[nump] * SLAcoty / 10000.  # m2
         else:
@@ -252,7 +252,7 @@ def calc_surfcoty(Mcoty, age, DurGraine, carto, ParamP, n_gamagroup, origin_grid
 def calc_parapcoty(invar, m_lais, res_abs_i, Mcoty, age, DurGraine, carto, ParamP, n_gamagroup, origin_grid, na, dxyz, SLAcoty=100.):
     """ ajout des PARa des cotyledon a invar['PARiPlante']"""
     for nump in range(len(carto)):
-        vox = riri.WhichVoxel(array(carto[nump]), origin_grid, na, dxyz)
+        vox = riri.WhichVoxel(np.array(carto[nump]), origin_grid, na, dxyz)
         sVOX = m_lais[ParamP[nump]['id_grid']][vox[2]][vox[1]][vox[0]]
         if age[nump] <= DurGraine[nump]:  # cotyledons actifs pendant DurGraine
             surfcot = Mcoty[nump] * SLAcoty / 10000.  # m2
@@ -277,7 +277,7 @@ def add_surfcoty(invar, m_lais, m_laiPlt, lsFeuilBilanR, carto, ParamP, origin_g
     DurGraine = IOxls.get_lsparami(ParamP, 'DurGraine')
 
     for nump in range(len(carto)):
-        vox = riri.WhichVoxel(array(carto[nump]), origin_grid, na, dxyz)
+        vox = riri.WhichVoxel(np.array(carto[nump]), origin_grid, na, dxyz)
         if age[nump] <= DurGraine[nump]:  # cotyledons actifs pendant DurGraine
             surfcot = Mcoty[nump] * SLAcoty / 10000.  # m2
         else:
@@ -478,10 +478,10 @@ def reserves_graine(invar, ParamP):
         graineC.append(dMSgraine)
         graineN.append(dNgraine)
 
-    invar['MS_graine'] = array(invar['MS_graine']) - array(graineC)
-    invar['Ngraine'] = array(invar['Ngraine']) - array(graineN)
+    invar['MS_graine'] = np.array(invar['MS_graine']) - np.array(graineC)
+    invar['Ngraine'] = np.array(invar['Ngraine']) - np.array(graineN)
 
-    return array(graineC), array(graineN)
+    return np.array(graineC), np.array(graineN)
 
 
 def calc_paraF(dicFeuilBilanR, m_lais, res_abs_i, force_id_grid=None):
@@ -540,8 +540,8 @@ def calc_para_Plt(invar, lsFeuilBilanR):
             para.append(0.)
 
     # MAJ de invar
-    invar['parip'] = array(pari)
-    invar['parap'] = array(para)
+    invar['parip'] = np.array(pari)
+    invar['parap'] = np.array(para)
 
     # return lsFeuilBilanR
 
@@ -580,16 +580,16 @@ def Turnover_compart_Perenne(invar, ParamP):
         perteN_Piv.append(perteN_Piv_i)
 
     #MAJ des compartiments
-    invar['MS_aerienNonRec'] -= array(dMSenNonRec)
-    invar['MS_pivot'] = array(invar['MS_pivot'])
-    invar['MS_pivot'] -= array(dMSenPiv) #faire un MSpiv_net?
+    invar['MS_aerienNonRec'] -= np.array(dMSenNonRec)
+    invar['MS_pivot'] = np.array(invar['MS_pivot'])
+    invar['MS_pivot'] -= np.array(dMSenPiv) #faire un MSpiv_net?
     invar['MS_pivot'] = invar['MS_pivot'].tolist()
 
-    invar['NaerienNonRec'] -= array(perteN_NonRec)
-    invar['Npivot'] -= array(perteN_Piv)
+    invar['NaerienNonRec'] -= np.array(perteN_NonRec)
+    invar['Npivot'] -= np.array(perteN_Piv)
 
     #renvoie les flux
-    return array(dMSenNonRec), array(dMSenPiv), array(perteN_NonRec), array(perteN_Piv)
+    return np.array(dMSenNonRec), np.array(dMSenPiv), np.array(perteN_NonRec), np.array(perteN_Piv)
 
 
 
@@ -606,7 +606,7 @@ def rootalloc(parB, parA, SB):
         alph = parA[nump]
         res[nump] = min(bet, bet * alph * max(SB[nump], 0.00000000001) ** (alph - 1))  # epsilon evitant de calculer un 0 avec puissance negative (cause erreur). Le maximum possible est pour alpha=1, donc beta*1*SB**(1-1) = beta * 1 * 1 = beta.
 
-    dRB_dSB = array(res)
+    dRB_dSB = np.array(res)
     return dRB_dSB / (1 + dRB_dSB)
 
 def calcOffreC(ParamP, tab, scale):
@@ -718,10 +718,10 @@ def calcDemandeC(ParamP, tab, scale, udev, ls_ftswStress, ls_NNIStress):
 def Cremob(DemCp, R_DemandC_Shoot, MSPiv, frac_remob=0.1):
     """ remobilisation of C from the taproot to the shoot to ensure minimal growth """
     # frac_remob : fraction remobilisable du pivot par jour (a passer en parametre?)
-    ratio_seuil = array(deepcopy(R_DemandC_Shoot))
+    ratio_seuil = np.array(deepcopy(R_DemandC_Shoot))
     ratio_seuil[ratio_seuil > 1.] = 1.  # borne ratio demande a 1
-    dem_non_couv = array(DemCp) * (1 - ratio_seuil)
-    dem_non_couv_dispo = frac_remob * array(MSPiv) - dem_non_couv  # depend d'un fraction remobilisable du pivot par jour
+    dem_non_couv = np.array(DemCp) * (1 - ratio_seuil)
+    dem_non_couv_dispo = frac_remob * np.array(MSPiv) - dem_non_couv  # depend d'un fraction remobilisable du pivot par jour
     dem_non_couv_dispo[dem_non_couv_dispo < 0] = dem_non_couv[dem_non_couv_dispo < 0] + dem_non_couv_dispo[dem_non_couv_dispo < 0]  # borne remobilisation a poids du pivot
     remob = deepcopy(dem_non_couv_dispo)
     remob[dem_non_couv <= 0.] = 0.  # met a zero si couvert
@@ -762,7 +762,7 @@ def calcNB_NI(tab, nbplantes, seuilcountTige=0.5, seuilNItige=0.75):
 
     for i in range(nbplantes):
         resNB[i] = len(resNB[i])
-        resNI[i] = mean(resNI[i])
+        resNI[i] = np.mean(resNI[i])
 
     return resNB, resI
 
@@ -829,13 +829,14 @@ def MaturBud(delaiMaturBud, NIparent, delta=4):
 ################
 # Planter - initialisation scene
 
-def planter_coordinates(type, cote, nbcote, orientRow='X'):
+def planter_coordinates(type, cote, nbcote, orientRow='X', forceCarto = None):
     """
 
     :param type:
     :param cote:
     :param nbcote:
     :param orientRow:
+    :param forceCarto:
     :return: carto, list of nd.arrays for the 3D coordiantes of each plant in the scene
     """
     distplantes = cote / nbcote  # 1. #cm
@@ -843,8 +844,9 @@ def planter_coordinates(type, cote, nbcote, orientRow='X'):
     # pour grand rhizotron
     # yyy = [-12.25, 4.4, 21.05]
     # xxx = [-10.75, -8.35, -5.95, -3.55, -1.15, 1.25, 3.65, 6.05, 8.45, 10.85]
-
-    if type == 'row4' or type=='row4_sp1' or type=='row4_sp2':  # pour carre 4 rangs heterogenes
+    if forceCarto is not None: # si force une carto via forceCarto
+        carto = forceCarto
+    elif type == 'row4' or type=='row4_sp1' or type=='row4_sp2':  # pour carre 4 rangs heterogenes
         Param_, carto = row4([1, 2], Lrow=cote, nbprow=nbcote, orientRow=orientRow)
     elif type == 'row4_Nsp' :  # pour carre 4 rangs heterogenes
         Param_, carto = row4_Nsp([1, 2], Lrow=cote, nbprow=nbcote, orientRow=orientRow)
@@ -888,7 +890,7 @@ def regular_square(nbcote, distplantes):
     return carto
 
 
-def planter_order_ParamP(ls_g, type, nbcote, opt, shuffle=0):
+def planter_order_ParamP(ls_g, type, nbcote, opt, shuffle=0, forceOrder=None):
     """
 
     :param ls_g:
@@ -897,10 +899,17 @@ def planter_order_ParamP(ls_g, type, nbcote, opt, shuffle=0):
     :param opt:
     :param speby_row:
     :param shuffle:
+    :param forceOrder:
     :return: ParamP, list of plant parameter dictionnaries for each plant in the scene
     """
+    if forceOrder is not None: # si force une carto via forceCarto
+        # forceOrder: liste de nump id dans ls_g
+        ParamP = []
+        for i in forceOrder:
+            ParamP.append(ls_g[i])
 
-    if type == 'homogeneous':  # cas d'un couvert monospe homogene: prend premier parametrage
+        #print('len',len(ParamP), IOxls.get_lsparami(ParamP, 'name'))
+    elif type == 'homogeneous':  # cas d'un couvert monospe homogene: prend premier parametrage
         ParamP = [ls_g[0]] * nbcote * nbcote
     elif type == 'damier8' or type == 'random8' or type == 'damier8_sp1' or type == 'damier8_sp2':  # damier binaire 64 plantes
         if nbcote == 8:
@@ -954,7 +963,7 @@ def random_planter(nbplt, cotex, cotey):
     """ random plant position with scene defined by cotex and cotey"""
     carto=[]
     for i in range(nbplt):
-        carto.append(np.array([random.uniform(0., cotex), random.uniform(0., cotey), 0.]))
+        carto.append(np.array([np.random.uniform(0., cotex), np.random.uniform(0., cotey), 0.]))
 
     return carto
 
@@ -1224,11 +1233,11 @@ def update_shoot_params(ParamP, rankmax=51):
     for nump in range(len(ParamP)):
 
         if int(ParamP[nump]['type']) == 1 or int(ParamP[nump]['type']) == 2:  # feuille legumineuse
-            cor_lF = sqrt(ParamP[nump]['leafshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+            cor_lF = np.sqrt(ParamP[nump]['leafshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
         elif int(ParamP[nump]['type']) == 3:  # graminee
             cor_lF = ParamP[nump]['leafshape']  # pour afficher feuille avec surface reelle et corriger effet recangle (pas sqrt car appliquer que a largeur
 
-        cor_lstp = sqrt(ParamP[nump]['stipshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
+        cor_lstp = np.sqrt(ParamP[nump]['stipshape'] / 0.5)  # pour afficher feuille avec surface reelle et corriger effet losange
 
         ParamP[nump]['profilLeafI_l'] = []
         ParamP[nump]['profilLeafI_larg'] = []

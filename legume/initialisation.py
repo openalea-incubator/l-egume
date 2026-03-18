@@ -14,7 +14,7 @@ except:
 sys.path.insert(0, path_)
 
 import numpy as np
-from scipy import *
+#from scipy import *
 from copy import deepcopy
 import string
 import time
@@ -39,9 +39,9 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
 
     ## meteo du jour
     DOY = DOYdeb
-    meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay', 'RG', 'Et0', 'Precip', 'Tmin', 'Tmax', 'Tsol'], 'DOY', val=DOY)
+    meteo_j = IOxls.extract_dataframe(meteo, ['DOY','TmoyDay', 'RG', 'Et0', 'Precip', 'Tmin', 'Tmax', 'Tsol'], 'DOY', val=DOY)
     meteo_j['I0'] = [0.48 * meteo_j['RG'][0] * 10000 / (3600 * 24)]  # flux PAR journalier moyen en W.m-2 / RG en j.cm-2
-    mng_j = IOxls.extract_dataframe(mng, ['Coupe', 'Irrig', 'FertNO3', 'FertNH4', 'Hcut'], 'DOY', val=DOY)
+    mng_j = IOxls.extract_dataframe(mng, ['Coupe', 'Irrig', 'FertNO3', 'FertNH4', 'Hcut', 'WidthCut','Res1','Res2','Res3'], 'DOY', val=DOY)
     for k in list(meteo_j.keys()): meteo_j[k] = meteo_j[k][0]
     for k in list(mng_j.keys()): mng_j[k] = mng_j[k][0]
     meteo_j['durjour'] = sh.DayLength(station['latitude'], sh.DecliSun(DOY % 365))
@@ -60,6 +60,7 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
     isRegrowth = False  # indicateur: est on a la pousse initiale ou bien plus tard?
     Hcut = 1.  # 3.#simple initialisation : est passe en lecture fichier management
     cutNB = 0
+    WidthCut = 1000 ##simple initialisation
 
     ## divers
     start_time, past_time = time.time(), 0.  # pour recuperer temps de calcul
@@ -75,7 +76,7 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
 
     # test_retard = [tir1, tir2] #pour gerer deux especes
 
-    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, wasTTcut, isRegrowth, cutNB, Hcut, start_time, past_time, station
+    return DOY, TT, TTsol, meteo_j, mng_j, STEPS_, STEPSsol_, ls_epsi, TT_repousse, isTTcut, wasTTcut, isRegrowth, cutNB, Hcut, WidthCut, start_time, past_time, station
 
 
 
@@ -92,12 +93,14 @@ def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, patt
 
     # vecteurs d'initialisation du sol (pour 3 couches maxi)
     num_nb = list(map(int, inis['num_nb']))  # [6,6,18] #nbr de couche de chaque num de sol
-    ncouches_sol = int(inis['ncouches_sol'])#num_nb[0] + num_nb[1] + num_nb[2]
-    vsoilnumbers = [1] * num_nb[0] + [2] * num_nb[1] + [3] * num_nb[2]  # convention autorise 3 types d'horizon max
+    num_nb = num_nb + [0,0] #pour gerer 5 couches
+
+    ncouches_sol = int(inis['ncouches_sol'])#
+    vsoilnumbers = [1] * num_nb[0] + [2] * num_nb[1] + [3] * num_nb[2]  + [4] * num_nb[3] + [5] * num_nb[4] # convention autorise 3 types d'horizon max
     # vDA = [par_SN['DA'][0]]*num_nb[0] + [par_SN['DA'][1]]*num_nb[1] + [par_SN['DA'][2]]*num_nb[2] #densite apparente de sol
-    vCN = [par_SN['CN0_30']] * num_nb[0] + [par_SN['CN30_60']] * num_nb[1] + [par_SN['CN60_90']] * num_nb[2]  # maxi 3 horizons
-    vMO = [par_SN['MO0_30']] * num_nb[0] + [par_SN['MO30_60']] * num_nb[1] + [par_SN['MO60_90']] * num_nb[2]  # maxi 3 horizons
-    vARGIs = [par_SN['ARGIs0_30']] * num_nb[0] + [par_SN['ARGIs30_60']] * num_nb[1] + [par_SN['ARGIs60_90']] * num_nb[2]
+    vCN = [par_SN['CN0_30']] * num_nb[0] + [par_SN['CN30_60']] * num_nb[1] + [par_SN['CN60_90']] * (num_nb[2]+num_nb[3]+num_nb[4])  # maxi 5 horizons
+    vMO = [par_SN['MO0_30']] * num_nb[0] + [par_SN['MO30_60']] * num_nb[1] + [par_SN['MO60_90']] * (num_nb[2]+num_nb[3]+num_nb[4])  # maxi 5 horizons
+    vARGIs = [par_SN['ARGIs0_30']] * num_nb[0] + [par_SN['ARGIs30_60']] * num_nb[1] + [par_SN['ARGIs60_90']] * (num_nb[2]+num_nb[3]+num_nb[4])
     vCALCs = [par_SN['CALCs']] * ncouches_sol
     vNH4 = inis['NH4']  # [2.]*ncouches_sol # #!! kg d'N.ha-1 (entree de STICS)
     vNO3 = inis['NO3']  # [0.]*ncouches_sol
@@ -145,11 +148,12 @@ def init_sol_fromLpy(inis, meteo_j, par_sol, par_SN, discret_solXY, dz_sol, patt
 
 
 
-def init_scene_fromLpy(ParamP, inis, cote, nbcote, station, lsidP, type='damier8'):
+def init_scene_fromLpy(ParamP, inis, cote, nbcote, station, lsidP,  type='damier8', forceCarto=None):
     # initialoise la scene L-egume: arrangement des plantes (carto), discretisation souterraine, discretisation aerienne
     # 1) CARTO
     distplantes = cote / nbcote  # 1. #cm
-    carto = sh.planter_coordinates(type, cote, nbcote)
+    carto = sh.planter_coordinates(type, cote, nbcote, orientRow='X', forceCarto=forceCarto)
+    #print("ici carto", carto)
 
     # reduit a une espece si veut simul separee
     if type == 'damier8_sp1' or type == 'damier8_sp2' or type == 'damier16_sp1' or type == 'damier16_sp2' or 'row4_sp1' or 'row4_sp2':
@@ -230,6 +234,13 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN):
                     # print ('par',CNRES, CC, WC, Nmires)
                     break  # s'arrete a premiere plante de ce groupe
 
+        #ajout en dur de 3 groupes de residus pour ferti organique surface depuis management avec valeurs par defaut (legumineuse, paille, fumier)
+        CNRES = CNRES + [14, 46, 16.6]
+        CC = CC + [0.42, 0.42, 0.42]
+        WC = WC + [0.7, 0.7, 0.85]
+        Nmires = Nmires + [0.0097, 0.0097, 0.1]
+
+
         if len(setg) == 1:  # si 1 seul grope, met qd meme un deuxieme residu de meme type pour pas planter
             for nump in range(nbplantes):
                 if ParamP[nump]['groupe_resid'] == setg[0]:
@@ -245,9 +256,10 @@ def init_plant_residues_fromParamP(S, opt_residu, ParamP, par_SN):
 
         # distrib dans le sol en dur!
         nb_res = len(CNRES)  # 4 types de residus par espece (4 compatiment du papier) * 2 especes #pas utilise jusque la? (force donc cycles boucle pas? ou  ajuster a 1 moment?)
-        vAmount = [0.1] * nb_res  # [20.]# T Fresh Weight.ha-1 (equivalent QRES)
+        vAmount = [0.01] * nb_res  # [20.]# T Fresh Weight.ha-1 (equivalent QRES)
         Vprop1 = [1. / 3., 1. / 3., 1. / 3.] + 50 * [0.]  # distribution dans les horizons #-> change 27 en 50 pour etre sur d'avoir le nb d'horizon-> a adapter selon le vrai nbr d'horizons!!!
-        vProps = [Vprop1] * nb_res  # [Vprop1]#[Vprop1, Vprop1, Vprop1]
+        Vpropsurf = [1., 0., 0.] + 50 * [0.] #pour apports orga en surface
+        vProps = [Vprop1] * (nb_res-3) + [Vpropsurf]*3  # [Vprop1]#[Vprop1, Vprop1, Vprop1]
 
         # S.init_residues(vCNRESt, vAmount, vProps, vWC, vCC)
 
@@ -430,7 +442,7 @@ def init_ParamP_VGL_old(path_plante, ongletP, ongletPvois, nbcote, deltalevmoy, 
     return ParamP, nbplantes, ls_seeds, lsidP, test_retard
 
 #pour liste espece
-def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, opt_scenar=0, ls_idscenar=[1, 1], mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, ls_idscenar_sd=[None, None], opt_shuffle=0):
+def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_seed, seed_=0, type='homogeneous', opt=4, opt_scenar=0, ls_idscenar=[1, 1], mn_sc=None, opt_sd=0, opt_covar=0, path_variance_geno=None, path_variance_matrix=None, ls_idscenar_sd=[None, None], opt_shuffle=0, forceOrder=None):
     """ """
     # nbcote = nombre de plante sur un cote en supposant repartition homogene
 
@@ -439,6 +451,7 @@ def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_se
     for i in range(len(ls_Spe)):
         ongletP = ls_Spe[i]
         g = IOxls.read_plant_param(path_plante, ongletP)
+        #g = default_paramp() # to test default_paramp() parameter set -> OK
         if opt_scenar!=0: #0:'default' -> pas de changement
             ongletScenar = ongletP # same name by convention
             idscenar = ls_idscenar[i] # ordre des ls_Spe by convention
@@ -447,7 +460,7 @@ def init_ParamP_VGL(path_plante, ls_Spe, nbcote, deltalevmoy, deltalevsd, Plt_se
         ls_g.append(g)
 
 
-    ParamP = sh.planter_order_ParamP(ls_g, type, nbcote, opt, opt_shuffle)
+    ParamP = sh.planter_order_ParamP(ls_g, type, nbcote, opt, opt_shuffle, forceOrder=forceOrder)
 
     # 2) modif ParamP et ajout variabilite sd si opt_sd==1 (variabilite intra) ; possible seulement si pas analyse de sensibilite (onglet scenar=default)
     # test pour esp 1, Len avec sd=0.5
@@ -703,6 +716,48 @@ def init_variables_plantes(ParamP, nbplantes, na):
     # for i in range(nbplantes): RLProfil.append(deepcopy(rp0)); RprospectProfil.append(deepcopy(rpp0))
 
     return invar, invar_sc, lsAxes, lsApex, lsApexStop, lsApexAll, lsOrgans, savelsOrgans, lsFeuilBilanR, ls_systrac, ls_ftswStress, ls_NNIStress, ls_TStress, LAIprofil, SurfprofilPlant, deltaI_I0, nbI_I0, I_I0Classes, I_I0profilLfPlant, I_I0profilPetPlant, I_I0profilInPlant, NaClasses, NlClasses, NlinClasses, res_root, ls_roots_prev, epsilon
+
+
+def mef_res_sd(ParamP, ls_Spe, path_variance_geno, test_retard, carto, opt_sd):
+    """ mise en forme d'un tableau avec position, retard et parametre des plantes indiv"""
+
+    if opt_sd != 0:
+        # ls_parname = ['name']+['Len'] # a recuperer=la bonne liste
+        sd_fichier_g4 = pd.read_excel(path_variance_geno, sheet_name=ls_Spe[0])
+        ls_parname = ['name'] + list(sd_fichier_g4.columns)[
+                                1:]  # liste les noms de colonne a  partir de la deuxieme; suppose la meme pour les 2 sp
+        nbp = len(IOxls.get_lsparami(ParamP, 'name'))
+        res_sd = {'nump': range(0, nbp)}
+        res_sd['retard'] = test_retard[0:nbp]
+        for p in ls_parname:
+            res_sd[p] = IOxls.get_lsparami(ParamP, p)
+
+        # ajout des coord x,y des plantes
+        xcarto, ycarto = [], []
+        for i in range(len(carto)):
+            xcarto.append(carto[i][0]);
+            ycarto.append(carto[i][1])
+
+        res_sd['x'] = xcarto
+        res_sd['y'] = ycarto
+
+    else:  # si pas opt_sd
+        nbp = len(IOxls.get_lsparami(ParamP, 'name'))
+        res_sd = {'nump': range(0, nbp)}
+        res_sd['retard'] = test_retard[0:nbp]
+        # ajout des coord x,y des plantes
+        xcarto, ycarto = [], []
+        for i in range(len(carto)):
+            xcarto.append(carto[i][0]);
+            ycarto.append(carto[i][1])
+
+        res_sd['x'] = xcarto
+        res_sd['y'] = ycarto
+
+    return res_sd
+
+
+
 
 
 def init_outputs(ParamP, nbplantes, ncouches_sol, surfsolref):
@@ -1123,3 +1178,640 @@ def init_outvar(ParamP, nbplantes, surfsolref):
     outvar['colnames'].append(['V1', 'steps'] + IOxls.get_lsparami(ParamP, 'name'))  # ajout des noms d'omglet en 1ere ligne
 
     return outvar
+
+
+
+def default_paramp():
+    """ Creates a default parameter dictionnary 'paramp' for defining a set of plant parameters (Fix2)
+
+        Keys of the dictionnary are  parameters for a given individual plant :
+
+        Potential shoot morphogenesis parameters:
+            * 'Tdev' :       Parameters for temperature response - Base temperature
+            * 'Tmin' :       Tmin beta (Graux)
+            * 'Tmax' :       Tmax beta (Graux)
+            * 'q' :       Shape parameter beta (Graux)
+            * 'phyllochron' :       phyllochron of the primary axis
+            * 'phyllochronII' :       phyllochron of the secondary axes
+            * 'delai_deb' :       delay of axillary bud budburst on an isolated shoot
+            * 'nshoots' :       Maximal number of primary shoots of an isolated plant
+            * 'debTallage' :       Stage at with tillering (/primarry branching) occurs in the taproot zone - number of primary leaves
+            * 'RvitTallage' :       ratio phyllochone tallage : phyllochrone seminal stem
+            * 'delaiMaturBud' :       Delay of bud maturation to reach an equivalent stage of 1 leaf
+            * 'nfol' :       Maximal number of leaflets
+            * 'Len' :       Maximal Internode length
+            * 'Lfeuille' :       Maximal Leaflet length
+            * 'Largfeuille' :       Maximal Leaflet Width (negative = not taken into account)
+            * 'Lpet' :       Maximal Petiole length
+            * 'Lstip' :       Maximal stipule length
+            * 'LRS' :       Root segment length
+            * 'LenRhiz' :       Rhizome segment length
+            * 'ratioM' :       rapport de longueur entre axe I pousse initiale (graine) et autres primaire
+            * 'ratioII' :       rapport de longueur entre axe/feuille secondaire et primaire
+            * 'HeightTreshAdvRoots' :
+            * 'ProbaMaxAdvRoots' :
+            * 'delai_AdvRoots' :
+            * 'fenetre_AdvRoots' :
+            * 'DistLRhizn' :       Binomlial law rhizomes - n parameter
+            * 'DistLRhizp' :       Binomlial law rhizomes -p parameter
+            * 'aF' :
+            * 'aE' :
+            * 'aP' :
+            * 'aS' :
+            * 'delaiF' :
+            * 'delaiE' :
+            * 'delaiP' :
+            * 'delaiS' :
+            * 'seuilexpF' :       leaf age 95% of final size
+            * 'profilLeafI_Rlens1' :       relative leaf length with respect to node rank - slope 1
+            * 'profilLeafI_Rleni1' :       relative leaf length with respect to node rank - ordo 1
+            * 'profilLeafI_Rlens2' :       relative leaf length with respect to node rank - slope 2
+            * 'profilLeafI_Rleni2' :       relative leaf length with respect to node rank - ordo 2
+            * 'profilLeafI_Rlargs1' :       width:length ratio of leaflets with respect to node rank -slope 1
+            * 'profilLeafI_Rlargi1' :       width:length ratio of leaflets with respect to node rank - ordo 1
+            * 'profilLeafI_Rlargs2' :       width:length ratio of leaflets with respect to node rank -solpe 2
+            * 'profilLeafI_Rlargi2' :       width:length ratio of leaflets with respect to node rank - ordo 2
+            * 'profilNodeIs1' :       relative node length with respect to node rank - slope 1
+            * 'profilNodeIi1' :       relative node length with respect to node rank - ordo 1
+            * 'profilNodeIs2' :       relative node length with respect to node rank - slope 2
+            * 'profilNodeIi2' :       relative node length with respect to node rank - ordo 2
+            * 'profilStpI_ls1' :       relative stipule length with respect to node rank - slope 1
+            * 'profilStpI_li1' :       relative stipule length with respect to node rank - ordo 1
+            * 'profilStpI_ls2' :       relative stipule length with respect to node rank - slope 2
+            * 'profilStpI_li2' :       relative stipule length with respect to node rank - ordo 2
+            * 'profilStpI_Rlargs1' :       width/length ratio of stipules with respect to node rank - slope 1
+            * 'profilStpI_Rlargi1' :       width/length ratio of stipules with respect to node rank - intercept 1
+            * 'profilStpI_Rlargs2' :       width/length ratio of stipules with respect to node rank - slope 2
+            * 'profilStpI_Rlargi2' :       width/length ratio of stipules with respect to node rank - intercept 2
+            * 'profilPetIs1' :       relative petiole length with respect to node rank - slope 1
+            * 'profilPetIi1' :       relative petiole length with respect to node rank - ordo 1
+            * 'profilPetIs2' :       relative petiole length with respect to node rank - slope 2
+            * 'profilPetIi2' :       relative petiole length with respect to node rank - ordo 2
+            * 'profilLeafI_Rnfols' :       relative number of leaflets with respect to node rank - slope
+            * 'profilLeafI_Rnfoli' :       relative number of leaflets with respect to node rank - intercept
+
+        Potential root morphogenesis parameters:
+            * 'Dmin' :       Minimum root apex diameter
+            * 'Dmax' :       Maximum root apex diameter
+            * 'DIDm' :       slope of the relationship between mother and daughter root diamter
+            * 'IBD' :       Inter-Branch average distance
+            * 'ELmax' :       Elongation rate of roots with maximal apex diameter
+            * 'DistRA' :       Distance from root apex without branching
+            * 'FRD' :       Fine Root Density (RTD chez pages et al)
+            * 'GDs' :       Growth duration for root in function of their diameter
+            * 'nbnodales' :       number of nodale roots emitted per node
+            * 'alloc_rootB' :       Allocation to roots - parameter beta (ratio of total DM production)
+            * 'alloc_rootA' :       Allocation to roots - parameter alpha (power of total DM production)
+            * 'frac_rac_fine' :       Root DM fraction allocated to fine roots
+            * 'frac_remob' :       maximum fraction of taproot biomass in C reserve daily remolisable
+
+        Potential N uptake and allocation parameters:
+            * 'PMG' :       Poids de 1000 grains
+            * 'DurGraine' :       Duration of seed C and N provision - no stress during this period
+            * 'Npc_ini' :       intial %N of germinating seedlings
+            * 'frac_coty_ini' :       Fraction of seed mass allocated to the leaf cotyledon
+            * 'RUE' :       Radiation use efficiency - whole plant & PAR
+            * 'NODcost' :       relative reduction of RUE at 100% fixation
+            * 'SLAmin' :       minimum specific leaf area - to compute C demand of new tissues
+            * 'SNLmin' :       minimum specific node length - to compute C demand of new tissues
+            * 'SPLmin' :       minimum specific petiole length - to compute C demand of new tissues
+            * 'SRLmin' :       minimal specific root length
+            * 'Frac_piv_sem' :
+            * 'Frac_piv_loc' :
+            * 'fraction_NonRec' :       fraction of Msaerien non recolte
+            * 'ADIL' :       N content of the canopy at 1T.ha-1
+            * 'BDILi' :       Exponent of the critical dilution curve for isolated plants
+            * 'BDIL' :       Exponent of the critical dilution curve for dense stands
+            * 'NoptPiv' :       Optimal N concentration of root organs (taproot)
+            * 'NoptFR' :       Optimal N concentration of root organs (fine roots)
+            * 'NminPiv' :       Structural N content of the tap root
+            * 'Na0' :       Specific leaf nitrogen of top sunny leaves at INN=1
+            * 'NL0Sh' :       Lineic stem nitrogen of stems bearing top sunny leaves at INN=1
+            * 'NL0Pet' :       Lineic petiole nitrogen of petioles bearing top sunny leaves at INN=1
+            * 'Vmax1' :       HATS Vmax
+            * 'Kmax1' :       HATS Kmax
+            * 'Vmax2' :       LATS Vmax
+            * 'Kmax2' :       LATS Kmax
+            * 'treshEffRootsN' :       Treshold for maximal total root length density per voxel which is effective for N uptake (cm.cm-3) - STICS:0.5 cm.cm-3
+            * 'treshminN' :       lower treshold plant N status for feedback response on root nitrogen uptake (either in NNI unit or %N in roots)
+            * 'treshmaxN' :       higher treshold plant N status for feedback response on root nitrogen uptake (either in NNI unit or %N in roots)
+            * 'MaxFix' :       Maximal Fixation rate
+            * 'DurDevFix' :       Duration after germination to reach Maxial Fixation Capacity
+
+        Parameters for plastic reponses to the environment:
+            * 'par_tresh' :       I0 fraction allowing bud outgrowth and shoot organogenesis  (axes I and II)
+            * 'par_tresh_til' :       I0 fraction allowing branching and bud outgrowth  (axes I and II)
+            * 'photomorphPAR_petini' :       ratio of the unconstrained maximal length for PAR=0
+            * 'photomorphPAR_petM' :       maximum ratio of the unconstrained maximal length
+            * 'photomorphPAR_pett1' :       PAR for which the maximum ratio is reached
+            * 'photomorphPAR_pett2' :       PAR above which no photomorphogenetic effect occurs
+            * 'photomorphRFR_pets' :       slope of the relationship between R:FR ratio and ratio of unconstrained maximal length
+            * 'photomorphRFR_peti' :       intercept of the relationship between R:FR ratio and ratio of unconstrained maximal length
+            * 'photomorphPAR_intini' :       ratio of the unconstrained maximal length for PAR=0
+            * 'photomorphPAR_intM' :       maximum ratio of the unconstrained maximal length
+            * 'photomorphPAR_intt1' :       PAR for which the maximum ratio is reached
+            * 'photomorphPAR_intt2' :       PAR above which no photomorphogenetic effect occurs
+            * 'photomorphRFR_ints' :       slope of the relationship between R:FR ratio and ratio of unconstrained maximal length
+            * 'photomorphRFR_inti' :       intercept of the relationship between R:FR ratio and ratio of unconstrained maximal length
+            * 'MaxSurvOmbr' :       duree max de survie d'un apex secondaire A2 a l'ombre
+            * 'WaterTreshExpSurfs' :       slope
+            * 'WaterTreshExpSurfd' :       FTSW50
+            * 'WaterTreshDevIIs' :       slope
+            * 'WaterTreshDevIId' :       FTSW50
+            * 'WaterTreshDevIs' :       slope
+            * 'WaterTreshDevId' :       FTSW50
+            * 'WaterTreshElRootss' :       slope
+            * 'WaterTreshElRootsd' :       FTSW50
+            * 'WaterTreshAdvRoots' :
+            * 'WaterTreshFixs' :       slope
+            * 'WaterTreshFixd' :       FTSW50
+            * 'WaterTreshRUEs' :       slope
+            * 'WaterTreshRUEd' :       FTSW50
+            * 'WaterTreshGs' :       FTSW treshold for the onset of transpiration reduction (unit: 0-1 fraction)
+            * 'NTreshExpSurfs' :       slope
+            * 'NTreshExpSurfd' :       NNI50
+            * 'NTreshDevs' :       slope
+            * 'NTreshDevd' :       NNI50
+            * 'NTreshRUEs' :       slope
+            * 'NTreshRUEd' :       NNI50
+            * 'NTreshDevIIs' :       slope
+            * 'NTreshDevIId' :       NNI50
+            * 'limStressTalN' :       limit of NNI stress inhibiting primary shoot production
+            * 'limStressTalW' :       limit of FTSW stress inhibiting primary shoot production
+            * 'TempTreshRUEb' :       treshold of T response = 0
+            * 'TempTreshRUEh' :       treshold of T response = 1
+            * 'Tgel' :       frost damage treshold
+            * 'PPtreshb' :       treshold of PP response = 0 - base photoperiod
+            * 'PPtreshh' :       treshold of PP response = 1 - treshold of response
+            * 'leafAlbedo' :       Leaf Albedo
+
+        Parameters for plant senescence:
+            * 'spanSen' :       leaf live span until onset of senescence in isolated plants
+            * 'spanMrt' :       leaf live span until leaf fall in isolated plants
+            * 'LDs' :       Root Life span in function of their diameter
+            * 'ombF_Ttresh' :       mini duration treshold inducing onset of leaf senescence for shaded leaves
+            * 'ombF_Ltresh' :       mini PAR (??) treshold inducing onset of leaf senescence of shaded leaves
+            * 'delai_senperenne' :       delay before onset of turnover for perennial tissues
+            * 'TOrate_nonrec' :       turnover rate of perennial aerien non rec
+            * 'TOrate_piv' :       turnover rate of perennial raproot
+
+        Geometric parameters:
+            * 'phyllotaxy' :       phyllotaxy angle
+            * 'leafshape' :       coeff d'allometrie entre (longueur*largeur) et surface d'un foliole
+            * 'stipshape' :       coeff d'allometrie entre (longueur*largeur) et surface d'un stipule
+            * 'gammaFeuil' :       Average Leaf elevation angle
+            * 'gammaFeuilSD' :       standard deviation of leaf  elevation  angle
+            * 'IncPet' :       Average Petiole elevation angle
+            * 'elv0b' :       parametre ditrib uniforme (borne bass)
+            * 'elv0h' :       parametre ditrib uniforme (borne haute)
+            * 'elvtresh' :       elv0 treshold sensible to change in initial elevation angle with age ; function of elasticity
+            * 'Lmaxeffet' :       longueur de tige ou changement de elv0 atteint son max
+            * 'IncRoot0' :       Initial secondary root elevation
+            * 'elasticity' :
+            * 'g_root' :       root gravitropism
+            * 'DPivot2_coeff' :       Slope of the relationship between Mstot taproot (g) and poxer 2 of Dmax taproot (cm2)
+            * 'ZPivot_min' :       Soil depth under which  taproot remains at Dmin (just for visualisation)
+            * 'offset_diamP' :       distance parameter for plant diameter and bud outgrowth around taproot
+
+        General informations
+            * 'name' :       to indicate species name
+            * 'type' :       to indicate legume (1) or grass (2)
+            * 'ActiveBranch' :       To Activate/desactivate secondary branching of shoots
+            * 'gotStip' :       To Activate/desactivate stipules on shoots
+            * 'gammagroup' :       group of leaf angle / to regroup entities with similar leaf angle distributions during light interception calculation
+            * 'groupe_resid' :       group of residues (default: zero=legume; 1 non-legume)
+
+        Plant residue parameters
+            * 'CNRESlf' :       C/N plant residue type1: leaves
+            * 'CNRESst' :       C/N plant residue type2: stems
+            * 'CNRESr' :       C/N plant residue type3: roots
+            * 'CNRESpiv' :       C/N plant residue type4: taproot
+            * 'WClf' :       Water Content fraction of fresh plant residue type1: leaves
+            * 'WCst' :       Water Content fraction of fresh plant residue type2: stems
+            * 'WCr' :       Water Content fraction of fresh plant residue type3: roots
+            * 'WCpiv' :       Water Content fraction of fresh plant residue type4: taproot
+            * 'CClf' :       Carbon Content fraction of dry plant residue type1: leaves
+            * 'CCst' :       Carbon Content fraction of dry  plant residue type2: stems
+            * 'CCr' :       Carbon Content fraction of dry  plant residue type3: roots
+            * 'CCpiv' :       Carbon Content fraction of dry  plant residue type4: taproot
+            * 'Nmireslf' :       Mineral N Content fraction of fresh plant residue type1: leaves
+            * 'Nmiresst' :       Mineral N Content fraction of fresh plant residue type2: stems
+            * 'Nmiresr' :       Mineral N Content fraction of fresh plant residue type3: roots
+            * 'Nmirespiv' :       Mineral N Content fraction of fresh plant residue type4: taproot
+            
+
+    :return: Default 'paramp' parameter dictionnary
+
+    .. code-block:: python
+
+        paramp = {
+                    'Tdev' : 	5,
+                    'Tmin' : 	-7.6,
+                    'Tmax' : 	39.4,
+                    'q' : 	3.22,
+                    'phyllochron' : 	30.58,
+                    'phyllochronII' : 	35.59,
+                    'delai_deb' : 	65.80816,
+                    'nshoots' : 	3,
+                    'debTallage' : 	7,
+                    'RvitTallage' : 	1,
+                    'delaiMaturBud' : 	14,
+                    'nfol' : 	3,
+                    'Len' : 	3.4875,
+                    'Lfeuille' : 	4,
+                    'Largfeuille' : 	-1,
+                    'Lpet' : 	5.1,
+                    'Lstip' : 	0,
+                    'LRS' : 	2.50,
+                    'LenRhiz' : 	3,
+                    'ratioM' : 	1,
+                    'ratioII' : 	0.866025404,
+                    'HeightTreshAdvRoots' : 	-1,
+                    'ProbaMaxAdvRoots' : 	1,
+                    'delai_AdvRoots' : 	96,
+                    'fenetre_AdvRoots' : 	60,
+                    'DistLRhizn' : 	10,
+                    'DistLRhizp' : 	0,
+                    'aF' : 	0.05,
+                    'aE' : 	0.05,
+                    'aP' : 	0.05,
+                    'aS' : 	0.05,
+                    'delaiF' : 	50,
+                    'delaiE' : 	130,
+                    'delaiP' : 	90,
+                    'delaiS' : 	50,
+                    'seuilexpF' : 	75.58,
+                    'profilLeafI_Rlens1' : 	0.151,
+                    'profilLeafI_Rleni1' : 	0.005,
+                    'profilLeafI_Rlens2' : 	-0.027,
+                    'profilLeafI_Rleni2' : 	1.25,
+                    'profilLeafI_Rlargs1' : 	-0.067,
+                    'profilLeafI_Rlargi1' : 	1.19,
+                    'profilLeafI_Rlargs2' : 	-0.027,
+                    'profilLeafI_Rlargi2' : 	0.89,
+                    'profilNodeIs1' : 	0.386,
+                    'profilNodeIi1' : 	-0.453,
+                    'profilNodeIs2' : 	-0.00961,
+                    'profilNodeIi2' : 	1.213,
+                    'profilStpI_ls1' : 	0.093,
+                    'profilStpI_li1' : 	0.0741,
+                    'profilStpI_ls2' : 	-0.03,
+                    'profilStpI_li2' : 	1.3,
+                    'profilStpI_Rlargs1' : 	0.0587,
+                    'profilStpI_Rlargi1' : 	0.4408,
+                    'profilStpI_Rlargs2' : 	0,
+                    'profilStpI_Rlargi2' : 	1,
+                    'profilPetIs1' : 	0.376,
+                    'profilPetIi1' : 	0.225,
+                    'profilPetIs2' : 	-0.0497,
+                    'profilPetIi2' : 	1.16,
+                    'profilLeafI_Rnfols' : 	0,
+                    'profilLeafI_Rnfoli' : 	1,
+                    'Dmin' : 	0.019,
+                    'Dmax' : 	0.106,
+                    'DIDm' : 	0.242,
+                    'IBD' : 	0.34,
+                    'ELmax' : 	0.109,
+                    'DistRA' : 	7.6,
+                    'FRD' : 	0.1,
+                    'GDs' : 	2000,
+                    'nbnodales' : 	-1,
+                    'alloc_rootB' : 	0.38,
+                    'alloc_rootA' : 	0.87,
+                    'frac_rac_fine' : 	0.22,
+                    'frac_remob' : 	0.1,
+                    'PMG' : 	2.29,
+                    'DurGraine' : 	120,
+                    'Npc_ini' : 	7,
+                    'frac_coty_ini' : 	0.8,
+                    'RUE' : 	2.3,
+                    'NODcost' : 	0.05,
+                    'SLAmin' : 	700,
+                    'SNLmin' : 	4.5,
+                    'SPLmin' : 	31.5,
+                    'SRLmin' : 	250,
+                    'Frac_piv_sem' : 	0.1,
+                    'Frac_piv_loc' : 	0.7,
+                    'fraction_NonRec' : 	0.001,
+                    'ADIL' : 	4.8,
+                    'BDILi' : 	-0.1,
+                    'BDIL' : 	-0.33,
+                    'NoptPiv' : 	2,
+                    'NoptFR' : 	3 ,
+                    'NminPiv' : 	1.4,
+                    'Na0' : 	2.13,
+                    'NL0Sh' : 	0.025,
+                    'NL0Pet' : 	0.003,
+                    'Vmax1' : 	0.0018,
+                    'Kmax1' : 	50,
+                    'Vmax2' : 	0.05,
+                    'Kmax2' : 	25000,
+                    'treshEffRootsN' : 	1000000,
+                    'treshminN' : 	0.8,
+                    'treshmaxN' : 	1,
+                    'MaxFix' : 	0,
+                    'DurDevFix' : 	10,
+                    'par_tresh' : 	0.333,
+                    'par_tresh_til' : 	0.33,
+                    'photomorphPAR_petini' : 	0.74,
+                    'photomorphPAR_petM' : 	1.17,
+                    'photomorphPAR_pett1' : 	140,
+                    'photomorphPAR_pett2' : 	183,
+                    'photomorphRFR_pets' : 	-0.68,
+                    'photomorphRFR_peti' : 	1.57,
+                    'photomorphPAR_intini' : 	0.46,
+                    'photomorphPAR_intM' : 	1.44,
+                    'photomorphPAR_intt1' : 	138,
+                    'photomorphPAR_intt2' : 	183,
+                    'photomorphRFR_ints' : 	0,
+                    'photomorphRFR_inti' : 	1,
+                    'MaxSurvOmbr' : 	1000,
+                    'WaterTreshExpSurfs' : 	10,
+                    'WaterTreshExpSurfd' : 	0.45,
+                    'WaterTreshDevIIs' : 	10,
+                    'WaterTreshDevIId' : 	0.4,
+                    'WaterTreshDevIs' : 	18,
+                    'WaterTreshDevId' : 	0.2,
+                    'WaterTreshElRootss' : 	18,
+                    'WaterTreshElRootsd' : 	0.2,
+                    'WaterTreshAdvRoots' : 	0.3,
+                    'WaterTreshFixs' : 	12,
+                    'WaterTreshFixd' : 	0.25,
+                    'WaterTreshRUEs' : 	12,
+                    'WaterTreshRUEd' : 	0.1,
+                    'WaterTreshGs' : 	0.4,
+                    'NTreshExpSurfs' : 	7,
+                    'NTreshExpSurfd' : 0.5,
+                    'NTreshDevs' : 	7,
+                    'NTreshDevd' : 	0.51,
+                    'NTreshRUEs' : 	7,
+                    'NTreshRUEd' : 	0.42,
+                    'NTreshDevIIs' : 	7,
+                    'NTreshDevIId' : 	0.51,
+                    'limStressTalN' : 	0,
+                    'limStressTalW' : 	0,
+                    'TempTreshRUEb' : 	0,
+                    'TempTreshRUEh' : 	15,
+                    'Tgel' : 	-1,
+                    'PPtreshb' : 	5,
+                    'PPtreshh' : 	6,
+                    'leafAlbedo' : 	0.15,
+                    'spanSen' : 	352,
+                    'spanMrt' : 	480,
+                    'LDs' : 	600000,
+                    'ombF_Ttresh' : 	96,
+                    'ombF_Ltresh' : 	10,
+                    'delai_senperenne' : 	500,
+                    'TOrate_nonrec' : 	0.005,
+                    'TOrate_piv' : 	0.0005,
+                    'phyllotaxy' : 	90,
+                    'leafshape' : 	0.71,
+                    'stipshape' : 	0.65,
+                    'gammaFeuil' : 	-30,
+                    'gammaFeuilSD' : 	20,
+                    'IncPet' : 	45,
+                    'elv0b' : 	0,
+                    'elv0h' : 	85,
+                    'elvtresh' : 	0,
+                    'Lmaxeffet' : 	30,
+                    'IncRoot0' : 	70,
+                    'elasticity' : 	0.02,
+                    'g_root' : 	0.000104,
+                    'DPivot2_coeff' : 	0.393,
+                    'ZPivot_min' : 	100,
+                    'offset_diamP' : 	0.5,
+                    'name' : 	'Fix2',
+                    'type' : 	1,
+                    'ActiveBranch' : 	1,
+                    'gotStip' : 	0,
+                    'gammagroup' : 	1,
+                    'groupe_resid' : 	0,
+                    'CNRESlf' : 	16,
+                    'CNRESst' : 	16,
+                    'CNRESr' : 	16,
+                    'CNRESpiv' : 	16,
+                    'WClf' : 	0.7,
+                    'WCst' : 	0.7,
+                    'WCr' : 	0.7,
+                    'WCpiv' : 	0.7,
+                    'CClf' : 	0.42,
+                    'CCst' : 	0.42,
+                    'CCr' : 	0.42,
+                    'CCpiv' : 	0.42,
+                    'Nmireslf' : 	0.00197,
+                    'Nmiresst' : 	0.00197,
+                    'Nmiresr' : 	0.00197,
+                    'Nmirespiv' : 	0.00197
+
+                    }
+
+    """
+
+    paramp = {}
+
+    paramp['Tdev'] = 5 #
+    paramp['Tmin'] = -7.6 #
+    paramp['Tmax'] = 39.4 #
+    paramp['q'] = 3.22 #
+    paramp['phyllochron'] = 30.58 #
+    paramp['phyllochronII'] = 35.59 #
+    paramp['delai_deb'] = 65.80816 #
+    paramp['nshoots'] = 3 #
+    paramp['debTallage'] = 7 #
+    paramp['RvitTallage'] = 1 #
+    paramp['delaiMaturBud'] = 14 #
+    paramp['nfol'] = 3 #
+    paramp['Len'] = 3.4875 #
+    paramp['Lfeuille'] = 4 #
+    paramp['Largfeuille'] = -1 #
+    paramp['Lpet'] = 5.1 #
+    paramp['Lstip'] = 0 #
+    paramp['LRS'] = 2.50 #
+    paramp['LenRhiz'] = 3 #
+    paramp['ratioM'] = 1 #
+    paramp['ratioII'] = 0.866025404 #
+    paramp['HeightTreshAdvRoots'] = -1 #
+    paramp['ProbaMaxAdvRoots'] = 1 #
+    paramp['delai_AdvRoots'] = 96 #
+    paramp['fenetre_AdvRoots'] = 60 #
+    paramp['DistLRhizn'] = 10 #
+    paramp['DistLRhizp'] = 0 #
+    paramp['aF'] = 0.05 #
+    paramp['aE'] = 0.05 #
+    paramp['aP'] = 0.05 #
+    paramp['aS'] = 0.05 #
+    paramp['delaiF'] = 50 #
+    paramp['delaiE'] = 130 #
+    paramp['delaiP'] = 90 #
+    paramp['delaiS'] = 50 #
+    paramp['seuilexpF'] = 75.58 #
+    paramp['profilLeafI_Rlens1'] = 0.151 #
+    paramp['profilLeafI_Rleni1'] = 0.005 #
+    paramp['profilLeafI_Rlens2'] = -0.027 #
+    paramp['profilLeafI_Rleni2'] = 1.25 #
+    paramp['profilLeafI_Rlargs1'] = -0.067 #
+    paramp['profilLeafI_Rlargi1'] = 1.19 #
+    paramp['profilLeafI_Rlargs2'] = -0.027 #
+    paramp['profilLeafI_Rlargi2'] = 0.89 #
+    paramp['profilNodeIs1'] = 0.386 #
+    paramp['profilNodeIi1'] = -0.453 #
+    paramp['profilNodeIs2'] = -0.00961 #
+    paramp['profilNodeIi2'] = 1.213 #
+    paramp['profilStpI_ls1'] = 0.093 #
+    paramp['profilStpI_li1'] = 0.0741 #
+    paramp['profilStpI_ls2'] = -0.03 #
+    paramp['profilStpI_li2'] = 1.3 #
+    paramp['profilStpI_Rlargs1'] = 0.0587 #
+    paramp['profilStpI_Rlargi1'] = 0.4408 #
+    paramp['profilStpI_Rlargs2'] = 0 #
+    paramp['profilStpI_Rlargi2'] = 1 #
+    paramp['profilPetIs1'] = 0.376 #
+    paramp['profilPetIi1'] = 0.225 #
+    paramp['profilPetIs2'] = -0.0497 #
+    paramp['profilPetIi2'] = 1.16 #
+    paramp['profilLeafI_Rnfols'] = 0 #
+    paramp['profilLeafI_Rnfoli'] = 1 #
+
+    paramp['Dmin'] = 0.019 #
+    paramp['Dmax'] = 0.106 #
+    paramp['DIDm'] = 0.242 #
+    paramp['IBD'] = 0.34 #
+    paramp['ELmax'] = 0.109 #
+    paramp['DistRA'] = 7.6 #
+    paramp['FRD'] = 0.1 #
+    paramp['GDs'] = 2000 #
+    paramp['nbnodales'] = -1 #
+    paramp['alloc_rootB'] = 0.38 #
+    paramp['alloc_rootA'] = 0.87 #
+    paramp['frac_rac_fine'] = 0.22 #
+    paramp['frac_remob'] = 0.1 #
+
+    paramp['PMG'] = 2.29 #
+    paramp['DurGraine'] = 120 #
+    paramp['Npc_ini'] = 7 #
+    paramp['frac_coty_ini'] = 0.8 #
+    paramp['RUE'] = 2.3 #
+    paramp['NODcost'] = 0.05 #
+    paramp['SLAmin'] = 700 #
+    paramp['SNLmin'] = 4.5 #
+    paramp['SPLmin'] = 31.5 #
+    paramp['SRLmin'] = 250 #
+    paramp['Frac_piv_sem'] = 0.1 #
+    paramp['Frac_piv_loc'] = 0.7 #
+    paramp['fraction_NonRec'] = 0.001 #
+    paramp['ADIL'] = 4.8 #
+    paramp['BDILi'] = -0.1 #
+    paramp['BDIL'] = -0.33 #
+    paramp['NoptPiv'] = 2 #
+    paramp['NoptFR'] = 3 #
+    paramp['NminPiv'] = 1.4 #
+    paramp['Na0'] = 2.13 #
+    paramp['NL0Sh'] = 0.025 #
+    paramp['NL0Pet'] = 0.003 #
+    paramp['Vmax1'] = 0.0018 #
+    paramp['Kmax1'] = 50 #
+    paramp['Vmax2'] = 0.05 #
+    paramp['Kmax2'] = 25000 #
+    paramp['treshEffRootsN'] = 1000000 #
+    paramp['treshminN'] = 0.8 #
+    paramp['treshmaxN'] = 1 #
+    paramp['MaxFix'] = 0 #
+    paramp['DurDevFix'] = 10 #
+
+    paramp['par_tresh'] = 0.333 #
+    paramp['par_tresh_til'] = 0.33 #
+    paramp['photomorphPAR_petini'] = 0.74 #
+    paramp['photomorphPAR_petM'] = 1.17 #
+    paramp['photomorphPAR_pett1'] = 140 #
+    paramp['photomorphPAR_pett2'] = 183 #
+    paramp['photomorphRFR_pets'] = -0.68 #
+    paramp['photomorphRFR_peti'] = 1.57 #
+    paramp['photomorphPAR_intini'] = 0.46 #
+    paramp['photomorphPAR_intM'] = 1.44 #
+    paramp['photomorphPAR_intt1'] = 138 #
+    paramp['photomorphPAR_intt2'] = 183 #
+    paramp['photomorphRFR_ints'] = 0 #
+    paramp['photomorphRFR_inti'] = 1 #
+    paramp['MaxSurvOmbr'] = 1000 #
+    paramp['WaterTreshExpSurfs'] = 10 #
+    paramp['WaterTreshExpSurfd'] = 0.45 #
+    paramp['WaterTreshDevIIs'] = 10 #
+    paramp['WaterTreshDevIId'] = 0.4 #
+    paramp['WaterTreshDevIs'] = 18 #
+    paramp['WaterTreshDevId'] = 0.2 #
+    paramp['WaterTreshElRootss'] = 18 #
+    paramp['WaterTreshElRootsd'] = 0.2 #
+    paramp['WaterTreshAdvRoots'] = 0.3 #
+    paramp['WaterTreshFixs'] = 12 #
+    paramp['WaterTreshFixd'] = 0.25 #
+    paramp['WaterTreshRUEs'] = 12 #
+    paramp['WaterTreshRUEd'] = 0.1 #
+    paramp['WaterTreshGs'] = 0.4 #
+    paramp['NTreshExpSurfs'] = 7 #
+    paramp['NTreshExpSurfd'] = 0.5 #
+    paramp['NTreshDevs'] = 7 #
+    paramp['NTreshDevd'] = 0.51 #
+    paramp['NTreshRUEs'] = 7 #
+    paramp['NTreshRUEd'] = 0.42 #
+    paramp['NTreshDevIIs'] = 7 #
+    paramp['NTreshDevIId'] = 0.51 #
+    paramp['limStressTalN'] = 0 #
+    paramp['limStressTalW'] = 0 #
+    paramp['TempTreshRUEb'] = 0 #
+    paramp['TempTreshRUEh'] = 15 #
+    paramp['Tgel'] = -1 #
+    paramp['PPtreshb'] = 5 #
+    paramp['PPtreshh'] = 6 #
+    paramp['leafAlbedo'] = 0.15 #
+
+    paramp['spanSen'] = 352 #
+    paramp['spanMrt'] = 480 #
+    paramp['LDs'] = 600000 #
+    paramp['ombF_Ttresh'] = 96 #
+    paramp['ombF_Ltresh'] = 10 #
+    paramp['delai_senperenne'] = 500 #
+    paramp['TOrate_nonrec'] = 0.005 #
+    paramp['TOrate_piv'] = 0.0005 #
+    paramp['phyllotaxy'] = 90 #
+    paramp['leafshape'] = 0.71 #
+    paramp['stipshape'] = 0.65 #
+    paramp['gammaFeuil'] = -30 #
+    paramp['gammaFeuilSD'] = 20 #
+    paramp['IncPet'] = 45 #
+    paramp['elv0b'] = 0 #
+    paramp['elv0h'] = 85 #
+    paramp['elvtresh'] = 0 #
+    paramp['Lmaxeffet'] = 30 #
+    paramp['IncRoot0'] = 70 #
+    paramp['elasticity'] = 0.02 #
+    paramp['g_root'] = 0.000104 #
+    paramp['DPivot2_coeff'] = 0.393 #
+    paramp['ZPivot_min'] = 100 #
+    paramp['offset_diamP'] = 0.5 #
+
+    paramp['name'] = 'Fix2'  #
+    paramp['type'] = 1 #
+    paramp['ActiveBranch'] = 1 #
+    paramp['gotStip'] = 0 #
+    paramp['gammagroup'] = 1 #
+    paramp['groupe_resid'] = 0 #
+
+    paramp['CNRESlf'] = 16 #
+    paramp['CNRESst'] = 16 #
+    paramp['CNRESr'] = 16 #
+    paramp['CNRESpiv'] = 16 #
+    paramp['WClf'] = 0.7 #
+    paramp['WCst'] = 0.7 #
+    paramp['WCr'] = 0.7 #
+    paramp['WCpiv'] = 0.7 #
+    paramp['CClf'] = 0.42 #
+    paramp['CCst'] = 0.42 #
+    paramp['CCr'] = 0.42 #
+    paramp['CCpiv'] = 0.42 #
+    paramp['Nmireslf'] = 0.00197 #
+    paramp['Nmiresst'] = 0.00197 #
+    paramp['Nmiresr'] = 0.00197 #
+    paramp['Nmirespiv'] = 0.00197 #
+
+    return paramp
+

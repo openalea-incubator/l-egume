@@ -1,5 +1,6 @@
-from scipy import pi, array, sqrt, arange, cos, sin, amax, where, argmin
+#from scipy import pi, array, sqrt, arange, cos, sin, amax, where, argmin
 import pandas as pd
+import numpy as np
 import IOxls
 
 ## gestion des enveloppe et des tropisme -> fonctions dans fichier R 'calc_root_tropism.r'
@@ -38,14 +39,14 @@ def update_root_params(ParamP):
     #liste demande potentiell apex par degre jour par ordre (pour atteindre Vmax)
     lsDemanDRac = [] 
     for i in range(nb_ordre_rac):
-        increment_volDJ = lsVrac[i] * pi * (lsDrac[i]/2.)**2 #cm-3
+        increment_volDJ = lsVrac[i] * np.pi * (lsDrac[i]/2.)**2 #cm-3
         demande_masse = increment_volDJ * ParamP['FRD']
         lsDemanDRac.append(demande_masse)
 
     ParamP['lsDrac'] = lsDrac
     ParamP['nb_ordre_rac'] = nb_ordre_rac
     ParamP['lsVrac'] = lsVrac
-    ParamP['lsDemanDRac'] = array(lsDemanDRac)
+    ParamP['lsDemanDRac'] = np.array(lsDemanDRac)
     ParamP['lsDurrac'] = lsDur
     ParamP['lsSpanrac'] = lsSpan
     ParamP['LDs2'] = lsSpan[1]#en degres jours 
@@ -84,7 +85,7 @@ def nb_rac_ordre(ParamP, TT, satisfC=1., stressH=1.):
         n2 = int(Lcum_ram3 / ParamP['IBD']) #nb de tertiaire total
         ls_Nrac.append(n2)
 
-    return array(ls_Nrac)
+    return np.array(ls_Nrac)
     #peut ajouter des duree max de developpement, voir senescence
     #peut ajouter un nb de nodales primaires
     #effet stressH pas ur primaire (RA() dans le model)?
@@ -237,7 +238,7 @@ def cumul_plante_Lrac(nbplt, dCumlRac):
         if len(dCumlRac[k])>2:
             cum3[nump] += dCumlRac[k][2]/100.
 
-    tot = array(cum1)+ array(cum2)+ array(cum3)
+    tot = np.array(cum1)+ np.array(cum2)+ np.array(cum3)
     return cum1, cum2, cum3, tot.tolist()
 
 
@@ -256,7 +257,7 @@ def cumul_fine_Lrac(nbplt, dCumlRac):
         if len(dCumlRac[k])>2:
             cum3[nump] += dCumlRac[k][2]/100.
 
-    tot = array(cum2)+ array(cum3)
+    tot = np.array(cum2)+ np.array(cum3)
     return tot.tolist()
 
 
@@ -384,7 +385,7 @@ def calc_DiamPivMax(ParamP, MaxPiv):
     for k in list(MaxPiv.keys()):
         nump = int(str.split(k, '_')[0])
         DPivot2_coeff = ParamP[nump]['DPivot2_coeff']
-        DiampivMax[k] = sqrt(DPivot2_coeff * MaxPiv[k])
+        DiampivMax[k] = np.sqrt(DPivot2_coeff * MaxPiv[k])
     return DiampivMax #dictionnaire des diametres par axe
 
 
@@ -443,8 +444,8 @@ def calc_root_senescence(dl2, dl3, dur2, dur3, SRL):
     #dur2, dur3, -> growth duration + life span(GDs+LDs) en jour a 20degre
     #invar['SRL'] -> current SRL
 
-    dRLenSen2 = 0.*array(SRL)#initialise a zero
-    dRLenSen3 = 0.*array(SRL)
+    dRLenSen2 = 0.*np.array(SRL)#initialise a zero
+    dRLenSen3 = 0.*np.array(SRL)
     for nump in range(len(dur2)):
         if len(dl3)>(int(dur3[nump])+1):
             dLroot3 = dl3[-int(dur3[nump])][nump]
@@ -474,20 +475,20 @@ def rootTropism(alpha0, g, segment=0.3, Long=10.):
     # g = 0.5 #gravitropisme
     # Long = 10.#cm
 
-    cumlen = arange(0, Long, segment)  # seq(0, Long, segment)#equivalent python?
+    cumlen = np.arange(0, Long, segment)  # seq(0, Long, segment)#equivalent python?
     # 2 1er point (inclinaison initiale)
     ang_actu = alpha0
-    x = [0., segment * cos(alpha0 * pi / 180.)]
+    x = [0., segment * np.cos(alpha0 * np.pi / 180.)]
     # axe vertical
-    y = [0., segment * sin(alpha0 * pi / 180.)]
+    y = [0., segment * np.sin(alpha0 * np.pi / 180.)]
     # axe horizontal
     reste_angle = alpha0
 
     # n points pour faire Long
     for i in range(1, len(cumlen) - 1):  # int((Long-segment)/segment + 1)):
         ang_actu = ang_actu - reste_angle * g
-        x.append(x[-1] + segment * cos(ang_actu * pi / 180.))  # axe vertical
-        y.append(y[-1] + segment * sin(ang_actu * pi / 180.))  # axe horizontal
+        x.append(x[-1] + segment * np.cos(ang_actu * np.pi / 180.))  # axe vertical
+        y.append(y[-1] + segment * np.sin(ang_actu * np.pi / 180.))  # axe horizontal
         reste_angle = ang_actu
 
     # pd.DataFrame({'x':x, 'y':y, 'cumlen':cumlen})
@@ -499,7 +500,7 @@ def rootTropism(alpha0, g, segment=0.3, Long=10.):
 def idLong(Long, tabTropism):
     """ python fonction for idLong.r"""
     # id du dataframe immediatement inferieur a Long en longueur cumulee
-    id = amax(where(tabTropism["cumlen"] < Long))  # amax = mas array; where = pyhon for which
+    id = np.amax(np.where(tabTropism["cumlen"] < Long))  # amax = mas array; where = pyhon for which
     return id
     # idLong(Long=5.1, tabTropism=test)
 
