@@ -10,7 +10,8 @@ import sys
 import argparse #pour parser les argument en ligne de commande
 
 try:
-    import legume
+    from src.openalea import legume
+
     path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'

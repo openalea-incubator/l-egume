@@ -1,5 +1,4 @@
 #from scipy import pi, array, sqrt, arange, cos, sin, amax, where, argmin
-import pandas as pd
 import numpy as np
 import IOxls
 

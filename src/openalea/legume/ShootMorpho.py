@@ -1,7 +1,6 @@
 #from scipy import *
 import IOtable
 import IOxls
-import string
 from copy import deepcopy
 try:
     from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe

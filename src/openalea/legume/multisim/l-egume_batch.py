@@ -1,14 +1,13 @@
 #modif legume batch to reuse run_l-egume_usm
 
 # import the modules necessary to initiate the L-systems
-from openalea.lpy import *
 import multiprocessing
 
 import os
 import sys
 
 try:
-    import legume
+    from src.openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
 except:

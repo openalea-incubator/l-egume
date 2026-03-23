@@ -10,7 +10,7 @@ import sys
 import pickle
 
 try:
-    import legume
+    from src.openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
 except:

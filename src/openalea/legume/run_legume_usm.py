@@ -7,7 +7,8 @@ import os
 import sys
 
 try:
-    import legume
+    from src.openalea import legume
+
     path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'

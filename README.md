@@ -8,7 +8,7 @@ See :
 * Louarn, G., Faverjon, L. (2018). A generic individual-based model to simulate morphogenesis, C–N acquisition and population dynamics in contrasting forage legumes. Annals of botany, 121(5), 875-896.
 * Faverjon, L. (2018). Calibration et evaluation d’un modele individu-centre generique de morphogenese des legumineuses fourrageres – Application a la prediction des equilibres inter-specifiques dans des communautes prairiales  experimentales. PhD Thesis. Univ. Poitiers.
 
-<img src="legume/logo_l-egume.png" alt="alt text" width="60%"/>
+<img src="src/openalea/legume/logo_l-egume.png" alt="alt text" width="60%"/>
 
 ## 1. Getting Started
 
