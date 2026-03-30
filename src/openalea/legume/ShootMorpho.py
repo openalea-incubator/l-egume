@@ -3,7 +3,7 @@ import IOtable
 import IOxls
 from copy import deepcopy
 try:
-    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
+    from openalea.riri5 import riri5 as riri #import de la version develop si module soil3ds est installe
 except:
     import RIRI5 as riri
 

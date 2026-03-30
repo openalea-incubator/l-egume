@@ -85,6 +85,8 @@ channels = [
 ]
 dependencies = [
     "openalea.lpy",
+    "openalea.riri5",
+    "openalea.soil3ds",
 ]
 
 [project.urls]

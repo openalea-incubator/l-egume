@@ -22,7 +22,7 @@ import pandas as pd
 import getopt
 #import zipfile
 
-from soil3ds import soil_moduleN as solN #pour lecture sol xml
+from openalea.soil3ds import soil_moduleN as solN #pour lecture sol xml
 
 
 

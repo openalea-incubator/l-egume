@@ -19,8 +19,8 @@ from copy import deepcopy
 import time
 import pandas as pd
 
-from soil3ds import soil_moduleN as solN
-from riri5 import RIRI5 as riri
+from openalea.soil3ds import soil_moduleN as solN
+from openalea.riri5 import riri5 as riri
 
 import RootDistrib as rtd
 import RootMorpho as rt
