@@ -19,12 +19,12 @@ except:
 print(('path', path_))
 
 sys.path.insert(0, path_)
-import IOxls
-import IOtable
-import run_legume_usm as runl
-import ShootMorpho as sh
-import daily_loop as loop
-import initialisation as initial
+from openalea.legume import IOxls
+from openalea.legume import IOtable
+import openalea.legume.run_legume_usm as runl
+import openalea.legume.ShootMorpho as sh
+import openalea.legume.daily_loop as loop
+import openalea.legume.initialisation as initial
 import numpy as np
 
 from openalea.soil3ds import soil_moduleN as solN
