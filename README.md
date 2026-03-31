@@ -1,6 +1,4 @@
-=========================
-README for L-egume
-=========================
+# L-egume
 
 This is L-egume model, a generic model of forage legume morphogenesis.
 
