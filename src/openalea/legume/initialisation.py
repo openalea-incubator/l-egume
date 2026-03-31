@@ -4,7 +4,7 @@ import os
 import sys
 
 try:
-    from src.openalea import legume
+    from openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
 except:
@@ -22,10 +22,10 @@ import pandas as pd
 from openalea.soil3ds import soil_moduleN as solN
 from openalea.riri5 import riri5 as riri
 
-import RootDistrib as rtd
-import RootMorpho as rt
-import ShootMorpho as sh
-import IOxls
+import openalea.legume.RootDistrib as rtd
+import openalea.legume.RootMorpho as rt
+import openalea.legume.ShootMorpho as sh
+import openalea.legume.IOxls
 
 
 

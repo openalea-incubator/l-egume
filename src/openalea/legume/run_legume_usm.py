@@ -1,13 +1,18 @@
 
 #import the modules necessary to initiate the L-systems
-import openalea.lpy as lpy
-#from openalea.lpy import *
-
 import os
 import sys
+import getopt
+import pandas as pd
+
+import openalea.lpy as lpy
+from openalea.soil3ds import soil_moduleN as solN #pour lecture sol xml
+
+from openalea.legume import IOxls
+from openalea.legume import IOtable
 
 try:
-    from src.openalea import legume
+    from openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
 except:
@@ -16,13 +21,6 @@ except:
 #print(('path', path_))
 
 sys.path.insert(0, path_)
-import IOxls
-import IOtable
-import pandas as pd
-import getopt
-#import zipfile
-
-from openalea.soil3ds import soil_moduleN as solN #pour lecture sol xml
 
 
 

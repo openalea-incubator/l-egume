@@ -1,14 +1,16 @@
 #from scipy import *
-import time
-import IOtable
-import IOxls
-import ShootMorpho as sh
-import RootDistrib as rtd
-import RootMorpho as rt
-from copy import deepcopy
 import numpy as np
 import os
 import pickle
+import time
+
+from copy import deepcopy
+
+import openalea.legume.IOtable
+import openalea.legume.IOxls
+import openalea.legume.ShootMorpho as sh
+import openalea.legume.RootDistrib as rtd
+import openalea.legume.RootMorpho as rt
 
 try:
     from openalea.soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe

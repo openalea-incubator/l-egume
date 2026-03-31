@@ -55,6 +55,7 @@ dependencies = [
     "numpy",
     "scipy",
     "xlrd",
+    "pandas",
 ]
 
 [project.optional-dependencies]
@@ -84,6 +85,7 @@ channels = [
   "conda-forge"
 ]
 dependencies = [
+    "openalea.plantgl",
     "openalea.lpy",
     "openalea.riri5",
     "openalea.soil3ds",

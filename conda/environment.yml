@@ -4,6 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python
+  - openalea.plantgl
   - openalea.lpy
   - openalea.riri5
   - openalea.soil3ds

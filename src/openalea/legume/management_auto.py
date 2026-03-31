@@ -1,8 +1,9 @@
 import sys
 import os
+import numpy as np
 
 try:
-    from src.openalea import legume
+    from openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
     #path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\luzerne' #r'C:\devel\grassland'#
@@ -15,10 +16,9 @@ path_out = os.path.join(path_, 'output')#r'C:\devel\grassland'#r'H:\devel\grassl
 sys.path.insert(0, path_)
 sys.path.insert(0, path_leg)
 
-import IOxls
-import ShootMorpho as sh
+from openalea.legume import IOxls
+import openalea.legume.ShootMorpho as sh
 #from scipy import array
-import numpy as np
 
 #meteo
 #meteo_path = os.path.join(path_leg,'meteo_exemple.xls')#'meteo_exemple_debugL_gl.xls')##r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
