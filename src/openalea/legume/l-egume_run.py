@@ -18,8 +18,8 @@ except:
 
 
 sys.path.insert(0, path_)
-import IOxls
-import IOtable
+from openalea.legume import IOxls
+from openalea.legume import IOtable
 
 #print(sys.argv)
 #options = sys.argv #recupere une liste d'arguments passes en ligne de commandes (non structure, sans aide)
