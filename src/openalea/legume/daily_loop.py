@@ -6,14 +6,14 @@ import time
 
 from copy import deepcopy
 
-import openalea.legume.IOtable
-import openalea.legume.IOxls
+from openalea.legume import IOtable
+from openalea.legume import IOxls
 import openalea.legume.ShootMorpho as sh
 import openalea.legume.RootDistrib as rtd
 import openalea.legume.RootMorpho as rt
 
 try:
-    from openalea.soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    from openalea.soil3ds import soil_moduleN as solN #import dev version if soil3ds is installed
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
