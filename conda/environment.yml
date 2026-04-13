@@ -1,4 +1,4 @@
-name: vmapplet_dev
+name: legume_dev
 channels:
   - openalea3/label/dev
   - openalea3
