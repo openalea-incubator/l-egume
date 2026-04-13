@@ -10,15 +10,16 @@ import sys
 import argparse #pour parser les argument en ligne de commande
 
 try:
-    import legume
+    from openalea import legume
+
     path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
 except:
     path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'
 
 
 sys.path.insert(0, path_)
-import IOxls
-import IOtable
+from openalea.legume import IOxls
+from openalea.legume import IOtable
 
 #print(sys.argv)
 #options = sys.argv #recupere une liste d'arguments passes en ligne de commandes (non structure, sans aide)

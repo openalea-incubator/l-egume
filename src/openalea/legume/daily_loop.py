@@ -1,17 +1,19 @@
 #from scipy import *
-import time
-import IOtable
-import IOxls
-import ShootMorpho as sh
-import RootDistrib as rtd
-import RootMorpho as rt
-from copy import deepcopy
 import numpy as np
 import os
 import pickle
+import time
+
+from copy import deepcopy
+
+from openalea.legume import IOtable
+from openalea.legume import IOxls
+import openalea.legume.ShootMorpho as sh
+import openalea.legume.RootDistrib as rtd
+import openalea.legume.RootMorpho as rt
 
 try:
-    from soil3ds import soil_moduleN as solN #import de la version develop si module soil3ds est installe
+    from openalea.soil3ds import soil_moduleN as solN #import dev version if soil3ds is installed
 except:
     import soil_moduleN3 as solN #soil_moduleN2_bis as solN #! renommer car dans nouvelle version Lpy, mot module est reserve et fait planter!
 
@@ -86,7 +88,8 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
     pivot = dM * froot * (1 - np.array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))) - invar['remob']
     aer = dM - rac_fine - pivot #+ invar['remob']
     aer[aer==0.] += invar['remob'][aer==0.] # pour cas ou organes en croissance apres coupe, mais sans feuille (demande mini = remob)
-    ffeuil = np.array(IOxls.dic2vec(nbplantes, invar['DemCp_lf'])) / (np.array(IOxls.dic2vec(nbplantes, invar['DemCp'])) + epsilon)  # fraction aux feuilles
+    ffeuil = np.array(IOxls.dic2vec(nbplantes, invar['DemCp_lf'])) / (np.array(
+        IOxls.dic2vec(nbplantes, invar['DemCp'])) + epsilon)  # fraction aux feuilles
     feuil = aer * ffeuil
     tige = aer * (1 - ffeuil)
     senaerien = np.array(invar['dMSenFeuil']) + np.array(invar['dMSenTige'])
@@ -166,16 +169,21 @@ def daily_growth_loop(ParamP, invar, outvar, ls_epsi, meteo_j, mng_j, nbplantes,
 
 
     #reserve Piv
-    invar['NreservPiv'] = np.array(invar['Npivot']) * (Npc_piv - np.array(IOxls.get_lsparami(ParamP, 'NminPiv'))) / Npc_piv
+    invar['NreservPiv'] = np.array(invar['Npivot']) * (Npc_piv - np.array(
+        IOxls.get_lsparami(ParamP, 'NminPiv'))) / Npc_piv
     invar['NreservPiv'][invar['NreservPiv'] < 0.] = 0.  # verifier que depasse pas zero!!
 
 
-    ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=np.array(invar['MS_aerien'])-np.array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=np.array(IOxls.get_lsparami(ParamP, 'ADIL')), b1=np.array(IOxls.get_lsparami(ParamP, 'BDILi')), b2=np.array(IOxls.get_lsparami(ParamP, 'BDIL')), MStot_extern=MStot_extern)
+    ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=np.array(invar['MS_aerien'])-np.array(aer), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=np.array(
+        IOxls.get_lsparami(ParamP, 'ADIL')), b1=np.array(IOxls.get_lsparami(ParamP, 'BDILi')), b2=np.array(
+        IOxls.get_lsparami(ParamP, 'BDIL')), MStot_extern=MStot_extern)
     #ls_demandeN_aer, NcritTot_, MStot_ = solN.demandeNdefaut2(MSp=array(MS_aerien_tm1), dMSp=aer, Npc=Npc_aer, surfsolref=surfsolref, a=array(IOxls.get_lsparami(ParamP, 'ADIL')), b1=array(IOxls.get_lsparami(ParamP, 'BDILi')), b2=array(IOxls.get_lsparami(ParamP, 'BDIL')))
     #print('Ncrit', NcritTot_, MStot_)
     ls_demandeN_aer = ls_demandeN_aer * 0.001 #+ 1e-15  # en kg N.plant-1
-    ls_demandN_piv = solN.demandeNroot(np.array(invar['MS_pivot']), pivot, Npc_piv, surfsolref, np.array(IOxls.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + epsilon #+ 1e-15  # en kg N.plant-1
-    ls_demandN_rac_fine = solN.demandeNroot(np.array(invar['MS_rac_fine']), rac_fine, Npc_rac_fine, surfsolref, np.array(IOxls.get_lsparami(ParamP, 'NoptFR'))) * 0.001 #+ 1e-15  # en kg N.plant-1
+    ls_demandN_piv = solN.demandeNroot(np.array(invar['MS_pivot']), pivot, Npc_piv, surfsolref, np.array(
+        IOxls.get_lsparami(ParamP, 'NoptPiv'))) * 0.001 + epsilon #+ 1e-15  # en kg N.plant-1
+    ls_demandN_rac_fine = solN.demandeNroot(np.array(invar['MS_rac_fine']), rac_fine, Npc_rac_fine, surfsolref, np.array(
+        IOxls.get_lsparami(ParamP, 'NoptFR'))) * 0.001 #+ 1e-15  # en kg N.plant-1
 
     ls_demandeN_bis = ls_demandeN_aer + ls_demandN_piv + ls_demandN_rac_fine #+ epsilon
     fracNaer = ls_demandeN_aer  / (ls_demandeN_bis + epsilon)
@@ -271,7 +279,8 @@ def Update_stress_loop(ParamP, invar, invar_sc, temps, DOY, nbplantes, surfsolre
     invar['Nrac_fine'] += invar['Nuptake_sol'] * fracNrac_fine
 
     # Fixation et allocation
-    maxFix = sh.Ndfa_max(invar['TT'], IOxls.get_lsparami(ParamP, 'DurDevFix')) * np.array(IOxls.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  #invar['MS_aerien']# * invar['dTT']
+    maxFix = sh.Ndfa_max(invar['TT'], IOxls.get_lsparami(ParamP, 'DurDevFix')) * np.array(
+        IOxls.get_lsparami(ParamP, 'MaxFix')) / 1000. * aer  #invar['MS_aerien']# * invar['dTT']
     stressHFix = np.array(ls_ftswStress['WaterTreshFix']) * maxFix  # effet hydrique
     invar['Qfix'] = sh.ActualFix(ls_demandeN_bis * 1000., invar['Nuptake_sol'], stressHFix)  # g N.plant-1
     invar['Ndfa'] = invar['Qfix'] / (invar['Qfix'] + invar['Nuptake_sol'] + 1e-15)

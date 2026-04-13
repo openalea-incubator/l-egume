@@ -1,8 +1,10 @@
 ### set de fonctions utiles pour manipuler les geometry plantGL
 
-import openalea.plantgl.all as pgl
-from V3Dutils import *
 import numpy as np
+
+import openalea.plantgl.all as pgl
+
+from openalea.legume.V3Dutils import *
 
 def mesh(geometry):
     """ renvoie le mesh d'une geometry"""

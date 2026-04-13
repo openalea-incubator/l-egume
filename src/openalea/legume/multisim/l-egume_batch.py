@@ -1,14 +1,13 @@
 #modif legume batch to reuse run_l-egume_usm
 
 # import the modules necessary to initiate the L-systems
-from openalea.lpy import *
 import multiprocessing
 
 import os
 import sys
 
 try:
-    import legume
+    from openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
 except:
@@ -17,9 +16,9 @@ except:
 print(('path', path_))
 
 sys.path.insert(0, path_)
-import IOxls
-import IOtable
-import run_legume_usm as runl
+from openalea.legume import IOxls
+from openalea.legume import IOtable
+from openalea.legume import run_legume_usm as runl
 
 
 global foldin, fxls, ongletBatch

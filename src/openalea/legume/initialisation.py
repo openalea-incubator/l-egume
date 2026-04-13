@@ -4,7 +4,7 @@ import os
 import sys
 
 try:
-    import legume
+    from openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
 except:
@@ -16,18 +16,16 @@ sys.path.insert(0, path_)
 import numpy as np
 #from scipy import *
 from copy import deepcopy
-import string
 import time
 import pandas as pd
 
-from soil3ds import soil_moduleN as solN
-from riri5 import RIRI5 as riri
+from openalea.soil3ds import soil_moduleN as solN
+from openalea.riri5 import riri5 as riri
 
-import RootDistrib as rtd
-import RootMorpho as rt
-import ShootMorpho as sh
-import IOtable
-import IOxls
+import openalea.legume.RootDistrib as rtd
+import openalea.legume.RootMorpho as rt
+import openalea.legume.ShootMorpho as sh
+import openalea.legume.IOxls
 
 
 
@@ -39,9 +37,9 @@ def init_glob_variables_simVGL(meteo, mng, DOYdeb, path_station, ongletSta):
 
     ## meteo du jour
     DOY = DOYdeb
-    meteo_j = IOxls.extract_dataframe(meteo, ['DOY','TmoyDay', 'RG', 'Et0', 'Precip', 'Tmin', 'Tmax', 'Tsol'], 'DOY', val=DOY)
+    meteo_j = IOxls.extract_dataframe(meteo, ['DOY', 'TmoyDay', 'RG', 'Et0', 'Precip', 'Tmin', 'Tmax', 'Tsol'], 'DOY', val=DOY)
     meteo_j['I0'] = [0.48 * meteo_j['RG'][0] * 10000 / (3600 * 24)]  # flux PAR journalier moyen en W.m-2 / RG en j.cm-2
-    mng_j = IOxls.extract_dataframe(mng, ['Coupe', 'Irrig', 'FertNO3', 'FertNH4', 'Hcut', 'WidthCut','Res1','Res2','Res3'], 'DOY', val=DOY)
+    mng_j = IOxls.extract_dataframe(mng, ['Coupe', 'Irrig', 'FertNO3', 'FertNH4', 'Hcut', 'WidthCut', 'Res1', 'Res2', 'Res3'], 'DOY', val=DOY)
     for k in list(meteo_j.keys()): meteo_j[k] = meteo_j[k][0]
     for k in list(mng_j.keys()): mng_j[k] = mng_j[k][0]
     meteo_j['durjour'] = sh.DayLength(station['latitude'], sh.DecliSun(DOY % 365))
@@ -1129,16 +1127,21 @@ def init_invar(ParamP, nbplantes, epsilon):
     invar['MS_coty'] = np.array(PG) * frac_coty_ini  # dans les cotyledons
     invar['Mfeuil'].append(np.array(PG) * frac_coty_ini * 0.98)  # tout aerien dans feuil
     invar['Mtige'].append(np.array(PG) * frac_coty_ini * 0.01)  #
-    invar['Mrac_fine'].append(np.array(PG) * (1. - frac_coty_ini) * np.array(IOxls.get_lsparami(ParamP, 'frac_rac_fine')))
-    invar['Mpivot'].append(np.array(PG) * (1. - frac_coty_ini) * (1. - np.array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))))
+    invar['Mrac_fine'].append(np.array(PG) * (1. - frac_coty_ini) * np.array(
+        IOxls.get_lsparami(ParamP, 'frac_rac_fine')))
+    invar['Mpivot'].append(np.array(PG) * (1. - frac_coty_ini) * (1. - np.array(
+        IOxls.get_lsparami(ParamP, 'frac_rac_fine'))))
     invar['MS_aerienNonRec'] = np.array(PG) * frac_coty_ini * 0.01
     invar['Msenaerien'].append(np.array(PG) * 0.)
 
     invar['Naerien'] = np.array(PG) * frac_coty_ini * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.  # meme teneur racine et shoot
     invar['Ncoty'] = np.array(PG) * frac_coty_ini * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.  # meme teneur racine et shoot
-    invar['Nrac_fine'] = np.array(PG) * (1. - frac_coty_ini) * np.array(IOxls.get_lsparami(ParamP, 'frac_rac_fine')) * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.  # meme teneur racine et shoot
-    invar['Npivot'] = np.array(PG) * (1. - frac_coty_ini) * (1. - np.array(IOxls.get_lsparami(ParamP, 'frac_rac_fine'))) * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.  # meme teneur racine et shoot
-    invar['NaerienNonRec'] = np.array(PG) * frac_coty_ini * 0.01 * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.
+    invar['Nrac_fine'] = np.array(PG) * (1. - frac_coty_ini) * np.array(
+        IOxls.get_lsparami(ParamP, 'frac_rac_fine')) * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.  # meme teneur racine et shoot
+    invar['Npivot'] = np.array(PG) * (1. - frac_coty_ini) * (1. - np.array(
+        IOxls.get_lsparami(ParamP, 'frac_rac_fine'))) * np.array(IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.  # meme teneur racine et shoot
+    invar['NaerienNonRec'] = np.array(PG) * frac_coty_ini * 0.01 * np.array(
+        IOxls.get_lsparami(ParamP, 'Npc_ini')) / 100.
 
     return invar
 

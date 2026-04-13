@@ -1,8 +1,10 @@
 import sys
 import os
+import numpy as np
 
 try:
-    import legume
+    from openalea import legume
+
     path_ = os.path.dirname(os.path.abspath(legume.__file__))#local absolute path of L-egume
     #path_ = r'C:\devel\l-egume\legume'#r'C:\devel\grassland'#r'H:\devel\grassland\grassland\luzerne' #r'C:\devel\grassland'#
 except:
@@ -14,10 +16,9 @@ path_out = os.path.join(path_, 'output')#r'C:\devel\grassland'#r'H:\devel\grassl
 sys.path.insert(0, path_)
 sys.path.insert(0, path_leg)
 
-import IOxls
-import ShootMorpho as sh
+from openalea.legume import IOxls
+import openalea.legume.ShootMorpho as sh
 #from scipy import array
-import numpy as np
 
 #meteo
 #meteo_path = os.path.join(path_leg,'meteo_exemple.xls')#'meteo_exemple_debugL_gl.xls')##r'H:\devel\grassland\grassland\L-gume\meteo_exemple2.xls'
@@ -48,7 +49,7 @@ def Build_mng_auto(meteo, mng, path_plante, ongletP, DOYdeb, opt_optT):
 
     vdTT, vTTcum, TTcum = [], [], 0.
     for DOY  in mng_auto['DOY']:
-        meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay','RG','Et0','Precip','Tmin','Tmax','Tsol'], 'DOY', val=DOY)
+        meteo_j = IOxls.extract_dataframe(meteo, ['TmoyDay', 'RG', 'Et0', 'Precip', 'Tmin', 'Tmax', 'Tsol'], 'DOY', val=DOY)
         vT, vTsol = sh.Calc_Daily_vT(meteo_j, opt_optT) # daily temperature vector
         valdTT = sh.dTT(vT, [paramP['Tdev'], paramP['Tmin'], paramP['Tmax'], paramP['q']], optT=opt_optT)
         vdTT.append(valdTT)

@@ -1,8 +1,12 @@
+# import sys
+
 from openalea.plantgl.all import *
-import sys
-path_ = r'C:\devel\l-egume\legume'
-sys.path.insert(0, path_)
-from Obj3Dutils import *
+
+from openalea.legume.Obj3Dutils import *
+
+# path_ = r'C:\devel\l-egume\legume'
+# sys.path.insert(0, path_)
+
 
 
 def couleur (echelle, indice):

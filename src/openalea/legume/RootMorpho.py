@@ -1,7 +1,6 @@
 #from scipy import pi, array, sqrt, arange, cos, sin, amax, where, argmin
-import pandas as pd
 import numpy as np
-import IOxls
+from openalea.legume import IOxls
 
 ## gestion des enveloppe et des tropisme -> fonctions dans fichier R 'calc_root_tropism.r'
 

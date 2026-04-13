@@ -1,0 +1,13 @@
+name: legume_dev
+channels:
+  - openalea3/label/dev
+  - openalea3
+  - conda-forge
+dependencies:
+  - python
+  - openalea.plantgl
+  - openalea.lpy
+  - openalea.riri5
+  - openalea.soil3ds
+  - pip:
+      - -e .."[doc, test]"

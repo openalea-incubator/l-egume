@@ -1,16 +1,13 @@
 #from scipy import *
-import IOtable
-import IOxls
-import string
-from copy import deepcopy
-try:
-    from riri5 import RIRI5 as riri #import de la version develop si module soil3ds est installe
-except:
-    import RIRI5 as riri
-
 import numpy as np
 import pandas as pd
 
+from copy import deepcopy
+
+from openalea.riri5 import riri5 as riri
+
+from openalea.legume import IOtable
+from openalea.legume import IOxls
 
 #Temperature response funtions
 def betaT(Tmin, Tmax, q, T):

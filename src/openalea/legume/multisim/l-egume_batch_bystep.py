@@ -10,7 +10,7 @@ import sys
 import pickle
 
 try:
-    import legume
+    from openalea import legume
 
     path_ = os.path.dirname(os.path.abspath(legume.__file__))  # local absolute path of L-egume
 except:
@@ -19,17 +19,17 @@ except:
 print(('path', path_))
 
 sys.path.insert(0, path_)
-import IOxls
-import IOtable
-import run_legume_usm as runl
-import ShootMorpho as sh
-import daily_loop as loop
-import initialisation as initial
+from openalea.legume import IOxls
+from openalea.legume import IOtable
+import openalea.legume.run_legume_usm as runl
+import openalea.legume.ShootMorpho as sh
+import openalea.legume.daily_loop as loop
+import openalea.legume.initialisation as initial
 import numpy as np
 
-from soil3ds import soil_moduleN as solN
-from soil3ds.plt_functions import *
-from riri5 import RIRI5 as riri
+from openalea.soil3ds import soil_moduleN as solN
+from openalea.soil3ds.plt_functions import *
+from openalea.riri5 import riri5 as riri
 
 
 global foldin, fxls, ongletBatch
